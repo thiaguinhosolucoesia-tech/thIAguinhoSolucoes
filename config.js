@@ -1,6 +1,5 @@
 // config.js
-// Este arquivo armazena "segredos" da aplicação de forma ofuscada.
-// Não é segurança criptográfica, mas impede a visualização casual.
+// Armazena "segredos" da aplicação de forma ofuscada (Base64).
 
 const AppConfig = {
     // A string '*177' codificada em Base64
