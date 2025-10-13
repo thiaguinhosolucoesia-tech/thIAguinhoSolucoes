@@ -43,14 +43,14 @@
 
     <script>
         const firebaseConfig = {
-  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-  authDomain: "thiaguinho-solucoes.firebaseapp.com",
-  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-  projectId: "thiaguinho-solucoes",
-  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-  messagingSenderId: "879610267391",
-  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-};
+            apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+            authDomain: "thiaguinho-solucoes.firebaseapp.com",
+            databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+            projectId: "thiaguinho-solucoes",
+            storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+            messagingSenderId: "879610267391",
+            appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
@@ -81,7 +81,7 @@
         async function loadUsers() {
             try {
                 const usersRef = database.ref('users_public_list');
-                usersRef.on('value', (snapshot) => { // Usando .on() para tempo real
+                usersRef.on('value', (snapshot) => {
                     const users = snapshot.val() ? Object.values(snapshot.val()) : [];
                     
                     const userListDiv = document.getElementById('user-list');
@@ -125,7 +125,6 @@
                 const blockRef = database.ref(`users_public_list/${uid}/isBlocked`);
                 await blockRef.set(!isCurrentlyBlocked);
                 alert(`Usuário ${action} com sucesso!`);
-                // Não precisa chamar loadUsers() manualmente, pois o listener .on() fará isso.
             } catch (error) {
                 console.error(`Erro ao ${action} usuário:`, error);
                 alert(`Falha ao ${action} o usuário.`);
