@@ -135,15 +135,16 @@
 
         document.addEventListener('keyup', (e) => {
             keySequence.push(e.key);
-            keySequence = keySequence.slice(-adminTrigger.length); // Mantém apenas o tamanho da sequência
+            keySequence = keySequence.slice(-adminTrigger.length);
 
             // btoa() é uma função nativa do navegador para codificar em Base64
+            // Compara a entrada do usuário (codificada) com a chave do config.js
             if (btoa(keySequence.join('')) === AppConfig.ADMIN_TRIGGER_KEY) {
-                console.log("Sequência de admin detectada. Validando...");
-                // Cria o passe de acesso na sessionStorage
+                // Cria o passe de acesso na sessionStorage (só dura enquanto a aba estiver aberta)
                 sessionStorage.setItem('admin_access_token', 'true');
                 alert('Acesso administrativo verificado. Redirecionando...');
                 window.location.href = 'admin.html';
+                keySequence = []; // Reseta para não acionar de novo
             }
         });
         // ===================== FIM DA LÓGICA DO GATILHO =====================
