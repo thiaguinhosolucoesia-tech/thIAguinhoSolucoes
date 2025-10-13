@@ -118,6 +118,7 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
+        // ======================= LÓGICA CORRIGIDA =======================
         auth.onAuthStateChanged(async (user) => { 
             const userDisplay = document.getElementById('user-display');
             const adminButton = document.getElementById('admin-button');
@@ -125,17 +126,23 @@
             if (user) {
                 userDisplay.textContent = `Logado como: ${user.email}`;
 
-                // Verifica se o usuário tem a role de admin no Realtime Database
-                const adminRef = database.ref(`users_public_list/${user.uid}/role`);
-                const snapshot = await adminRef.once('value');
-                if (snapshot.val() === 'admin') {
-                    adminButton.style.display = 'block';
+                // VERIFICA DINAMICAMENTE A ROLE DO USUÁRIO NO BANCO DE DADOS
+                try {
+                    const adminRef = database.ref(`users_public_list/${user.uid}/role`);
+                    const snapshot = await adminRef.once('value');
+                    
+                    if (snapshot.val() === 'admin') {
+                        adminButton.style.display = 'block'; // Mostra o botão se for admin
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar permissão de admin:", error);
                 }
 
             } else { 
                 window.location.replace('index.html'); 
             } 
         });
+        // ===================== FIM DA LÓGICA CORRIGIDA =====================
 
         document.getElementById('logout-button').addEventListener('click', () => {
             auth.signOut().then(() => { window.location.replace('index.html'); });
