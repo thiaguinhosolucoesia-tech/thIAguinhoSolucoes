@@ -71,6 +71,7 @@
             <span id="user-display">Carregando...</span>
         </div>
         <div class="header-right">
+            <a href="admin.html" id="admin-button" style="display: none;">Painel Administrativo</a>
             <button id="logout-button">Sair</button>
         </div>
     </div>
@@ -125,8 +126,10 @@
             const userDisplay = document.getElementById('user-display');
             
             if (user) {
-                currentUser = user; // Armazena o usuário atual
+                currentUser = user; 
                 userDisplay.textContent = `Logado como: ${user.email}`;
+
+                // A verificação de admin agora é feita pelo listener de teclado
             } else { 
                 window.location.replace('index.html'); 
             } 
@@ -136,33 +139,28 @@
             auth.signOut().then(() => { window.location.replace('index.html'); });
         });
         
-        // NOVO GATILHO DE TECLADO PARA O PAINEL DE ADMIN
         document.addEventListener('keydown', async (e) => {
-            if (!currentUser) return; // Só funciona se o usuário estiver logado
+            if (!currentUser) return; 
 
             userInput.push(e.key);
-            userInput = userInput.slice(-keySequence.length); // Mantém apenas os últimos 4 caracteres
+            userInput = userInput.slice(-keySequence.length);
 
             if (JSON.stringify(userInput) === JSON.stringify(keySequence)) {
-                console.log("Sequência *177 detectada. Verificando permissão de admin...");
-                
                 try {
                     const adminRef = database.ref(`users_public_list/${currentUser.uid}/role`);
                     const snapshot = await adminRef.once('value');
                     
                     if (snapshot.val() === 'admin') {
-                        console.log("Permissão de admin confirmada. Redirecionando...");
                         alert("Acesso de administrador concedido. Redirecionando para o painel.");
                         window.location.href = 'admin.html';
                     } else {
-                        console.log("Usuário não é admin. Nenhuma ação será tomada.");
                         alert("Você não tem permissão para acessar esta área.");
                     }
                 } catch (error) {
                     console.error("Erro ao verificar permissão de admin:", error);
                     alert("Ocorreu um erro ao verificar suas permissões.");
                 }
-                userInput = []; // Reseta a sequência
+                userInput = [];
             }
         });
 
