@@ -1,0 +1,412 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Fest Rio Preto: Guia Interativo v3.1 (Estável)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Orbitron:wght@500;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        :root {
+            --p-blue: #0d1b4c;
+            --a-pink: #ff3e89;
+            --a-green: #a0ff3e;
+            --t-light: #ffffff;
+            --c-bg: rgba(255, 255, 255, 0.1);
+            --c-border: rgba(160, 255, 62, 0.5);
+            --f-korean: 'Noto Sans KR', sans-serif;
+            --shadow-glow: 0 0 10px rgba(160, 255, 62, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--p-blue);
+            color: var(--t-light);
+            background-image: linear-gradient(rgba(13,27,76,0.98),rgba(13,27,76,0.98)),url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.03"><path opacity=".5" d="M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm-9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm-9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm-9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9z" /><path d="M6 5V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h9V0h1v5h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v5h-1v-5h-9v5h-1v-5h-9v5h-1v-5h-9v5h-1v-5h-9v5h-1v-5h-9v5h-1v-5h-9v5h-1v-5h-9v5H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0v-1h5v-9H0V5h6z" /></g></g></svg>');
+        }
+
+        .container { max-width: 950px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 20px 10px; border-radius: 20px; background: var(--c-bg); border: 1px solid var(--c-border); margin-bottom: 20px; }
+        .logo-text { font-size: clamp(2.5rem, 10vw, 3rem); font-weight: 700; color: var(--t-light); text-shadow: 0 0 10px var(--a-pink), 0 0 20px var(--a-pink); }
+        .subtitle { font-size: clamp(1rem, 5vw, 1.5rem); color: var(--a-green); margin-top: 5px;}
+        .organizers { font-size: 0.9rem; margin-top: 15px; color: var(--t-light); opacity: 0.8; font-weight: 600; }
+        .organizers strong { color: var(--a-green); }
+
+        #dynamic-ticker { text-align: center; padding: 20px; margin: 25px 0; border-radius: 15px; background: linear-gradient(135deg, var(--a-pink), var(--a-green)); color: var(--p-blue); font-family: 'Orbitron', sans-serif; animation: pulse-glow 3s infinite alternate; box-shadow: var(--shadow-glow); }
+        @keyframes pulse-glow { from { box-shadow: 0 0 10px var(--a-pink); } to { box-shadow: 0 0 20px var(--a-green); } }
+        #ticker-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; }
+        #ticker-content { font-size: 1.5rem; letter-spacing: 2px; }
+        .live-now { font-size: 1.2rem !important; line-height: 1.5; font-family: 'Poppins', sans-serif !important; }
+
+        .tab-buttons { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 15px; font-size: clamp(.8rem, 3vw, 1rem); font-weight: 600; cursor: pointer; border: 2px solid var(--a-pink); background: transparent; color: var(--t-light); border-radius: 50px; transition: all 0.3s ease; }
+        .tab-btn:hover, .tab-btn.active { background: var(--a-pink); color: var(--p-blue); box-shadow: 0 0 15px var(--a-pink); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-size: clamp(1.5rem, 6vw, 2rem); font-weight: 700; color: var(--a-green); margin-bottom: 20px; text-align: center; border-bottom: 2px solid var(--a-green); padding-bottom: 10px; }
+        .korean-word { font-family: var(--f-korean); color: var(--a-pink); }
+
+        /* Card Styles */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: var(--c-bg); padding: 20px; border-radius: 15px; transition: all 0.3s ease; backdrop-filter: blur(5px); display: flex; flex-direction: column; position: relative; }
+        .event-card { border-left: 5px solid var(--a-pink); }
+        .attraction-card, .game-card, .curiosity-card { border-top: 5px solid var(--a-green); text-align: center; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(160, 255, 62, 0.2); }
+        .event-title { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-weight: 600; }
+        .event-time { font-size: 1.2rem; font-weight: 700; color: var(--a-green); }
+        .event-location { font-size: 0.9rem; opacity: 0.8; }
+        .attraction-desc { flex-grow: 1; margin-bottom: 10px; }
+        .social-link { margin-top: auto; padding-top: 15px; text-decoration: none; font-weight: 600; color: var(--a-green); transition: color .3s; display: block; }
+        .social-link:hover { color: var(--a-pink); }
+        
+        .add-schedule-btn { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; background: var(--a-green); color: var(--p-blue); border: none; font-size: 1.5rem; font-weight: 700; cursor: pointer; transition: transform .2s; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        .add-schedule-btn:hover { transform: scale(1.2); }
+        #my-schedule-list { list-style: none; padding: 0; }
+        .my-schedule-item { background: var(--c-bg); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .remove-schedule-btn { background: var(--a-pink); color: var(--t-light); border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; }
+
+        /* Game Styles */
+        .game-btn { background: var(--a-green); color: var(--p-blue); border: none; padding: 10px 20px; margin-top: 10px; border-radius: 50px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
+        .game-btn:hover { transform: scale(1.1); }
+        
+        /* Quiz */
+        #quiz-area, #food-quiz-area { margin-top: 15px; }
+        #quiz-question, #food-quiz-question { font-size: 1.1rem; margin-bottom: 15px; }
+        #quiz-options, #food-quiz-options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .quiz-option { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s; }
+        .quiz-option:hover { background: var(--a-pink); }
+        .quiz-option.correct { background: var(--a-green); color: var(--p-blue); border-color: var(--a-green); }
+        .quiz-option.incorrect { background: var(--a-pink); border-color: var(--a-pink); }
+        
+        /* Memory Game */
+        .memory-game-container { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; }
+        .memory-stats { display: flex; justify-content: space-around; margin-bottom: 15px; font-size: 1.1rem; font-weight: 600; }
+        .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; perspective: 1000px; max-width: 400px; margin: 0 auto; /* Centraliza no mobile */ }
+        .memory-card { width: 100%; aspect-ratio: 1/1; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .memory-card.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 10px; text-align: center; }
+        .card-front { background: var(--a-pink); font-size: clamp(1.5rem, 10vw, 2.5rem); }
+        .card-back { background: var(--a-green); color: var(--p-blue); transform: rotateY(180deg); font-weight: 600; padding: 5px; font-size: clamp(.6rem, 3.5vw, 1rem); line-height: 1.2; }
+        .memory-card.is-matched { animation: glow-green 0.5s; opacity: 0.5; }
+        @keyframes glow-green { from { box-shadow: 0 0 15px var(--a-green); } to { box-shadow: 0 0 0 var(--a-green); } }
+        
+        .welcome-text p { font-size: 1.1rem; line-height: 1.6; margin-bottom: 15px; }
+        
+        /* Footer */
+        footer { text-align: center; margin-top: 40px; padding: 10px; }
+        .signature { font-size: 0.7em; opacity: 0.6; }
+
+        /* Media Queries para Responsividade */
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .memory-grid { grid-template-columns: repeat(3, 1fr); max-width: 300px; }
+            .tab-buttons { gap: 5px; }
+            .tab-btn { padding: 8px 12px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo-text">K-Fest</h1>
+            <h2 class="subtitle">1º Festival de Cultura Sul-Coreana</h2>
+            <p class="organizers">Realização: <strong>HI-MUNDIM</strong> e <strong>Riopreto Shopping</strong></p>
+        </header>
+
+        <div id="dynamic-ticker">
+            <div id="ticker-title">CONTAGEM REGRESSIVA...</div>
+            <div id="ticker-content">--D --H --M --S</div>
+        </div>
+
+        <nav class="tab-buttons">
+            <button class="tab-btn active" onclick="openTab(event, 'bemvindo')">Bem-Vindo!</button>
+            <button class="tab-btn" onclick="openTab(event, 'sabado')">Sábado</button>
+            <button class="tab-btn" onclick="openTab(event, 'domingo')">Domingo</button>
+            <button class="tab-btn" onclick="openTab(event, 'atracoes')">Atrações</button>
+            <button class="tab-btn" onclick="openTab(event, 'roteiro')">Meu Roteiro</button>
+            <button class="tab-btn" onclick="openTab(event, 'curiosidades')">TMI <span class='korean-word'>꿀팁</span></button>
+            <button class="tab-btn" onclick="openTab(event, 'jogos')">Jogos <span class='korean-word'>놀이</span></button>
+        </nav>
+
+        <div id="bemvindo" class="tab-content active"><h3 class="section-title">Annyeonghaseyo, Rio Preto! <span class="korean-word">안녕하세요!</span></h3><div class="welcome-text card">
+            <p>Seja bem-vindo ao <strong>K-Fest</strong>, o seu portal de imersão na vibrante cultura da Coreia do Sul! Nos dias <strong>4 e 5 de Outubro</strong>, na <strong>Praça 3 do Riopreto Shopping</strong>, você terá a chance de viver a <strong>Hallyu (Onda Coreana)</strong> de perto.</p>
+            <p>Este é um convite para explorar desde os sabores autênticos no **Espaço Sijang (Mercado)**, passando pela tranquilidade do **Espaço Sarang (Empório Cultural)**, até a beleza das paisagens e palácios no **Espaço GwangGwang (Exposição)**. Teremos também a **Exposição do Hyundai Creta**, apresentada pela Hyundai Rodobens!</p>
+            <p>Prepare-se para workshops que ensinam a arte da caligrafia <span class="korean-word">한글</span>, os segredos do K-Beauty com Atomy, e a energia contagiante das apresentações de K-Pop e Taekwondo. Participe de bate-papos enriquecedores com personalidades que vivem e respiram a cultura coreana.</p>
+            <p>Use este guia interativo para mergulhar na programação, conhecer nossos convidados, criar seu roteiro personalizado e se divertir com os jogos do <span class="korean-word">신탁</span>. Seu passaporte para uma experiência inesquecível está em suas mãos!</p>
+        </div></div>
+
+        <div id="sabado" class="tab-content"><h3 class="section-title">Programação de Sábado (04/10)</h3><div class="grid" id="schedule-sabado"></div></div>
+        <div id="domingo" class="tab-content"><h3 class="section-title">Programação de Domingo (05/10)</h3><div class="grid" id="schedule-domingo"></div></div>
+        
+        <div id="atracoes" class="tab-content"><h3 class="section-title">Convidados e Parceiros</h3><div class="grid" id="attractions-grid"></div></div>
+        
+        <div id="roteiro" class="tab-content"><h3 class="section-title">Meu Roteiro <span class="korean-word">나의 일정</span></h3><div class="card">
+            <p>Aqui estão as atrações que você selecionou! Seu guia pessoal para uma jornada K-Fest sem perdas.</p>
+            <ul id="my-schedule-list" style="margin-top: 15px;"><li>Seu roteiro está vazio. Clique no "+" nos eventos para adicioná-los!</li></ul>
+        </div></div>
+
+        <div id="curiosidades" class="tab-content"><h3 class="section-title">Você Sabia? <span class="korean-word">꿀팁 (Dicas de Mel)</span></h3><div class="grid">
+            <div class="card curiosity-card"><h4>O Alfabeto Perfeito: Hangul (<span class="korean-word">한글</span>)</h4><p>Criado no século XV pelo Rei Sejong, o Grande, o Hangul é mundialmente reconhecido por sua lógica e facilidade de aprendizado. Suas consoantes imitam o formato da boca ao pronunciar o som, e as vogais representam o céu, a terra e o homem!</p></div>
+            <div class="card curiosity-card"><h4>Idade Coreana: A Diferença</h4><p>Na Coreia, a "idade coreana" é calculada de forma única: você já nasce com 1 ano de idade! Além disso, todos "envelhecem" um ano juntos no dia 1º de janeiro. Isso significa que sua idade coreana pode ser 1 ou até 2 anos a mais que sua idade ocidental.</p></div>
+            <div class="card curiosity-card"><h4>A Sopa de Aniversário: Miyeok-guk (<span class="korean-word">미역국</span>)</h4><p>Em vez do bolo, a sopa de algas Miyeok-guk é o prato tradicional de aniversário. Ela é consumida pelas mães no pós-parto para recuperação, e no aniversário, simboliza gratidão e saúde.</p></div>
+            <div class="card curiosity-card"><h4>Culinária Coreana: Sabores Inesquecíveis</h4><p>A comida coreana é famosa por seu equilíbrio de sabores e ingredientes fermentados. Pratos como Kimchi (<span class="korean-word">김치</span>), Bibimbap (<span class="korean-word">비빔밥</span>) e Bulgogi (<span class="korean-word">불고기</span>) são ícones da gastronomia, conhecidos por serem saborosos e saudáveis.</p></div>
+        </div></div>
+        
+        <div id="jogos" class="tab-content"><h3 class="section-title">Jogos do <span class="korean-word">신탁 (Sintak)</span></h3><div class="grid">
+             <div class="card game-card"><h4>🧠 Templo da Memória <span class="korean-word">한글</span></h4><p>Honre o alfabeto Hangul. Combine os pares sagrados para provar seu valor. Um desafio de foco e atenção.</p>
+                <div class="memory-game-container" style="margin-top: 15px;">
+                    <div class="memory-stats"><span>Tentativas: <span id="moves-counter">0</span></span><span>Pares: <span id="pairs-counter">0</span> / 6</span></div>
+                    <div class="memory-grid" id="memory-grid"></div>
+                    <button class="game-btn" onclick="startMemoryGame()" style="margin-top: 15px;">Reiniciar Jogo</button>
+                </div>
+            </div>
+            <div class="card game-card"><h4>🔮 Desafio dos Ídolos K-Pop</h4><p>O <span class="korean-word">신탁</span> testa seu conhecimento sobre os maiores grupos de K-Pop. Você é digno de Hallyu?</p>
+                <button class="game-btn" onclick="startQuiz()">Começar Quiz!</button>
+                <div id="quiz-area" style="display:none;"></div>
+            </div>
+             <div class="card game-card"><h4>🍜 Adivinhe a Comida Coreana!</h4><p>Você é um verdadeiro 'foodie' coreano? Reconheça os pratos mais famosos pela descrição!</p>
+                <button class="game-btn" onclick="startFoodQuiz()">Começar Quiz!</button>
+                <div id="food-quiz-area" style="display:none;"></div>
+            </div>
+        </div></div>
+    </div>
+    <footer id="footer">
+        <p class="signature">Desenvolvido por thiAguinho Soluções</p>
+    </footer>
+
+    <script>
+    // --- CONSOLIDATED SCRIPT BLOCK V3.1 ---
+    // Dev Note: All JS logic is now in this single block to prevent race conditions and ensure DOM is ready.
+
+    // --- DATA HUB ---
+    const KFestStart = new Date('2025-10-04T10:00:00-03:00');
+    const KFestEnd = new Date('2025-10-05T20:00:00-03:00');
+
+    const attractionsData = [
+        { name: "Raphael Kim", desc: "CEO da Coreia, conectando culturas através de moda e lifestyle. Conhecido por suas análises sobre o impacto global da Hallyu.", social: "https://www.instagram.com/ceodacoreia" },
+        { name: "Cho Hena", desc: "Intérprete oficial de grandes shows de K-Pop no Brasil (BTS, Stray Kids), especialista em aproximar fãs e ídolos. Não perca sua oficina de pronúncia!", social: "https://www.instagram.com/chohena" },
+        { name: "Priscila Park", desc: "Representante do Centro Cultural Coreano (<span class='korean-word'>주브라질 대한민국 문화원</span>), promovendo a rica herança da Coreia no Brasil. Descubra mais sobre intercâmbio cultural!", social: "https://www.instagram.com/kccbrazil" },
+        { name: "Daye Park", desc: "Artista plástica sul-coreana que une técnicas tradicionais e contemporâneas em suas oficinas de caligrafia (<span class='korean-word'>서예</span>). Uma oportunidade única de aprender o Hangul de forma artística!", social: null },
+        { name: "Atomy", desc: "Gigante do K-Beauty, conhecida mundialmente por seus cosméticos e produtos de alta qualidade baseados em tecnologia de ponta. Participe dos workshops de Skincare!", social: "https://www.instagram.com/atomy_brasil_oficial" },
+        { name: "Ottugi", desc: "Uma das maiores empresas de alimentos da Coreia, famosa por seus lamens (<span class='korean-word'>라면</span>), curries e temperos que são a base da culinária local. Experimente os sabores no Espaço Sijang!", social: "https://www.instagram.com/ottogi_daily" },
+        { name: "Hyundai Rodobens", desc: "Conheça de perto o Hyundai Creta, um dos modelos mais desejados, em uma exposição especial durante o K-Fest!", social: "https://www.instagram.com/hyundairodbens/" },
+    ];
+
+    const fullSchedule = {
+        sabado: [
+            { id: 's01', time: "10:00", title: "🎉 Abertura Oficial", location: "Palco Han" },
+            { id: 's02', time: "10:00", title: "🛒 Espaços Abertos", location: "Sijang, Sarang, GwangGwang" },
+            { id: 's03', time: "11:00", title: "✨ Skincare (K-Beauty)", location: "Ateliê Hallyu - Com Atomy" },
+            { id: 's04', time: "13:00", title: "🗣️ Oficina de Pronúncia", location: "Ateliê Hallyu - Com Cho Hena" },
+            { id: 's05', time: "14:00", title: "💃 Coreografia K-Pop", location: "Palco Han - Com Ana Zini" },
+            { id: 's06', time: "15:00", title: "✨ Skincare (K-Beauty)", location: "Ateliê Hallyu - Com Atomy" },
+            { id: 's07', time: "16:00", title: "🥋 Apres. de Taekwondo", location: "Palco Han - Assoc. Rio Preto" },
+            { id: 's08', time: "16:30", title: "🎨 Oficina Pulseira Army", location: "Ateliê Hallyu - Com Armys RP" },
+            { id: 's09', time: "17:00", title: "🎤 Bate-Papo Cultural", location: "Palco Han - Convidados" },
+            { id: 's10', time: "18:00", title: "❓ Quiz com Prêmios", location: "Palco Han" },
+            { id: 's11', time: "19:00", title: "🎨 Oficina de Hangul", location: "Ateliê Hallyu - Com Daye Park" },
+            { id: 's12', time: "20:30", title: "🎵 Apres. Musical", location: "Palco Han - Grupo YongHang" },
+        ],
+        domingo: [
+            { id: 'd01', time: "14:00", title: "🎉 Abertura das atividades", location: "Todo o Evento" },
+            { id: 'd02', time: "14:00", title: "🛒 Espaços Abertos", location: "Sijang, Sarang, GwangGwang" },
+            { id: 'd03', time: "14:30", title: "🎨 Oficina de Hangul", location: "Ateliê Hallyu - Com Daye Park" },
+            { id: 'd04', time: "15:30", title: "✨ Skincare (K-Beauty)", location: "Ateliê Hallyu - Com Atomy" },
+            { id: 'd05', time: "16:00", title: "💃 Palco Livre K-Pop", location: "Palco Han" },
+            { id: 'd06', time: "18:00", title: "✨ Skincare (K-Beauty)", location: "Ateliê Hallyu - Com Atomy" },
+            { id: 'd07', time: "20:00", title: "👋 Encerramento", location: "Todo o Evento" },
+        ]
+    };
+
+    // --- CORE FUNCTIONS ---
+    function openTab(evt, tabName) {
+        let i, tabcontent = document.getElementsByClassName("tab-content"), tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+        for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function renderSchedules() {
+        Object.keys(fullSchedule).forEach(day => {
+            const container = document.getElementById(`schedule-${day}`);
+            if (!container) return;
+            container.innerHTML = fullSchedule[day].map(event => `
+                <div class="card event-card">
+                    <span class="add-schedule-btn" onclick="addToSchedule('${event.id}', '${event.title}', '${event.time}', '${day}')" title="Adicionar ao meu roteiro">+</span>
+                    <p class="event-time">${event.time}</p>
+                    <h4 class="event-title">${event.title}</h4>
+                    <p class="event-location">${event.location}</p>
+                </div>
+            `).join('');
+        });
+    }
+
+    function renderAttractions() {
+        const container = document.getElementById('attractions-grid');
+        if (!container) return;
+        container.innerHTML = attractionsData.map(attr => `
+            <div class="card attraction-card">
+                <h4>${attr.name}</h4>
+                <p class="attraction-desc">${attr.desc}</p>
+                ${attr.social ? `<a href="${attr.social}" target="_blank" class="social-link">Siga no Instagram ↗</a>` : '<p style="font-size:0.9em; opacity:0.7;">Rede social não disponível</p>'}
+            </div>
+        `).join('');
+    }
+
+    // --- MY SCHEDULE (localStorage) ---
+    let mySchedule = JSON.parse(localStorage.getItem('kfestSchedule')) || [];
+    function renderMySchedule() {
+        const list = document.getElementById('my-schedule-list');
+        if (!list) return;
+        if (mySchedule.length === 0) {
+            list.innerHTML = '<li>Seu roteiro está vazio. Clique no "+" nos eventos!</li>';
+            return;
+        }
+        list.innerHTML = mySchedule.map(event => `
+            <li class="my-schedule-item" id="item-${event.id}">
+                <span><strong>${event.time} (${event.day === 'sabado' ? 'Sáb' : 'Dom'})</strong> - ${event.title}</span>
+                <button class="remove-schedule-btn" onclick="removeFromSchedule('${event.id}')">X</button>
+            </li>
+        `).join('');
+    }
+    function addToSchedule(id, title, time, day) {
+        if (mySchedule.some(event => event.id === id)) { alert("Este evento já está no seu roteiro!"); return; }
+        mySchedule.push({ id, title, time, day });
+        mySchedule.sort((a,b) => {
+            const dateA = new Date(`2025-10-${a.day === 'sabado' ? '04' : '05'}T${a.time}:00`);
+            const dateB = new Date(`2025-10-${b.day === 'sabado' ? '04' : '05'}T${b.time}:00`);
+            return dateA - dateB;
+        });
+        localStorage.setItem('kfestSchedule', JSON.stringify(mySchedule));
+        renderMySchedule();
+        alert(`"${title}" adicionado ao seu roteiro!`);
+    }
+    function removeFromSchedule(id) {
+        mySchedule = mySchedule.filter(event => event.id !== id);
+        localStorage.setItem('kfestSchedule', JSON.stringify(mySchedule));
+        renderMySchedule();
+    }
+
+    // --- DYNAMIC TICKER ---
+    const tickerInterval = setInterval(() => {
+        const now = new Date();
+        const tickerTitle = document.getElementById('ticker-title'), tickerContent = document.getElementById('ticker-content');
+        if (!tickerTitle || !tickerContent) return;
+
+        if (now < KFestStart) {
+            const diff = KFestStart - now, d = Math.floor(diff / 864e5), h = Math.floor(diff % 864e5 / 36e5), m = Math.floor(diff % 36e5 / 6e4), s = Math.floor(diff % 6e4 / 1e3);
+            tickerContent.innerHTML = `${d}D ${h}H ${m}M ${s}S`;
+        } else if (now <= KFestEnd) {
+            tickerTitle.textContent = "ACONTECENDO AGORA:";
+            const currentEvents = eventSchedule.filter(e => now >= e.start && now < e.end);
+            tickerContent.innerHTML = currentEvents.length > 0 ? `<div class="live-now">${currentEvents.map(e => e.name).join('<br>')}</div>` : `<div class="live-now">Intervalo! Explore os espaços!</div>`;
+        } else {
+            tickerTitle.textContent = "K-FEST"; tickerContent.innerHTML = `<div class="live-now">Evento finalizado! 감사합니다!</div>`;
+            clearInterval(tickerInterval);
+        }
+    }, 1000);
+
+    // --- GAMES LOGIC ---
+    // Memory Game
+    const memoryData = [ {k:'사랑',r:'Amor'}, {k:'친구',r:'Amigo'}, {k:'감사',r:'Gratidão'}, {k:'안녕',r:'Olá/Paz'}, {k:'희망',r:'Esperança'}, {k:'꿈',r:'Sonho'} ];
+    let flippedCards = [], matchedPairs = 0, movesCounter = 0, lockBoard = false;
+    function startMemoryGame() {
+        const grid = document.getElementById('memory-grid');
+        if (!grid) return;
+        grid.innerHTML = ''; flippedCards = []; matchedPairs = 0; movesCounter = 0; lockBoard = false;
+        document.getElementById('moves-counter').textContent = 0; document.getElementById('pairs-counter').textContent = 0;
+        let deck = [...memoryData, ...memoryData].map((d, i) => ({...d, id: i}));
+        deck.sort(() => 0.5 - Math.random());
+        deck.forEach(d => {
+            const cardEl = document.createElement('div');
+            cardEl.classList.add('memory-card'); cardEl.dataset.value = d.k; cardEl.dataset.id = d.id;
+            cardEl.innerHTML = `<div class="card-face card-front">K?</div><div class="card-face card-back"><span class="korean-word">${d.k}</span><br>${d.r}</div>`;
+            cardEl.addEventListener('click', () => {
+                if (lockBoard || cardEl.classList.contains('is-flipped') || flippedCards.includes(cardEl)) return;
+                cardEl.classList.add('is-flipped'); flippedCards.push(cardEl);
+                if (flippedCards.length === 2) {
+                    lockBoard = true; movesCounter++; document.getElementById('moves-counter').textContent = movesCounter;
+                    setTimeout(() => {
+                        const [c1, c2] = flippedCards;
+                        if (c1.dataset.value === c2.dataset.value && c1.dataset.id !== c2.dataset.id) {
+                            c1.classList.add('is-matched'); c2.classList.add('is-matched'); matchedPairs++;
+                            document.getElementById('pairs-counter').textContent = matchedPairs;
+                            if (matchedPairs === memoryData.length) setTimeout(()=>alert('Parabéns! Sua memória é divina!'), 500);
+                        } else {
+                            c1.classList.remove('is-flipped'); c2.classList.remove('is-flipped');
+                        }
+                        flippedCards = []; lockBoard = false;
+                    }, 1000);
+                }
+            });
+            grid.appendChild(cardEl);
+        });
+    }
+
+    // K-Pop Quiz
+    const quizData = [ { q: "Qual grupo canta o hit 'Dynamite'?", o: ["Stray Kids", "BTS", "EXO"], a: "BTS" }, { q: "Fandom do BLACKPINK?", o: ["Blink", "Once", "ARMY"], a: "Blink" }, { q: "Qual desses idols NÃO é do Stray Kids?", o: ["Bang Chan", "Hyunjin", "Jungkook"], a: "Jungkook" }];
+    let currentQuizQuestion = 0;
+    function startQuiz() {
+        const quizArea = document.getElementById('quiz-area');
+        quizArea.style.display = 'block'; currentQuizQuestion = 0;
+        quizArea.innerHTML = `<p id="quiz-question"></p><div id="quiz-options"></div><p id="quiz-feedback"></p>`;
+        showQuizQuestion();
+    }
+    function showQuizQuestion() {
+        if (currentQuizQuestion >= quizData.length) { document.getElementById('quiz-question').textContent = 'Fim do desafio!'; return; }
+        const q = quizData[currentQuizQuestion], optDiv = document.getElementById('quiz-options');
+        document.getElementById('quiz-question').textContent = q.q;
+        optDiv.innerHTML = '';
+        q.o.forEach(opt => { optDiv.innerHTML += `<div class="quiz-option" onclick="checkQuizAnswer(this, '${opt}')">${opt}</div>`; });
+        document.getElementById('quiz-feedback').textContent = '';
+    }
+    function checkQuizAnswer(el, answer) {
+        const correct = answer === quizData[currentQuizQuestion].a, feedback = document.getElementById('quiz-feedback');
+        el.classList.add(correct ? 'correct' : 'incorrect');
+        feedback.textContent = correct ? "Correto!" : "Incorreto.";
+        Array.from(el.parentNode.children).forEach(c => c.style.pointerEvents = 'none');
+        setTimeout(() => { currentQuizQuestion++; showQuizQuestion(); }, 1500);
+    }
+
+    // Food Quiz
+    const foodQuizData = [ { q: "Prato de vegetais fermentados, o mais famoso da Coreia.", o: ["Bibimbap", "Kimchi", "Bulgogi"], a: "Kimchi" }, { q: "Arroz misturado com vegetais, carne e ovo frito.", o: ["Japchae", "Gimbap", "Bibimbap"], a: "Bibimbap" }, { q: "Massa de arroz apimentada e doce.", o: ["Tteokbokki", "Samgyeopsal", "Kimchi Jjigae"], a: "Tteokbokki" }];
+    let currentFoodQuestion = 0;
+    function startFoodQuiz() {
+        const foodQuizArea = document.getElementById('food-quiz-area');
+        foodQuizArea.style.display = 'block'; currentFoodQuestion = 0;
+        foodQuizArea.innerHTML = `<p id="food-quiz-question"></p><div id="food-quiz-options"></div><p id="food-quiz-feedback"></p>`;
+        showFoodQuizQuestion();
+    }
+    function showFoodQuizQuestion() {
+        if (currentFoodQuestion >= foodQuizData.length) { document.getElementById('food-quiz-question').textContent = 'Fim do quiz!'; return; }
+        const q = foodQuizData[currentFoodQuestion], optDiv = document.getElementById('food-quiz-options');
+        document.getElementById('food-quiz-question').textContent = q.q;
+        optDiv.innerHTML = '';
+        q.o.forEach(opt => { optDiv.innerHTML += `<div class="quiz-option" onclick="checkFoodQuizAnswer(this, '${opt}')">${opt}</div>`; });
+        document.getElementById('food-quiz-feedback').textContent = '';
+    }
+    function checkFoodQuizAnswer(el, answer) {
+        const correct = answer === foodQuizData[currentFoodQuestion].a, feedback = document.getElementById('food-quiz-feedback');
+        el.classList.add(correct ? 'correct' : 'incorrect');
+        feedback.textContent = correct ? "Acertou!" : "Errou.";
+        Array.from(el.parentNode.children).forEach(c => c.style.pointerEvents = 'none');
+        setTimeout(() => { currentFoodQuestion++; showFoodQuizQuestion(); }, 1500);
+    }
+
+    // --- APP INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        renderSchedules();
+        renderAttractions();
+        renderMySchedule();
+        startMemoryGame();
+        document.querySelector('.tab-btn').click();
+    });
+    </script>
+</body>
+</html>
+

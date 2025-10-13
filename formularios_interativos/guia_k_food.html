@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo de Comida Coreana</title>
+    <style>
+        /* Estilo Geral */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Cabeçalho */
+        .header {
+            background-color: #002d72; /* Azul corporativo coreano */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* Botão Acordeão */
+        .accordion {
+            background-color: #f9f9f9;
+            color: #444;
+            cursor: pointer;
+            padding: 18px 20px;
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            outline: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion:after {
+            content: '\\002B'; /* Símbolo de + */
+            color: #002d72;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .accordion.active:after {
+            content: "\\2212"; /* Símbolo de - */
+        }
+
+        .accordion:hover {
+            background-color: #e9e9f9;
+        }
+
+        .accordion.active {
+            background-color: #e0e0f0;
+        }
+
+        /* Painel de Conteúdo */
+        .panel {
+            padding: 0 20px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .panel p {
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .panel h4 {
+            color: #002d72;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-left: 3px solid #d9002c; /* Vermelho corporativo coreano */
+            padding-left: 8px;
+        }
+
+        .panel strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Guia Rápido K-Food</h1>
+    </div>
+
+    <button class="accordion">TOPPOKI (떡볶이)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Um dos pratos de rua mais populares da Coreia. Consiste em cilindros de massa de arroz (parecidos com nhoque) cozidos em um molho saboroso.</p>
+        <h4>Detalhes para o Cliente:</h4>
+        <p>
+            <strong>Com Pimenta:</strong> Versão clássica com molho agridoce e picante à base de <i>gochujang</i>.<br>
+            <strong>Sem Pimenta:</strong> Versão suave, com molho de shoyu ou cremoso.<br>
+            <strong>Queijo:</strong> Cobertura de mussarela ou cheddar derretido que suaviza a picância e adiciona cremosidade.
+        </p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"É o prato de rua número 1 da Coreia. Uma massa de arroz macia com um molho que pode ser picante ou não, com queijo por cima para ficar ainda mais gostoso."</i></p>
+    </div>
+
+    <button class="accordion">ONIGUIRI (주먹밥)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Um bolinho de arroz temperado, em formato de triângulo, envolto em alga nori. É um lanche prático e completo.</p>
+        <h4>Detalhes para o Cliente:</h4>
+        <p>Apesar do nome japonês, é muito popular na Coreia (onde se chama <i>Jumeokbap</i>). Os recheios definem o sabor: Atum com maionese (suave), Frango Teriyaki (agridoce) ou Kimchi (apimentado e autêntico).</p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"É um lanche de arroz super prático, como um sanduíche, mas feito de arroz. Perfeito para comer enquanto passeia pelo evento."</i></p>
+    </div>
+
+    <button class="accordion">KIMBAP (김밥)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Um rolo de arroz com diversos ingredientes cozidos e vegetais, envolto em alga marinha e fatiado.</p>
+        <h4>Detalhes para o Cliente:</h4>
+        <p>
+            Parece sushi, mas o sabor é diferente. O arroz é temperado com <strong>óleo de gergelim e sal</strong> (não vinagre), e o recheio leva ingredientes cozidos (omelete, cenoura, espinafre, nabo), nunca peixe cru.
+        </p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"Parece sushi, mas o sabor é único! É um rolinho de arroz com vegetais e omelete, temperado com óleo de gergelim. Uma refeição leve e completa."</i></p>
+    </div>
+    
+    <button class="accordion">CUP LAMEN (컵라면)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Macarrão instantâneo coreano (<i>Ramyeon</i>), famoso pela qualidade da massa e intensidade do caldo, servido em copo.</p>
+        <h4>Detalhes para o Cliente:</h4>
+        <p>A massa é mais elástica e os caldos, geralmente mais picantes e complexos que as versões brasileiras. A diferença de preço (75g vs 110g) é apenas o tamanho da porção.</p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"O famoso macarrão instantâneo da Coreia, muito mais saboroso e geralmente mais picante que os que conhecemos."</i></p>
+    </div>
+    
+    <button class="accordion">PEPERO (빼빼로)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Um biscoito em formato de palito coberto com chocolate ou outros sabores. É um ícone cultural na Coreia.</p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"É o snack mais famoso da Coreia. Um palitinho de biscoito crocante coberto de chocolate, é viciante!"</i></p>
+    </div>
+
+    <button class="accordion">CHOCO PIE (초코파이)</button>
+    <div class="panel">
+        <h4>O que é:</h4>
+        <p>Um doce clássico que consiste em dois bolinhos macios com recheio de marshmallow, coberto por chocolate.</p>
+        <h4>Argumento de Venda:</h4>
+        <p><i>"Um dos doces mais tradicionais da Coreia. Um bolinho super macio recheado com marshmallow e coberto com chocolate."</i></p>
+    </div>
+</div>
+
+<script>
+    // Lógica do Acordeão
+    const accordions = document.getElementsByClassName("accordion");
+
+    for (let i = 0; i < accordions.length; i++) {
+        accordions[i].addEventListener("click", function() {
+            // Fecha todos os outros painéis para manter apenas um aberto
+            for (let j = 0; j < accordions.length; j++) {
+                if (accordions[j] !== this) {
+                    accordions[j].classList.remove("active");
+                    let panelToClose = accordions[j].nextElementSibling;
+                    panelToClose.style.maxHeight = null;
+                    panelToClose.style.paddingTop = null;
+                    panelToClose.style.paddingBottom = null;
+                }
+            }
+
+            // Abre ou fecha o painel clicado
+            this.classList.toggle("active");
+            let panel = this.nextElementSibling;
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+                panel.style.paddingTop = null;
+                panel.style.paddingBottom = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+                panel.style.paddingTop = "15px";
+                panel.style.paddingBottom = "15px";
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
