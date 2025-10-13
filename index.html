@@ -16,7 +16,9 @@
         label { font-weight: 600; color: #555; margin-bottom: 8px; display: block; }
         input { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
         .button-group { display: flex; gap: 10px; margin-top: 30px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; position: relative; }
+        button.loading::after { content: ''; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid rgba(255,255,255,0.5); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         #login-button { background-color: var(--primary-blue); color: white; }
         #signup-button { background-color: var(--accent-color); color: white; }
         #error-message { color: #dc3545; margin-top: 20px; min-height: 20px; }
@@ -24,7 +26,7 @@
 </head>
 <body>
     <div class="login-container">
-        <h1>Bem-vindo à Plataforma thIAguinho Soluções</h1>
+        <h1>Bem-vindo à Plataforma</h1>
         <form id="login-form">
             <div class="form-group"><label for="email">Email</label><input type="email" id="email" required></div>
             <div class="form-group"><label for="password">Senha</label><input type="password" id="password" required></div>
@@ -53,7 +55,13 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        auth.onAuthStateChanged(user => { if (user) { window.location.replace('dashboard.html'); } });
+        // Este listener agora só redireciona se o usuário JÁ ESTIVER logado ao carregar a página.
+        auth.onAuthStateChanged(user => { 
+            if (user) { 
+                console.log("Usuário já logado, redirecionando...");
+                window.location.replace('dashboard.html'); 
+            } 
+        });
 
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
@@ -61,11 +69,33 @@
         const signupButton = document.getElementById('signup-button');
         const errorMessage = document.getElementById('error-message');
 
+        function toggleLoading(button, isLoading) {
+            if (isLoading) {
+                button.classList.add('loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
         loginButton.addEventListener('click', () => {
             const email = emailInput.value;
             const password = passwordInput.value;
+            errorMessage.textContent = '';
+            toggleLoading(loginButton, true);
+
             auth.signInWithEmailAndPassword(email, password)
-                .catch(error => { errorMessage.textContent = "Email ou senha inválidos."; });
+                .then(userCredential => {
+                    // O redirecionamento será tratado pelo onAuthStateChanged na próxima página
+                    // ou pelo listener principal se a página não mudar.
+                    // A linha abaixo garante o redirecionamento manual.
+                    window.location.replace('dashboard.html');
+                })
+                .catch(error => { 
+                    errorMessage.textContent = "Email ou senha inválidos."; 
+                    toggleLoading(loginButton, false);
+                });
         });
 
         signupButton.addEventListener('click', () => {
@@ -73,28 +103,37 @@
             if (adminCode === '*177') {
                 const email = emailInput.value;
                 const password = passwordInput.value;
+                errorMessage.textContent = '';
+                toggleLoading(signupButton, true);
+
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(userCredential => {
                         const user = userCredential.user;
                         const userRef = database.ref('users_public_list/' + user.uid);
-                        userRef.set({
+                        
+                        // Garante que a escrita no banco de dados aconteça ANTES de qualquer outra coisa
+                        return userRef.set({
                             email: user.email,
                             uid: user.uid,
                             createdAt: new Date().toISOString(),
                             isBlocked: false,
-                            role: 'user' // Define a role padrão
-                        }).then(() => {
-                            alert('Cadastro realizado com sucesso! Você será redirecionado.');
-                        }).catch(dbError => {
-                            errorMessage.textContent = "Erro ao salvar dados do usuário.";
+                            role: 'user'
                         });
+                    })
+                    .then(() => {
+                        // Apenas após a escrita no DB ser bem-sucedida, redirecionamos.
+                        alert('Cadastro realizado com sucesso!');
+                        window.location.replace('dashboard.html');
                     })
                     .catch(error => {
                         if (error.code === 'auth/email-already-in-use') {
                             errorMessage.textContent = "Este email já está cadastrado.";
+                        } else if(error.code === 'auth/weak-password') {
+                            errorMessage.textContent = "A senha deve ter pelo menos 6 caracteres.";
                         } else {
                             errorMessage.textContent = "Erro ao cadastrar. Verifique os dados.";
                         }
+                        toggleLoading(signupButton, false);
                     });
             } else if (adminCode !== null) {
                 errorMessage.textContent = "Código de administrador inválido.";
