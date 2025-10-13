@@ -42,36 +42,29 @@
 
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log("[TESTE] Usuário autenticado:", user.email, "UID:", user.uid);
-                statusDiv.textContent = `Usuário ${user.email} autenticado. Verificando permissões no banco de dados...`;
+                statusDiv.textContent = `Usuário ${user.email} autenticado. Verificando permissões...`;
                 
                 const adminRef = database.ref(`users_public_list/${user.uid}/role`);
-                console.log("[TESTE] Caminho da consulta no DB:", adminRef.toString());
 
                 try {
                     const snapshot = await adminRef.once('value');
                     const userRole = snapshot.val();
                     
-                    console.log("[TESTE] Resposta do Banco de Dados (snapshot.val()):", userRole);
-
                     if (userRole === 'admin') {
                         statusDiv.textContent = "SUCESSO: Você é um administrador.";
                         statusDiv.className = 'status-success';
-                        console.log("[TESTE] VEREDITO: Admin confirmado.");
                     } else {
                         statusDiv.textContent = "FALHA: Você não é um administrador. Role encontrada: " + userRole;
                         statusDiv.className = 'status-fail';
-                        console.log("[TESTE] VEREDITO: Permissão de admin negada.");
                     }
                 } catch (error) {
                     statusDiv.textContent = "ERRO: Falha ao consultar o banco de dados. Verifique o console.";
                     statusDiv.className = 'status-fail';
-                    console.error("[TESTE] ERRO CRÍTICO na leitura do DB:", error);
+                    console.error("ERRO CRÍTICO na leitura do DB:", error);
                 }
             } else {
                 statusDiv.textContent = "FALHA: Nenhum usuário logado. Redirecionando...";
                 statusDiv.className = 'status-fail';
-                console.log("[TESTE] Nenhum usuário encontrado. Redirecionando para login.");
                 setTimeout(() => { window.location.replace('index.html'); }, 2000);
             }
         });
