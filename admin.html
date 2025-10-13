@@ -34,14 +34,13 @@
             <div id="user-list"></div>
         </div>
     </div>
-    <div id="loading"><p>Verificando permissões...</p></div>
-    <div id="access-denied" style="display: none;"><p>Acesso negado. Esta área é restrita a administradores.</p></div>
+    <div id="loading"><p>Verificando passe de acesso...</p></div>
+    <div id="access-denied" style="display: none;"><p>Acesso negado. Retorne ao dashboard e use o código de acesso.</p></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-    <script>
+    <script src="config.js"></script> <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
             authDomain: "thiaguinho-solucoes.firebaseapp.com",
@@ -55,22 +54,31 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        auth.onAuthStateChanged(async user => {
-            if (user) {
-                const adminRef = database.ref(`users_public_list/${user.uid}/role`);
-                const snapshot = await adminRef.once('value');
-                if (snapshot.val() === 'admin') {
-                    document.getElementById('loading').textContent = 'Carregando dados de usuários...';
-                    document.getElementById('access-denied').style.display = 'none';
-                    document.getElementById('admin-panel').style.display = 'block';
-                    await loadUsers();
-                } else {
-                    showAccessDenied();
-                }
+        // ======================= NOVO AUTH GUARD =======================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica se o passe de acesso existe na sessionStorage
+            const adminToken = sessionStorage.getItem('admin_access_token');
+
+            if (adminToken === 'true') {
+                // Se o passe existe, remove-o para que não possa ser reutilizado se a página for recarregada
+                // e só funciona para esta sessão.
+                sessionStorage.removeItem('admin_access_token');
+                
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('access-denied').style.display = 'none';
+                        document.getElementById('admin-panel').style.display = 'block';
+                        loadUsers();
+                    } else {
+                        showAccessDenied();
+                    }
+                });
             } else {
                 showAccessDenied();
             }
         });
+        // =============================================================
 
         function showAccessDenied() {
             document.getElementById('loading').style.display = 'none';
@@ -108,7 +116,6 @@
                         `;
                         userListDiv.appendChild(card);
                     });
-                     document.getElementById('loading').style.display = 'none';
                 });
 
             } catch (error) {
