@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
+        .header { background: var(--primary-blue); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; }
+        .header a { color: white; background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 50px; text-decoration: none; font-weight: 600; }
+        .container { padding: 30px; max-width: 1200px; margin: auto; }
+        .user-card { background: var(--card-background); border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .user-info { display: flex; flex-direction: column; }
+        .user-email { font-weight: 600; font-size: 1.1rem; }
+        .user-uid { font-size: 0.8rem; color: var(--text-light); font-family: monospace; }
+        .user-status { font-weight: bold; }
+        .user-actions button { border: none; border-radius: 8px; padding: 10px 15px; font-weight: 600; cursor: pointer; }
+        .btn-block { background-color: var(--danger-color); color: white; }
+        .btn-unblock { background-color: var(--success-color); color: white; }
+        #loading, #access-denied { text-align: center; padding: 50px; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div id="admin-panel" style="display: none;">
+        <div class="header">
+            <h1>Painel Administrativo</h1>
+            <a href="dashboard.html">Voltar ao Dashboard</a>
+        </div>
+        <div class="container">
+            <h2>Gerenciamento de Usuários</h2>
+            <div id="user-list"></div>
+        </div>
+    </div>
+    <div id="loading"><p>Verificando permissões...</p></div>
+    <div id="access-denied" style="display: none;"><p>Acesso negado. Esta área é restrita a administradores.</p></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+  authDomain: "thiaguinho-solucoes.firebaseapp.com",
+  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+  projectId: "thiaguinho-solucoes",
+  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+  messagingSenderId: "879610267391",
+  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+};
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const adminRef = database.ref(`users_public_list/${user.uid}/role`);
+                const snapshot = await adminRef.once('value');
+                if (snapshot.val() === 'admin') {
+                    document.getElementById('loading').textContent = 'Carregando dados de usuários...';
+                    document.getElementById('access-denied').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'block';
+                    await loadUsers();
+                } else {
+                    showAccessDenied();
+                }
+            } else {
+                showAccessDenied();
+            }
+        });
+
+        function showAccessDenied() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('access-denied').style.display = 'block';
+        }
+
+        async function loadUsers() {
+            try {
+                const usersRef = database.ref('users_public_list');
+                usersRef.on('value', (snapshot) => { // Usando .on() para tempo real
+                    const users = snapshot.val() ? Object.values(snapshot.val()) : [];
+                    
+                    const userListDiv = document.getElementById('user-list');
+                    userListDiv.innerHTML = '';
+                    
+                    users.sort((a, b) => a.email.localeCompare(b.email)).forEach(user => {
+                        const card = document.createElement('div');
+                        card.className = 'user-card';
+                        card.innerHTML = `
+                            <div class="user-info">
+                                <span class="user-email">${user.email} ${user.role === 'admin' ? '<strong>(Admin)</strong>' : ''}</span>
+                                <span class="user-uid">UID: ${user.uid}</span>
+                                <span class="user-status" style="color: ${user.isBlocked ? 'var(--danger-color)' : 'var(--success-color)'};">
+                                    Status: ${user.isBlocked ? 'Bloqueado' : 'Ativo'}
+                                </span>
+                            </div>
+                            <div class="user-actions">
+                                ${user.role !== 'admin' ? `
+                                <button class="${user.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleUserBlock('${user.uid}', ${user.isBlocked || false})">
+                                    ${user.isBlocked ? 'Desbloquear' : 'Bloquear'}
+                                </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        userListDiv.appendChild(card);
+                    });
+                     document.getElementById('loading').style.display = 'none';
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar usuários:", error);
+                document.getElementById('user-list').innerHTML = `<p>Ocorreu um erro ao carregar a lista de usuários.</p>`;
+            }
+        }
+        
+        async function toggleUserBlock(uid, isCurrentlyBlocked) {
+            const action = isCurrentlyBlocked ? 'desbloquear' : 'bloquear';
+            if (!confirm(`Tem certeza que deseja ${action} o usuário?`)) return;
+
+            try {
+                const blockRef = database.ref(`users_public_list/${uid}/isBlocked`);
+                await blockRef.set(!isCurrentlyBlocked);
+                alert(`Usuário ${action} com sucesso!`);
+                // Não precisa chamar loadUsers() manualmente, pois o listener .on() fará isso.
+            } catch (error) {
+                console.error(`Erro ao ${action} usuário:`, error);
+                alert(`Falha ao ${action} o usuário.`);
+            }
+        }
+    </script>
+</body>
+</html>
