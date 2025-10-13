@@ -103,22 +103,19 @@
 
 <script>
     const firebaseConfig = {
-  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-  authDomain: "thiaguinho-solucoes.firebaseapp.com",
-  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-  projectId: "thiaguinho-solucoes",
-  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-  messagingSenderId: "879610267391",
-  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-};
+        apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+        authDomain: "thiaguinho-solucoes.firebaseapp.com",
+        databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+        projectId: "thiaguinho-solucoes",
+        storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+        messagingSenderId: "879610267391",
+        appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const database = firebase.database();
     
-    // ========================================
-    // MÓDULO DE GERENCIAMENTO DE DADOS (FIREBASE)
-    // ========================================
     const DataManager = {
         uid: null,
         activePatientId: null,
@@ -191,8 +188,7 @@
             await ref.set(ativado);
         }
     };
-    // O restante dos módulos (UI, NotificationManager, TreatmentManager, etc.) foram adaptados para serem assíncronos
-    // e estão incluídos no script principal abaixo, sem abreviação.
+    
     const UI = {
         mostrarToast(mensagem, tipo = 'info') {
             const toast = document.createElement('div');
@@ -242,10 +238,35 @@
             else { return `amanhã às ${horario}`; }
         }
     };
+
     const NotificationManager = {
-        // Funcionalidade de notificação desativada temporariamente.
-        atualizarBadge: async () => { /* Lógica de badge pode ser mantida se desejado */ }
+        atualizarBadge: async () => {
+             const doses = await DataManager.carregarDoses();
+            const badge = document.getElementById('notification-badge');
+            if (!doses || doses.length === 0) {
+                badge.classList.add('hidden');
+                return;
+            }
+            const agora = new Date();
+            let pendentes = 0;
+            
+            doses.forEach(dose => {
+                if (dose.concluido) return;
+                const [horas, minutos] = dose.horario.split(':');
+                const horarioDose = new Date();
+                horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
+                if (horarioDose <= agora) pendentes++;
+            });
+
+            if (pendentes > 0) {
+                badge.textContent = pendentes;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
     };
+    
     const TreatmentManager = {
         tratamentos: [], dosesDiarias: [],
         async init() {
@@ -314,6 +335,7 @@
             }); return { total: this.tratamentos.length, ativos, concluidos };
         }
     };
+    
     const Renderer = {
         async renderApp() {
             if (DataManager.activePatientId) {
