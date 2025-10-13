@@ -9,256 +9,138 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #005c97;
-            --secondary-blue: #363795;
-            --accent-color: #00b4d8;
-            --background-light: #f0f2f5;
-            --card-background: #ffffff;
-            --text-dark: #212529;
-            --text-light: #6c757d;
+            --primary-blue: #005c97; --secondary-blue: #363795; --accent-color: #00b4d8;
+            --background-light: #f0f2f5; --card-background: #ffffff;
+            --text-dark: #212529; --text-light: #6c757d;
         }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--background-light);
-            margin: 0;
-            color: var(--text-dark);
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
         .header {
             background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
-            color: white;
-            padding: 20px 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            color: white; padding: 20px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
         }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; }
         .header h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
-        .header button {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid white;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
+        .header #user-display { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .header a, .header button {
+            background: rgba(255,255,255,0.2); border: 1px solid white; color: white;
+            padding: 8px 18px; border-radius: 50px; cursor: pointer; font-weight: 600;
+            transition: all 0.2s ease; text-decoration: none; font-family: 'Poppins', sans-serif; font-size: 1rem;
         }
-        .header button:hover { background: white; color: var(--primary-blue); }
+        .header a:hover, .header button:hover { background: white; color: var(--primary-blue); }
         .container { padding: 30px; max-width: 1200px; margin: auto; }
-
-        /* --- NOVA ANIMAÇÃO DO ACORDEÃO --- */
         .accordion {
-            background-color: var(--card-background);
-            color: var(--primary-blue);
-            cursor: pointer;
-            padding: 20px 25px;
-            width: 100%;
-            border: 1px solid #e9ecef;
-            border-radius: 15px;
-            text-align: left;
-            outline: none;
-            font-size: 1.6rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background-color: var(--card-background); color: var(--primary-blue); cursor: pointer;
+            padding: 20px 25px; width: 100%; border: 1px solid #e9ecef; border-radius: 15px;
+            text-align: left; outline: none; font-size: 1.6rem; font-weight: 600; transition: all 0.3s ease;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .accordion:hover, .accordion.active {
-            color: var(--secondary-blue);
-            box-shadow: 0 8px 25px rgba(0, 92, 151, 0.1);
-        }
+        .accordion:hover, .accordion.active { color: var(--secondary-blue); box-shadow: 0 8px 25px rgba(0, 92, 151, 0.1); }
         .accordion:after {
             content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='%2300b4d8'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z'/%3E%3C/svg%3E");
-            transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-            transform: rotate(0deg);
+            transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); transform: rotate(0deg);
         }
-        .accordion.active:after {
-            transform: rotate(90deg);
-        }
-        /* --- FIM DA ANIMAÇÃO --- */
-
-        .panel {
-            padding: 0;
-            background-color: transparent;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out;
-        }
-        .panel-content {
-             padding: 30px 10px;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-        }
+        .accordion.active:after { transform: rotate(90deg); }
+        .panel { padding: 0; background-color: transparent; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .panel-content { padding: 30px 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
         .card {
-            background-color: var(--card-background);
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
-            text-decoration: none;
-            color: var(--text-dark);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #e9ecef;
-            overflow: hidden;
+            background-color: var(--card-background); border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            text-decoration: none; color: var(--text-dark); display: flex; flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #e9ecef; overflow: hidden;
         }
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0, 92, 151, 0.12);
-        }
-        .card-content {
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0, 92, 151, 0.12); }
+        .card-content { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
         .card-header { display: flex; align-items: center; margin-bottom: 15px; }
         .card-icon { font-size: 2rem; margin-right: 15px; line-height: 1; }
         .card-title { font-size: 1.25rem; font-weight: 600; }
-        .card-description {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            line-height: 1.6;
-            flex-grow: 1;
-        }
-        .card-request {
-            background: var(--secondary-blue);
-            color: white;
-            border: none;
-        }
-        .card-request:hover {
-             box-shadow: 0 12px 30px rgba(54, 55, 149, 0.25);
-        }
+        .card-description { font-size: 0.95rem; color: var(--text-light); line-height: 1.6; flex-grow: 1; }
+        .card-request { background: var(--secondary-blue); color: white; }
+        .card-request:hover { box-shadow: 0 12px 30px rgba(54, 55, 149, 0.25); }
         .card-request .card-title { color: white; }
         .card-request .card-description { color: rgba(255,255,255,0.8); }
-        .intro-text {
-            text-align: center;
-            font-size: 1.1rem;
-            color: var(--text-light);
-            max-width: 800px;
-            margin: 0 auto 30px auto;
-        }
+        .intro-text { text-align: center; font-size: 1.1rem; color: var(--text-light); max-width: 800px; margin: 0 auto 30px auto; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Plataforma thIAguinho Soluções</h1>
-        <button id="logout-button">Sair</button>
+        <div class="header-left">
+            <h1>Plataforma thIAguinho Soluções</h1>
+            <span id="user-display">Carregando...</span>
+        </div>
+        <div class="header-right">
+            <a href="admin.html" id="admin-button" style="display: none;">Painel Administrativo</a>
+            <button id="logout-button">Sair</button>
+        </div>
     </div>
 
     <div class="container">
-        
         <p class="intro-text">Bem-vindo ao seu hub de automação de rotinas ( SUA CAIXA DE FERRAMENTAS 🧰 INTERATIVA ). Selecione uma categoria para explorar os facilitoides disponíveis.</p>
 
         <button class="accordion">Listas de Compras</button>
-        <div class="panel">
-            <div class="panel-content">
-                <div class="grid">
-                    <a class="card" href="listas_de_compras/lista_inteligente/index.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">🛒</span><h3 class="card-title">Lista Inteligente</h3></div>
-                            <p class="card-description">Sua lista de compras com calculadora de preços, relatórios detalhados e gerenciamento de itens.</p>
-                        </div>
-                    </a>
-                    <a class="card" href="listas_de_compras/lista_facil/index.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">🎨</span><h3 class="card-title">Lista Fácil</h3></div>
-                            <p class="card-description">Interface visual com sistema de "arrastar para o carrinho". Simples e ideal para o dia a dia.</p>
-                        </div>
-                    </a>
-                    <a class="card" href="listas_de_compras/lista_rapida/index.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">⚡️</span><h3 class="card-title">Lista Rápida</h3></div>
-                            <p class="card-description">O essencial: adicione, marque e gere um relatório de texto simples. Sem complicações.</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
+        <div class="panel"><div class="panel-content"><div class="grid">
+            <a class="card" href="listas_de_compras/lista_inteligente/index.html"><div class="card-content"><div class="card-header"><span class="card-icon">🛒</span><h3 class="card-title">Lista Inteligente</h3></div><p class="card-description">Sua lista de compras com calculadora de preços, relatórios detalhados e gerenciamento de itens.</p></div></a>
+            <a class="card" href="listas_de_compras/lista_facil/index.html"><div class="card-content"><div class="card-header"><span class="card-icon">🎨</span><h3 class="card-title">Lista Fácil</h3></div><p class="card-description">Interface visual com sistema de "arrastar para o carrinho". Simples e ideal para o dia a dia.</p></div></a>
+            <a class="card" href="listas_de_compras/lista_rapida/index.html"><div class="card-content"><div class="card-header"><span class="card-icon">⚡️</span><h3 class="card-title">Lista Rápida</h3></div><p class="card-description">O essencial: adicione, marque e gere um relatório de texto simples. Sem complicações.</p></div></a>
+        </div></div></div>
 
         <button class="accordion">Formulários Interativos</button>
-        <div class="panel">
-            <div class="panel-content">
-                <div class="grid">
-                     <a class="card" href="formularios_interativos/diario_bordo.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">📅</span><h3 class="card-title">Diário de Bordo Profissional</h3></div>
-                            <p class="card-description">Ferramenta de gestão diária para líderes, com planejamento, KPIs e análise semanal automatizada.</p>
-                        </div>
-                    </a>
-                     <a class="card" href="formularios_interativos/controle_remedios.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">💊</span><h3 class="card-title">Controle de Tratamento</h3></div>
-                            <p class="card-description">Plano de tratamento pessoal para adicionar medicamentos, definir horários e acompanhar o progresso diário.</p>
-                        </div>
-                    </a>
-                    <a class="card" href="formularios_interativos/gerador_briefing.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">🎯</span><h3 class="card-title">Gerador de Briefing</h3></div>
-                            <p class="card-description">Painel de comando para extrair informações estratégicas e gerar relatórios de projetos de forma estruturada.</p>
-                        </div>
-                    </a>
-                    <a class="card" href="formularios_interativos/guia_eventos.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">🎤</span><h3 class="card-title">Guia de Eventos</h3></div>
-                            <p class="card-description">Guia interativo para festivais, com programação, roteiro personalizado, jogos e ranking de competidores.</p>
-                        </div>
-                    </a>
-                    <a class="card" href="formularios_interativos/guia_k_food.html">
-                        <div class="card-content">
-                            <div class="card-header"><span class="card-icon">🍜</span><h3 class="card-title">Guia Interativo K-Food</h3></div>
-                            <p class="card-description">Guia rápido de pratos da culinária coreana com descrição, detalhes e argumentos de venda para equipes.</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
+        <div class="panel"><div class="panel-content"><div class="grid">
+            <a class="card" href="formularios_interativos/diario_bordo.html"><div class="card-content"><div class="card-header"><span class="card-icon">📅</span><h3 class="card-title">Diário de Bordo Profissional</h3></div><p class="card-description">Ferramenta de gestão diária para líderes, com planejamento, KPIs e análise semanal automatizada.</p></div></a>
+            <a class="card" href="formularios_interativos/controle_remedios.html"><div class="card-content"><div class="card-header"><span class="card-icon">💊</span><h3 class="card-title">Controle de Tratamento</h3></div><p class="card-description">Plano de tratamento pessoal para adicionar medicamentos, definir horários e acompanhar o progresso diário.</p></div></a>
+            <a class="card" href="formularios_interativos/gerador_briefing.html"><div class="card-content"><div class="card-header"><span class="card-icon">🎯</span><h3 class="card-title">Gerador de Briefing</h3></div><p class="card-description">Painel de comando para extrair informações estratégicas e gerar relatórios de projetos de forma estruturada.</p></div></a>
+            <a class="card" href="formularios_interativos/guia_eventos.html"><div class="card-content"><div class="card-header"><span class="card-icon">🎤</span><h3 class="card-title">Guia de Eventos</h3></div><p class="card-description">Guia interativo para festivais, com programação, roteiro personalizado, jogos e ranking de competidores.</p></div></a>
+            <a class="card" href="formularios_interativos/guia_k_food.html"><div class="card-content"><div class="card-header"><span class="card-icon">🍜</span><h3 class="card-title">Guia Interativo K-Food</h3></div><p class="card-description">Guia rápido de pratos da culinária coreana com descrição, detalhes e argumentos de venda para equipes.</p></div></a>
+        </div></div></div>
         
         <button class="accordion">Tem alguma ideia ou precisa de algum facilitoide parecido?</button>
-        <div class="panel">
-            <div class="panel-content">
-                <div class="grid">
-                    <a class="card card-request" href="mailto: thiaguinhosolucoesia@gmail.com?subject=Solicitação de Novo Facilitoide">
-                         <div class="card-content">
-                            <div class="card-header"><span class="card-icon">💡</span><h3 class="card-title">Solicite seu Facilitoide</h3></div>
-                            <p class="card-description">Tem uma necessidade específica? Uma planilha complexa ou um processo repetitivo? Clique aqui e vamos criar uma ferramenta sob medida para você.</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
+        <div class="panel"><div class="panel-content"><div class="grid">
+            <a class="card card-request" href="mailto: thiaguinhosolucoesia@gmail.com?subject=Solicitação de Novo Facilitoide"><div class="card-content"><div class="card-header"><span class="card-icon">💡</span><h3 class="card-title">Solicite seu Facilitoide</h3></div><p class="card-description">Tem uma necessidade específica? Uma planilha complexa ou um processo repetitivo? Clique aqui e vamos criar uma ferramenta sob medida para você.</p></div></a>
+        </div></div></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // !!! SUBSTITUA O OBJETO ABAIXO PELO SEU firebaseConfig DO SEU PROJETO !!!
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         const firebaseConfig = {
-    apiKey: "AIzaSyAo9iVQm_BzmvNLAUxc4pGL_qp6ic4JQfo",
-    authDomain: "listas-de-compras-ff4a3.firebaseapp.com",
-    databaseURL: "https://listas-de-compras-ff4a3-default-rtdb.firebaseio.com",
-    projectId: "listas-de-compras-ff4a3",
-    storageBucket: "listas-de-compras-ff4a3.firebasestorage.app",
-    messagingSenderId: "623752672529",
-    appId: "1:623752672529:web:ba43bfdad31f050da3c8b0"
-  };
-
+  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+  authDomain: "thiaguinho-solucoes.firebaseapp.com",
+  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+  projectId: "thiaguinho-solucoes",
+  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+  messagingSenderId: "879610267391",
+  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+};
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        auth.onAuthStateChanged(user => { if (!user) { window.location.replace('index.html'); } });
+        const database = firebase.database();
+
+        auth.onAuthStateChanged(async (user) => { 
+            const userDisplay = document.getElementById('user-display');
+            const adminButton = document.getElementById('admin-button');
+
+            if (user) {
+                userDisplay.textContent = `Logado como: ${user.email}`;
+
+                // Verifica se o usuário tem a role de admin no Realtime Database
+                const adminRef = database.ref(`users_public_list/${user.uid}/role`);
+                const snapshot = await adminRef.once('value');
+                if (snapshot.val() === 'admin') {
+                    adminButton.style.display = 'block';
+                }
+
+            } else { 
+                window.location.replace('index.html'); 
+            } 
+        });
+
         document.getElementById('logout-button').addEventListener('click', () => {
             auth.signOut().then(() => { window.location.replace('index.html'); });
         });
 
-        // Lógica do Acordeão
         const accordions = document.getElementsByClassName("accordion");
         for (let i = 0; i < accordions.length; i++) {
             accordions[i].addEventListener("click", function() {
