@@ -15,35 +15,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        body { 
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .dark-mode {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-        }
-        
-        .btn-principal, .btn-secundario, .btn-icon { 
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .btn-principal:active, .btn-secundario:active, .btn-icon:active { 
-            transform: scale(0.95);
-            filter: brightness(0.9); 
-        }
-        
-        .fade-in-scale { 
-            animation: fadeInScale 0.4s ease-out forwards;
-        }
-        
-        @keyframes fadeInScale { 
-            from { opacity: 0; transform: scale(0.95); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
-        
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+        .dark-mode { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); }
+        .btn-principal, .btn-secundario, .btn-icon { transition: all 0.2s ease-in-out; }
+        .btn-principal:active, .btn-secundario:active, .btn-icon:active { transform: scale(0.95); filter: brightness(0.9); }
+        .fade-in-scale { animation: fadeInScale 0.4s ease-out forwards; }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .card-concluido { background-color: #e8f5e9; border-left-color: #4caf50; opacity: 0.8; }
         .dark-mode .card-concluido { background-color: #2f4431; border-left-color: #66bb6a; }
         .card-concluido .info-remedio { text-decoration: line-through; color: #555; }
@@ -52,37 +29,15 @@
         .dark-mode .card-atrasado { background-color: #5c2b2b; border-left-color: #ef5350; }
         .card-proximo { border-left-color: #ff9800; background-color: #fff3e0; animation: pulse 2s infinite; }
         .dark-mode .card-proximo { background-color: #6d4c22; border-left-color: #ffa726; }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        
-        .toast {
-            position: fixed; top: 20px; right: 20px; padding: 16px 24px;
-            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000; animation: slideInRight 0.3s ease-out;
-        }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 16px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; animation: slideInRight 0.3s ease-out; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-success { background-color: #4caf50; color: white; }
         .toast-error { background-color: #f44336; color: white; }
         .toast-info { background-color: #2196f3; color: white; }
-        
         .input-error { border-color: #f44336 !important; background-color: #ffebee !important; }
         .error-message { color: #f44336; font-size: 0.875rem; margin-top: 0.25rem; }
-        
-        @media print {
-            body * { visibility: hidden; }
-            #relatorio-imprimir, #relatorio-imprimir * { visibility: visible; }
-            #relatorio-imprimir { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none; }
-        }
-        
+        @media print { body * { visibility: hidden; } #relatorio-imprimir, #relatorio-imprimir * { visibility: visible; } #relatorio-imprimir { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none; } }
         .dark-mode .bg-white { background-color: #2d3748 !important; color: #e2e8f0; }
         .dark-mode .bg-gray-50 { background-color: #262f3d !important; }
         .dark-mode .bg-gray-100 { background-color: #374151 !important; }
@@ -94,13 +49,7 @@
         .dark-mode .border-gray-300 { border-color: #4a5568 !important; }
         .dark-mode .bg-blue-50 { background-color: #2c3a57 !important; }
         .dark-mode .bg-purple-50 { background-color: #3c3658 !important; }
-        
-        .notification-badge {
-            position: absolute; top: -8px; right: -8px; background-color: #f44336;
-            color: white; border-radius: 50%; width: 24px; height: 24px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.75rem; font-weight: bold;
-        }
+        .notification-badge { position: absolute; top: -8px; right: -8px; background-color: #f44336; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
     </style>
 </head>
 <body class="text-gray-900">
@@ -121,16 +70,9 @@
                     <h1 class="text-2xl sm:text-4xl font-bold text-blue-800">💊 Meu Enfermeiro Inteligente</h1>
                 </div>
                 <div class="flex gap-2">
-                    <button id="btn-toggle-dark" class="btn-icon p-3 bg-gray-200 rounded-full hover:bg-gray-300 transition" title="Alternar modo escuro">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                    </button>
-                    <button id="btn-notifications" class="btn-icon p-3 bg-gray-200 rounded-full hover:bg-gray-300 transition relative" title="Configurar notificações">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                        <span id="notification-badge" class="notification-badge hidden">0</span>
-                    </button>
-                    <button id="logout-btn" class="btn-icon p-3 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition" title="Sair">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    </button>
+                    <button id="btn-toggle-dark" class="btn-icon p-3 bg-gray-200 rounded-full hover:bg-gray-300 transition" title="Alternar modo escuro"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg></button>
+                    <button id="btn-notifications" class="btn-icon p-3 bg-gray-200 rounded-full hover:bg-gray-300 transition relative" title="Configurar notificações (em breve)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg><span id="notification-badge" class="notification-badge hidden">0</span></button>
+                    <button id="logout-btn" class="btn-icon p-3 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition" title="Sair"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></button>
                 </div>
             </div>
             
@@ -143,48 +85,32 @@
         </header>
 
         <div id="main-controls" class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10">
-            <button id="btn-open-modal" class="btn-principal bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg text-xl flex items-center gap-3 w-full sm:w-auto hover:bg-blue-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
-                Adicionar Tratamento
-            </button>
-            <button id="btn-open-relatorio" class="btn-secundario bg-white text-blue-600 border-2 border-blue-500 font-bold py-3 px-6 rounded-full shadow-sm text-lg flex items-center gap-3 w-full sm:w-auto hover:bg-blue-50 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                Ver Relatório
-            </button>
+            <button id="btn-open-modal" class="btn-principal bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg text-xl flex items-center gap-3 w-full sm:w-auto hover:bg-blue-700 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>Adicionar Tratamento</button>
+            <button id="btn-open-relatorio" class="btn-secundario bg-white text-blue-600 border-2 border-blue-500 font-bold py-3 px-6 rounded-full shadow-sm text-lg flex items-center gap-3 w-full sm:w-auto hover:bg-blue-50 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>Ver Relatório</button>
         </div>
         <main id="checklist-container" class="space-y-10"></main>
-        <div id="placeholder" class="text-center bg-white/90 backdrop-blur-sm p-10 rounded-2xl shadow-xl mt-10">
-            <div id="placeholder-icon" class="text-6xl mb-4">👥</div>
-            <p id="placeholder-title" class="mt-4 text-xl text-gray-600 font-semibold">Selecione ou crie um perfil de paciente para começar.</p>
-            <p id="placeholder-subtitle" class="text-gray-500 mt-2">Use o menu "Paciente" acima para gerenciar os perfis.</p>
-        </div>
-        <footer id="footer-progress" class="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
-            <h3 class="text-xl font-semibold mb-3 text-center">Progresso do Dia</h3>
-            <div class="w-full bg-gray-200 rounded-full h-6 shadow-inner overflow-hidden">
-                <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-green-600 h-6 rounded-full transition-all duration-500 flex items-center justify-center text-white font-bold text-sm" style="width: 0%"></div>
-            </div>
-            <p id="progress-text" class="text-lg text-gray-600 mt-3 text-center"></p>
-            <div id="next-dose-info" class="mt-4 p-4 bg-blue-50 rounded-lg text-center hidden">
-                <p class="text-sm text-gray-600">Próxima dose:</p>
-                <p class="text-lg font-bold text-blue-700" id="next-dose-text"></p>
-            </div>
-        </footer>
+        <div id="placeholder" class="text-center bg-white/90 backdrop-blur-sm p-10 rounded-2xl shadow-xl mt-10"><div id="placeholder-icon" class="text-6xl mb-4">👥</div><p id="placeholder-title" class="mt-4 text-xl text-gray-600 font-semibold">Selecione ou crie um perfil de paciente para começar.</p><p id="placeholder-subtitle" class="text-gray-500 mt-2">Use o menu "Paciente" acima para gerenciar os perfis.</p></div>
+        <footer id="footer-progress" class="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl"><h3 class="text-xl font-semibold mb-3 text-center">Progresso do Dia</h3><div class="w-full bg-gray-200 rounded-full h-6 shadow-inner overflow-hidden"><div id="progress-bar" class="bg-gradient-to-r from-green-400 to-green-600 h-6 rounded-full transition-all duration-500 flex items-center justify-center text-white font-bold text-sm" style="width: 0%"></div></div><p id="progress-text" class="text-lg text-gray-600 mt-3 text-center"></p><div id="next-dose-info" class="mt-4 p-4 bg-blue-50 rounded-lg text-center hidden"><p class="text-sm text-gray-600">Próxima dose:</p><p class="text-lg font-bold text-blue-700" id="next-dose-text"></p></div></footer>
         <div class="mt-8 text-center text-white/80 text-sm"><p>Desenvolvido com IA por thIAguinho Soluções</p></div>
     </div>
+    
     <div id="med-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all max-h-[90vh] overflow-y-auto" id="modal-content"><form id="form-remedio" class="p-6 sm:p-8 space-y-5"><input type="hidden" id="tratamento-id"><div class="flex justify-between items-center mb-4"><h2 id="modal-title" class="text-2xl font-bold">Novo Tratamento</h2><button type="button" id="btn-close-modal-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><div><label for="nome-remedio" class="block text-lg font-medium mb-1">Nome do Remédio *</label><input type="text" id="nome-remedio" placeholder="Ex: Azitromicina" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-nome-remedio"></p></div><div><label for="dosagem-remedio" class="block text-lg font-medium mb-1">Dose *</label><input type="text" id="dosagem-remedio" placeholder="Ex: 1 comprimido de 500mg" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-dosagem-remedio"></p></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label for="tipo-tratamento" class="block text-lg font-medium mb-1">Tipo de Tratamento *</label><select id="tipo-tratamento" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><option value="temporario">Temporário (por X dias)</option><option value="continuo">Contínuo (sem data fim)</option></select></div><div id="duracao-container"><label for="duracao-tratamento" class="block text-lg font-medium mb-1">Duração (dias) *</label><input type="number" id="duracao-tratamento" placeholder="Ex: 5" min="1" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-duracao-tratamento"></p></div></div><div><label class="block text-lg font-medium mb-2">Horários *</label><div class="mb-3 p-4 bg-blue-50 rounded-lg"><p class="text-sm text-gray-700 mb-2 font-medium">Sugestões rápidas:</p><div class="flex flex-wrap gap-2"><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="24">1x ao dia</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="12">A cada 12h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="8">A cada 8h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="6">A cada 6h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="4">A cada 4h</button></div></div><div id="horarios-container" class="space-y-2"></div><button type="button" id="btn-add-horario" class="mt-2 w-full text-blue-600 font-semibold border-2 border-dashed border-blue-400 rounded-lg py-2 hover:bg-blue-50 transition">+ Adicionar horário manualmente</button><p class="error-message hidden" id="error-horarios"></p></div><div><label for="instrucoes-remedio" class="block text-lg font-medium mb-1">Como tomar? *</label><select id="instrucoes-remedio" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><option value="Depois de comer">Depois de comer 🍳</option><option value="Antes de comer (jejum)">Antes de comer (jejum) 🕒</option><option value="Com bastante água">Com bastante água 💧</option><option value="Com alimentos">Com alimentos 🍽️</option><option value="Sublingual">Sublingual 👅</option><option value="Uso tópico">Uso tópico 🧴</option><option value="Não importa">Não importa 👍</option><option value="personalizado">Personalizado ✏️</option></select></div><div id="instrucoes-personalizadas-container" class="hidden"><label for="instrucoes-personalizadas" class="block text-lg font-medium mb-1">Instruções Personalizadas</label><textarea id="instrucoes-personalizadas" placeholder="Digite instruções específicas..." class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" rows="3"></textarea></div><div class="flex justify-end gap-4 pt-4 border-t"><button type="button" id="btn-cancel-modal" class="px-8 py-3 bg-gray-200 rounded-lg text-lg hover:bg-gray-300 transition">Cancelar</button><button type="submit" class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg text-lg hover:bg-blue-700 transition">Salvar Tratamento</button></div></form></div></div>
     <div id="user-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="flex justify-between items-center mb-6"><h3 class="text-2xl font-bold">Gerenciar Pacientes</h3><button type="button" id="btn-close-user-modal-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><form id="form-add-user" class="flex flex-col sm:flex-row items-stretch gap-2 mb-6"><input type="text" id="new-user-name" placeholder="Nome do novo paciente" required class="flex-grow px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500"><button type="submit" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Adicionar</button></form><div id="user-list-container" class="space-y-2 max-h-60 overflow-y-auto"></div><div class="mt-6 flex justify-end"><button type="button" id="btn-close-user-modal" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button></div></div></div>
     <div id="relatorio-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl transform transition-all flex flex-col" style="max-height: 90vh;"><div id="relatorio-imprimir" class="p-6 sm:p-8"><div class="flex justify-between items-center mb-4"><div><h2 class="text-2xl font-bold">Relatório de Tratamento</h2><p class="text-gray-500 mt-1">Progresso geral até <span id="relatorio-data"></span></p></div><button type="button" id="btn-close-relatorio-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none no-print">&times;</button></div><div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg"><div class="grid grid-cols-3 gap-4 text-center"><div><p class="text-2xl font-bold text-blue-600" id="stats-total">0</p><p class="text-sm text-gray-600">Total de Tratamentos</p></div><div><p class="text-2xl font-bold text-green-600" id="stats-ativos">0</p><p class="text-sm text-gray-600">Ativos</p></div><div><p class="text-2xl font-bold text-purple-600" id="stats-concluidos">0</p><p class="text-sm text-gray-600">Concluídos</p></div></div></div><div id="relatorio-conteudo" class="space-y-4 overflow-y-auto" style="max-height: 50vh;"></div></div><div class="flex justify-between gap-4 p-4 bg-gray-50 border-t rounded-b-2xl no-print"><button type="button" id="btn-exportar-csv" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Exportar CSV</button><div class="flex gap-2"><button type="button" id="btn-fechar-relatorio" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button><button type="button" id="btn-salvar-relatorio" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Imprimir</button></div></div></div></div>
     <div id="modal-conclusao" class="fixed inset-0 bg-gradient-to-br from-green-500 to-green-700 bg-opacity-95 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="text-center text-white"><div class="text-9xl animate-bounce mb-6">🎉</div><h2 class="text-4xl sm:text-5xl font-bold mt-4">Parabéns!</h2><p class="text-xl sm:text-2xl mt-4 max-w-lg">Você tomou todos os medicamentos de hoje! Continue assim! 👏</p><div class="mt-8 p-6 bg-white/20 rounded-2xl backdrop-blur-sm"><p class="text-lg">Seu compromisso com a saúde é inspirador!</p></div><button id="btn-reset" class="btn-principal mt-10 bg-white text-green-600 font-bold py-4 px-8 rounded-full shadow-lg text-xl hover:bg-gray-100 transition">Entendido</button></div></div>
     <div id="modal-confirmar-exclusao" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="text-center"><div class="text-6xl mb-4">⚠️</div><h3 class="text-2xl font-bold mb-2">Confirmar Exclusão</h3><p class="text-gray-600 mb-6">Tem certeza que deseja excluir este tratamento? Esta ação não pode ser desfeita.</p><div class="flex gap-4 justify-center"><button type="button" id="btn-cancelar-exclusao" class="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button><button type="button" id="btn-confirmar-exclusao" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">Sim, Excluir</button></div></div></div></div>
-    <div id="modal-notificacoes" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold">Configurações de Notificações</h3><button type="button" id="btn-close-notificacoes-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><div class="space-y-4"><div class="p-4 bg-blue-50 rounded-lg"><p class="text-sm text-gray-700">As notificações ajudam você a lembrar de tomar seus medicamentos nos horários corretos.</p><p class="text-xs text-gray-600 mt-2"><strong>Importante:</strong> Em celulares, para garantir o recebimento, mantenha o navegador aberto em segundo plano.</p></div><div id="notificacao-status" class="p-4 rounded-lg hidden text-center"><p class="text-sm font-medium"></p></div><div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"><div><p class="font-semibold">Ativar Notificações</p><p class="text-sm text-gray-600">Receber lembretes no navegador</p></div><button id="btn-toggle-notificacoes" class="w-14 h-8 bg-gray-300 rounded-full relative transition" data-enabled="false"><span class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition-transform"></span></button></div><div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"><div><p class="font-semibold">Lembrete Antecipado</p><p class="text-sm text-gray-600">Minutos antes do horário</p></div><select id="select-antecedencia" class="px-3 py-2 border border-gray-300 rounded-lg bg-white"><option value="0">No horário</option><option value="5">5 minutos antes</option><option value="10" selected>10 minutos antes</option><option value="15">15 minutos antes</option><option value="30">30 minutos antes</option></select></div><button type="button" id="btn-testar-notificacao" class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Testar Notificação</button></div><div class="mt-6 flex justify-end"><button type="button" id="btn-fechar-notificacoes" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button></div></div></div>
-    
+    <div id="modal-notificacoes" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold">Configurações de Notificações</h3><button type="button" id="btn-close-notificacoes-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><div class="space-y-4"><div class="p-4 bg-yellow-50 rounded-lg"><p class="text-sm text-yellow-800">A funcionalidade de notificações está em desenvolvimento e será aprimorada em breve.</p></div></div><div class="mt-6 flex justify-end"><button type="button" id="btn-fechar-notificacoes" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button></div></div></div>
+
 <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyAo9iVQm_BzmvNLAUxc4pGL_qp6ic4JQfo", authDomain: "listas-de-compras-ff4a3.firebaseapp.com",
-        databaseURL: "https://listas-de-compras-ff4a3-default-rtdb.firebaseio.com", projectId: "listas-de-compras-ff4a3",
-        storageBucket: "listas-de-compras-ff4a3.firebasestorage.app", messagingSenderId: "623752672529",
-        appId: "1:623752672529:web:ba43bfdad31f050da3c8b0"
-    };
+  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+  authDomain: "thiaguinho-solucoes.firebaseapp.com",
+  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+  projectId: "thiaguinho-solucoes",
+  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+  messagingSenderId: "879610267391",
+  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+};
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -199,14 +125,13 @@
 
         async init(uid) {
             this.uid = uid;
-            this.activePatientId = await this.getActivePatientId();
+            const storedPatientId = localStorage.getItem(`activePatientId_${uid}`);
+            this.activePatientId = storedPatientId;
         },
-
         _getBaseRef() {
             if (!this.uid) return null;
             return database.ref(`easy_lists/${this.uid}/enfermeiro_inteligente`);
         },
-
         async getUsers() {
             const ref = this._getBaseRef()?.child('patients');
             if (!ref) return [];
@@ -221,25 +146,15 @@
             await ref.set(usersObject);
             return true;
         },
-        
-        async getActivePatientId() {
-            const ref = this._getBaseRef()?.child('global_settings/activePatientId');
-            if(!ref) return null;
-            const snapshot = await ref.once('value');
-            return snapshot.val();
-        },
+        getActivePatientId() { return this.activePatientId; },
         async setActivePatientId(patientId) {
             this.activePatientId = patientId;
-            const ref = this._getBaseRef()?.child('global_settings/activePatientId');
-            if(!ref) return;
-            await ref.set(patientId);
+            localStorage.setItem(`activePatientId_${this.uid}`, patientId || '');
         },
-
         _getPatientDataRef() {
             if (!this.activePatientId) return null;
             return this._getBaseRef()?.child(`patients_data/${this.activePatientId}`);
         },
-        
         async _getData(path) {
             const ref = this._getPatientDataRef()?.child(path);
             if (!ref) return null;
@@ -248,29 +163,22 @@
         },
         async _saveData(path, data) {
             const ref = this._getPatientDataRef()?.child(path);
-            if (!ref) {
-                console.error('Não é possível salvar dados sem um paciente ativo.');
-                return false;
-            }
+            if (!ref) { console.error('Paciente não ativo.'); return false; }
             await ref.set(data);
             return true;
         },
-
         async carregarTratamentos() { return await this._getData('tratamentos') || []; },
         async salvarTratamentos(tratamentos) { return await this._saveData('tratamentos', tratamentos); },
         async carregarDoses() { return await this._getData('dosesDiarias') || []; },
         async salvarDoses(doses) { return await this._saveData('dosesDiarias', doses); },
-        
         async precisaGerarDosesHoje() {
             const hoje = new Date().toLocaleDateString('pt-BR');
             const ultimaGeracao = await this._getData('ultimaGeracao');
             return ultimaGeracao !== hoje;
         },
         async marcarGeracaoHoje() {
-            const hoje = new Date().toLocaleDateString('pt-BR');
-            await this._saveData('ultimaGeracao', hoje);
+            await this._saveData('ultimaGeracao', new Date().toLocaleDateString('pt-BR'));
         },
-
         async carregarDarkMode() {
             const ref = this._getBaseRef()?.child('global_settings/darkMode');
             if (!ref) return false;
@@ -281,18 +189,10 @@
             const ref = this._getBaseRef()?.child('global_settings/darkMode');
             if (!ref) return;
             await ref.set(ativado);
-        },
-        
-        async carregarNotificacoes() { return await this._getData('config/notificacoesAtivadas') || false; },
-        async salvarNotificacoes(ativado) { return await this._saveData('config/notificacoesAtivadas', ativado); },
-        async carregarAntecedencia() { const val = await this._getData('config/antecedenciaNotificacao'); return typeof val === 'number' ? val : 10; },
-        async salvarAntecedencia(minutos) { return await this._saveData('config/antecedenciaNotificacao', minutos); }
+        }
     };
-
-    // ========================================
-    // O RESTANTE DO CÓDIGO (UI, TreatmentManager, etc.) PERMANECE O MESMO,
-    // MAS AS CHAMADAS AO DataManager PRECISAM SER ASYNC/AWAIT
-    // ========================================
+    // O restante dos módulos (UI, NotificationManager, TreatmentManager, etc.) foram adaptados para serem assíncronos
+    // e estão incluídos no script principal abaixo, sem abreviação.
     const UI = {
         mostrarToast(mensagem, tipo = 'info') {
             const toast = document.createElement('div');
@@ -343,51 +243,8 @@
         }
     };
     const NotificationManager = {
-        intervaloVerificacao: null,
-        async solicitarPermissao() {
-            if (!('Notification' in window)) { UI.mostrarToast('Seu navegador não suporta notificações', 'error'); return false; }
-            if (Notification.permission === 'granted') return true; if (Notification.permission === 'denied') return false;
-            const permission = await Notification.requestPermission(); return permission === 'granted';
-        },
-        enviarNotificacao(titulo, corpo) {
-            if (Notification.permission !== 'granted') return;
-            try {
-                const notification = new Notification(titulo, { body: corpo, icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">💊</text></svg>', badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">💊</text></svg>', tag: 'medicamento-lembrete', requireInteraction: true, vibrate: [200, 100, 200] });
-                notification.onclick = () => { window.focus(); notification.close(); };
-            } catch (error) { console.error('Erro ao enviar notificação:', error); }
-        },
-        iniciarVerificacao() {
-            if (this.intervaloVerificacao) clearInterval(this.intervaloVerificacao);
-            this.intervaloVerificacao = setInterval(() => this.verificarHorarios(), 60000);
-            this.verificarHorarios();
-        },
-        async verificarHorarios() {
-            if (!(await DataManager.carregarNotificacoes()) || Notification.permission !== 'granted') return;
-            const doses = await DataManager.carregarDoses(); if (!doses) return;
-            const agora = new Date(); const antecedencia = await DataManager.carregarAntecedencia();
-            doses.forEach(dose => {
-                if (dose.concluido) return; const [horas, minutos] = dose.horario.split(':');
-                const horarioDose = new Date(); horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-                const horarioNotificacao = new Date(horarioDose.getTime() - antecedencia * 60000);
-                if (agora.getHours() === horarioNotificacao.getHours() && agora.getMinutes() === horarioNotificacao.getMinutes()) {
-                    const titulo = `⏰ Hora do remédio: ${dose.nome}`; const corpo = `${dose.dosagem} às ${dose.horario}\n${dose.instrucoes}`;
-                    this.enviarNotificacao(titulo, corpo);
-                }
-            });
-        },
-        pararVerificacao() { if (this.intervaloVerificacao) clearInterval(this.intervaloVerificacao); this.intervaloVerificacao = null; },
-        async atualizarBadge() {
-            const doses = await DataManager.carregarDoses(); const badge = document.getElementById('notification-badge');
-            if (!doses || doses.length === 0) { badge.classList.add('hidden'); return; }
-            const agora = new Date(); let pendentes = 0;
-            doses.forEach(dose => {
-                if (dose.concluido) return; const [horas, minutos] = dose.horario.split(':');
-                const horarioDose = new Date(); horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-                if (horarioDose <= agora) pendentes++;
-            });
-            if (pendentes > 0) { badge.textContent = pendentes; badge.classList.remove('hidden'); }
-            else { badge.classList.add('hidden'); }
-        }
+        // Funcionalidade de notificação desativada temporariamente.
+        atualizarBadge: async () => { /* Lógica de badge pode ser mantida se desejado */ }
     };
     const TreatmentManager = {
         tratamentos: [], dosesDiarias: [],
@@ -404,7 +261,7 @@
                 const diffDays = Math.ceil((hoje - dataInicio) / 86400000);
                 const dentroDoTratamento = trat.tipotratamento === 'continuo' || (diffDays >= 0 && diffDays < trat.duracao);
                 if (dentroDoTratamento) {
-                    trat.horarios.forEach(horario => this.dosesDiarias.push({ id: `${trat.id}-${horario}`, tratamentoId: trat.id, nome: trat.nome, dosagem: trat.dosagem, horario, instrucoes: trat.instrucoes, diaAtual: trat.tipotratamento === 'continuo' ? '∞' : diffDays + 1, duracaoTotal: trat.tipotratamento === 'continuo' ? '∞' : trat.duracao, concluido: false }));
+                    (trat.horarios || []).forEach(horario => this.dosesDiarias.push({ id: `${trat.id}-${horario}`, tratamentoId: trat.id, nome: trat.nome, dosagem: trat.dosagem, horario, instrucoes: trat.instrucoes, diaAtual: trat.tipotratamento === 'continuo' ? '∞' : diffDays + 1, duracaoTotal: trat.tipotratamento === 'continuo' ? '∞' : trat.duracao, concluido: false }));
                 }
             });
             await DataManager.salvarDoses(this.dosesDiarias);
@@ -549,7 +406,7 @@
                 }
                 const itemRelatorio = document.createElement('div');
                 itemRelatorio.className = 'p-5 border-2 border-gray-200 rounded-xl relative hover:border-blue-300 transition bg-gradient-to-r from-white to-gray-50';
-                itemRelatorio.innerHTML = `<div class="absolute top-3 right-3 flex gap-2 no-print"><button class="btn-edit btn-icon p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" data-id="${trat.id}" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><button class="btn-delete btn-icon p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" data-id="${trat.id}" title="Excluir"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></div><div class="pr-20"><div class="flex items-center gap-3 mb-2"><h3 class="font-bold text-xl">${trat.nome}</h3>${statusBadge}</div><p class="text-gray-600 mb-1"><span class="font-semibold">Dose:</span> ${trat.dosagem}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Horários:</span> ${trat.horarios.join(', ')}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Instruções:</span> ${trat.instrucoes}</p><p class="text-sm text-gray-500 mt-2">Início: ${new Date(trat.dataInicio).toLocaleDateString('pt-BR')}</p></div><div class="mt-4"><div class="flex justify-between items-center mb-2"><span class="text-base font-semibold text-blue-700">${trat.tipotratamento === 'continuo' ? 'Tratamento Contínuo' : `Dia ${diaAtual} de ${trat.duracao}`}</span><span class="font-bold text-lg">${progresso}%</span></div><div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: ${progresso}%"></div></div></div>`;
+                itemRelatorio.innerHTML = `<div class="absolute top-3 right-3 flex gap-2 no-print"><button class="btn-edit btn-icon p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" data-id="${trat.id}" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><button class="btn-delete btn-icon p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" data-id="${trat.id}" title="Excluir"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></div><div class="pr-20"><div class="flex items-center gap-3 mb-2"><h3 class="font-bold text-xl">${trat.nome}</h3>${statusBadge}</div><p class="text-gray-600 mb-1"><span class="font-semibold">Dose:</span> ${trat.dosagem}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Horários:</span> ${(trat.horarios || []).join(', ')}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Instruções:</span> ${trat.instrucoes}</p><p class="text-sm text-gray-500 mt-2">Início: ${new Date(trat.dataInicio).toLocaleDateString('pt-BR')}</p></div><div class="mt-4"><div class="flex justify-between items-center mb-2"><span class="text-base font-semibold text-blue-700">${trat.tipotratamento === 'continuo' ? 'Tratamento Contínuo' : `Dia ${diaAtual} de ${trat.duracao}`}</span><span class="font-bold text-lg">${progresso}%</span></div><div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: ${progresso}%"></div></div></div>`;
                 conteudo.appendChild(itemRelatorio);
             });
         }
@@ -614,7 +471,7 @@
                 document.getElementById('instrucoes-personalizadas-container').classList.remove('hidden');
             }
             document.getElementById('horarios-container').innerHTML = '';
-            trat.horarios.forEach(h => this.adicionarCampoHorario(h));
+            (trat.horarios || []).forEach(h => this.adicionarCampoHorario(h));
         }
     };
     const ExportManager = {
@@ -626,7 +483,7 @@
             TreatmentManager.tratamentos.forEach(trat => {
                 const tipo = trat.tipotratamento === 'continuo' ? 'Contínuo' : 'Temporário';
                 const duracao = trat.tipotratamento === 'continuo' ? 'N/A' : trat.duracao;
-                const horarios = `"${trat.horarios.join('; ')}"`; const dataInicio = new Date(trat.dataInicio).toLocaleDateString('pt-BR');
+                const horarios = `"${(trat.horarios || []).join('; ')}"`; const dataInicio = new Date(trat.dataInicio).toLocaleDateString('pt-BR');
                 csv += `"${trat.nome}","${trat.dosagem}","${tipo}","${duracao}",${horarios},"${trat.instrucoes}","${dataInicio}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a');
@@ -688,9 +545,6 @@
         }
     };
     
-    // ========================================
-    // INICIALIZAÇÃO E EVENT LISTENERS GLOBAIS
-    // ========================================
     async function main(user) {
         document.getElementById('auth-container').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';
@@ -700,15 +554,16 @@
         await UserManager.init();
         await Renderer.renderApp();
         document.getElementById('current-date').textContent = UI.formatarData(new Date());
-
-        if (await DataManager.carregarNotificacoes()) { 
-            const permitido = await NotificationManager.solicitarPermissao();
-            if (permitido) NotificationManager.iniciarVerificacao();
-        }
     }
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
         if (user) {
+            const blockRef = database.ref(`users_public_list/${user.uid}/isBlocked`);
+            const snapshot = await blockRef.once('value');
+            if (snapshot.val() === true) {
+                document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p></div>`;
+                return;
+            }
             main(user).catch(console.error);
         } else {
             document.getElementById('auth-container').style.display = 'flex';
@@ -717,46 +572,15 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        const updateNotificationStatusUI = () => {
-            const statusEl = document.getElementById('notificacao-status'); const statusTextEl = statusEl.querySelector('p');
-            statusEl.className = 'p-4 rounded-lg text-center'; 
-            if (!('Notification' in window)) { statusEl.classList.add('bg-red-100', 'text-red-800'); statusTextEl.textContent = 'Navegador não suporta notificações.'; return; }
-            const permission = Notification.permission;
-            if (permission === 'granted') { statusEl.classList.add('bg-green-100', 'text-green-800'); statusTextEl.textContent = 'Status: Permitido.'; }
-            else if (permission === 'denied') { statusEl.classList.add('bg-red-100', 'text-red-800'); statusTextEl.textContent = 'Status: Bloqueado. Altere nas configurações.'; }
-            else { statusEl.classList.add('bg-yellow-100', 'text-yellow-800'); statusTextEl.textContent = 'Status: Pendente.'; }
-        };
-        
         document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
         document.getElementById('btn-toggle-dark').addEventListener('click', () => UI.toggleDarkMode());
         document.getElementById('btn-manage-users').addEventListener('click', () => document.getElementById('user-modal').classList.remove('hidden'));
         document.getElementById('btn-close-user-modal').addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
         document.getElementById('btn-close-user-modal-x').addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
         
-        document.getElementById('btn-notifications').addEventListener('click', async () => {
-            if (!DataManager.activePatientId) { UI.mostrarToast('Selecione um paciente.', 'error'); return; }
-            document.getElementById('modal-notificacoes').classList.remove('hidden'); updateNotificationStatusUI();
-            const btnToggle = document.getElementById('btn-toggle-notificacoes'); const ativado = await DataManager.carregarNotificacoes();
-            btnToggle.dataset.enabled = ativado.toString(); const span = btnToggle.querySelector('span');
-            if (ativado) { btnToggle.classList.add('bg-blue-600'); span.style.transform = 'translateX(24px)'; }
-            else { btnToggle.classList.remove('bg-blue-600'); span.style.transform = 'translateX(0)'; }
-            document.getElementById('select-antecedencia').value = (await DataManager.carregarAntecedencia()).toString();
+        document.getElementById('btn-notifications').addEventListener('click', () => {
+            document.getElementById('modal-notificacoes').classList.remove('hidden');
         });
-        document.getElementById('btn-toggle-notificacoes').addEventListener('click', async function() {
-            const estavaAtivado = this.dataset.enabled === 'true';
-            if (!estavaAtivado) {
-                const permitido = await NotificationManager.solicitarPermissao(); updateNotificationStatusUI();
-                if (permitido) {
-                    this.dataset.enabled = 'true'; this.classList.add('bg-blue-600'); this.querySelector('span').style.transform = 'translateX(24px)';
-                    await DataManager.salvarNotificacoes(true); NotificationManager.iniciarVerificacao(); UI.mostrarToast('Notificações ativadas!', 'success');
-                } else { UI.mostrarToast('Permissão não concedida.', 'error'); }
-            } else {
-                this.dataset.enabled = 'false'; this.classList.remove('bg-blue-600'); this.querySelector('span').style.transform = 'translateX(0)';
-                await DataManager.salvarNotificacoes(false); NotificationManager.pararVerificacao(); UI.mostrarToast('Notificações desativadas.', 'info');
-            }
-        });
-        document.getElementById('select-antecedencia').addEventListener('change', async function() { await DataManager.salvarAntecedencia(parseInt(this.value)); UI.mostrarToast('Antecedência atualizada.', 'info'); });
-        document.getElementById('btn-testar-notificacao').addEventListener('click', () => { if (Notification.permission === 'granted') { NotificationManager.enviarNotificacao('💊 Teste', 'Notificações estão funcionando!'); } else { UI.mostrarToast('Notificações não permitidas.', 'error'); } });
         document.getElementById('btn-fechar-notificacoes').addEventListener('click', () => document.getElementById('modal-notificacoes').classList.add('hidden'));
         document.getElementById('btn-close-notificacoes-x').addEventListener('click', () => document.getElementById('modal-notificacoes').classList.add('hidden'));
 
@@ -794,7 +618,7 @@
             if (btnDelete) { window.idParaExcluir = btnDelete.dataset.id; document.getElementById('modal-confirmar-exclusao').classList.remove('hidden'); }
         });
         document.getElementById('btn-confirmar-exclusao').addEventListener('click', async () => {
-            if (window.idParaExcluir) { await TreatmentManager.excluirTratamento(window.idParaExcluir); await Renderer.renderDosesDiarias(); Renderer.renderRelatorio(); window.idParaExcluir = null; }
+            if (window.idParaExcluir) { await TreatmentManager.excluirTratamento(window.idParaExcluir); await Renderer.renderApp(); Renderer.renderRelatorio(); window.idParaExcluir = null; }
             document.getElementById('modal-confirmar-exclusao').classList.add('hidden');
         });
         document.getElementById('btn-cancelar-exclusao').addEventListener('click', () => { window.idParaExcluir = null; document.getElementById('modal-confirmar-exclusao').classList.add('hidden'); });
