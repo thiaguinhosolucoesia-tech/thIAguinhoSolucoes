@@ -106,21 +106,18 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-  authDomain: "thiaguinho-solucoes.firebaseapp.com",
-  databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-  projectId: "thiaguinho-solucoes",
-  storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-  messagingSenderId: "879610267391",
-  appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
+    apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
+    authDomain: "thiaguinho-solucoes.firebaseapp.com",
+    databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
+    projectId: "thiaguinho-solucoes",
+    storageBucket: "thiaguinho-solucoes.firebasestorage.app",
+    messagingSenderId: "879610267391",
+    appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-// =============== CONFIGURAÇÃO DO BRIEFING CUSTOMIZÁVEL ===============
-// Edite este objeto para criar qualquer tipo de formulário de briefing.
-// A interface será construída automaticamente a partir daqui.
 const briefingConfig = {
     modules: [
         { 
@@ -165,7 +162,6 @@ const briefingConfig = {
         }
     ]
 };
-// =====================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     const App = {
@@ -188,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const blockRef = database.ref(`users_public_list/${user.uid}/isBlocked`);
                     const snapshot = await blockRef.once('value');
                     if (snapshot.val() === true) {
-                        document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p></div>`;
+                        document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p><p><a href="../dashboard.html">Voltar</a></p></div>`;
                         return;
                     }
 
@@ -258,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const briefingId = `${Date.now()}-${projectName.replace(/\s+/g, '-')}`;
             try {
-                // CAMINHO ADAPTADO PARA AS REGRAS FORNECIDAS
                 await database.ref(`easy_lists/${this.currentUser.uid}/paineis_de_inteligencia/${briefingId}`).set({
                     projectName: projectName,
                     createdAt: new Date().toISOString(),
