@@ -20,7 +20,14 @@
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
         }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; }
-        .header h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
+        .header h1 { 
+            font-size: 1.8rem; margin: 0; font-weight: 700; 
+            user-select: none; /* Impede a seleção de texto no título */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
+            cursor: pointer; /* Indica que é um elemento interativo */
+        }
         .header #user-display { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
         .header-right { display: flex; align-items: center; gap: 15px; }
         .header a, .header button {
@@ -67,7 +74,7 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <h1>Plataforma thIAguinho Soluções</h1>
+            <h1 id="admin-trigger-area">Plataforma thIAguinho Soluções</h1>
             <span id="user-display">Carregando...</span>
         </div>
         <div class="header-right">
@@ -103,7 +110,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="config.js"></script> <script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
             authDomain: "thiaguinho-solucoes.firebaseapp.com",
@@ -117,8 +124,11 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        auth.onAuthStateChanged((user) => { 
+        let currentUser = null;
+
+        auth.onAuthStateChanged(async (user) => { 
             if (user) {
+                currentUser = user;
                 document.getElementById('user-display').textContent = `Logado como: ${user.email}`;
             } else { 
                 window.location.replace('index.html'); 
@@ -128,26 +138,36 @@
         document.getElementById('logout-button').addEventListener('click', () => {
             auth.signOut().then(() => { window.location.replace('index.html'); });
         });
+        
+        // ======================= LÓGICA DO GATILHO "LONG PRESS + PROMPT" =======================
+        const adminTriggerElement = document.getElementById('admin-trigger-area');
+        let pressTimer = null;
 
-        // ======================= LÓGICA DO GATILHO DE ADMIN =======================
-        let keySequence = [];
-        const adminTrigger = '*177';
+        const startPress = (e) => {
+            e.preventDefault(); 
+            pressTimer = setTimeout(() => {
+                const userInput = prompt("Digite o código de acesso administrativo:");
+                if (userInput === "*177") {
+                    sessionStorage.setItem('admin_access_token', 'true');
+                    alert('Acesso administrativo verificado. Redirecionando...');
+                    window.location.href = 'admin.html';
+                } else if (userInput !== null) { // Se o usuário não clicou em "Cancelar"
+                    alert('Código de acesso inválido.');
+                }
+            }, 2000); // 2 segundos para acionar
+        };
 
-        document.addEventListener('keyup', (e) => {
-            keySequence.push(e.key);
-            keySequence = keySequence.slice(-adminTrigger.length);
+        const cancelPress = () => {
+            clearTimeout(pressTimer);
+        };
 
-            // btoa() é uma função nativa do navegador para codificar em Base64
-            // Compara a entrada do usuário (codificada) com a chave do config.js
-            if (btoa(keySequence.join('')) === AppConfig.ADMIN_TRIGGER_KEY) {
-                // Cria o passe de acesso na sessionStorage (só dura enquanto a aba estiver aberta)
-                sessionStorage.setItem('admin_access_token', 'true');
-                alert('Acesso administrativo verificado. Redirecionando...');
-                window.location.href = 'admin.html';
-                keySequence = []; // Reseta para não acionar de novo
-            }
-        });
+        adminTriggerElement.addEventListener("mousedown", startPress);
+        adminTriggerElement.addEventListener("touchstart", startPress, { passive: true }); // passive: true para melhor performance em mobile
+        adminTriggerElement.addEventListener("mouseup", cancelPress);
+        adminTriggerElement.addEventListener("touchend", cancelPress);
+        adminTriggerElement.addEventListener("mouseleave", cancelPress);
         // ===================== FIM DA LÓGICA DO GATILHO =====================
+
 
         const accordions = document.getElementsByClassName("accordion");
         for (let i = 0; i < accordions.length; i++) {
