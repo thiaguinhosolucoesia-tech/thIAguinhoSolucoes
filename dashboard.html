@@ -71,7 +71,6 @@
             <span id="user-display">Carregando...</span>
         </div>
         <div class="header-right">
-            <a href="admin.html" id="admin-button" style="display: none;">Painel Administrativo</a>
             <button id="logout-button">Sair</button>
         </div>
     </div>
@@ -104,7 +103,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script>
+    <script src="config.js"></script> <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
             authDomain: "thiaguinho-solucoes.firebaseapp.com",
@@ -118,18 +117,9 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        let currentUser = null;
-        const keySequence = ['*', '1', '7', '7'];
-        let userInput = [];
-
-        auth.onAuthStateChanged(async (user) => { 
-            const userDisplay = document.getElementById('user-display');
-            
+        auth.onAuthStateChanged((user) => { 
             if (user) {
-                currentUser = user; 
-                userDisplay.textContent = `Logado como: ${user.email}`;
-
-                // A verificação de admin agora é feita pelo listener de teclado
+                document.getElementById('user-display').textContent = `Logado como: ${user.email}`;
             } else { 
                 window.location.replace('index.html'); 
             } 
@@ -138,31 +128,25 @@
         document.getElementById('logout-button').addEventListener('click', () => {
             auth.signOut().then(() => { window.location.replace('index.html'); });
         });
-        
-        document.addEventListener('keydown', async (e) => {
-            if (!currentUser) return; 
 
-            userInput.push(e.key);
-            userInput = userInput.slice(-keySequence.length);
+        // ======================= LÓGICA DO GATILHO DE ADMIN =======================
+        let keySequence = [];
+        const adminTrigger = '*177';
 
-            if (JSON.stringify(userInput) === JSON.stringify(keySequence)) {
-                try {
-                    const adminRef = database.ref(`users_public_list/${currentUser.uid}/role`);
-                    const snapshot = await adminRef.once('value');
-                    
-                    if (snapshot.val() === 'admin') {
-                        alert("Acesso de administrador concedido. Redirecionando para o painel.");
-                        window.location.href = 'admin.html';
-                    } else {
-                        alert("Você não tem permissão para acessar esta área.");
-                    }
-                } catch (error) {
-                    console.error("Erro ao verificar permissão de admin:", error);
-                    alert("Ocorreu um erro ao verificar suas permissões.");
-                }
-                userInput = [];
+        document.addEventListener('keyup', (e) => {
+            keySequence.push(e.key);
+            keySequence = keySequence.slice(-adminTrigger.length); // Mantém apenas o tamanho da sequência
+
+            // btoa() é uma função nativa do navegador para codificar em Base64
+            if (btoa(keySequence.join('')) === AppConfig.ADMIN_TRIGGER_KEY) {
+                console.log("Sequência de admin detectada. Validando...");
+                // Cria o passe de acesso na sessionStorage
+                sessionStorage.setItem('admin_access_token', 'true');
+                alert('Acesso administrativo verificado. Redirecionando...');
+                window.location.href = 'admin.html';
             }
         });
+        // ===================== FIM DA LÓGICA DO GATILHO =====================
 
         const accordions = document.getElementsByClassName("accordion");
         for (let i = 0; i < accordions.length; i++) {
