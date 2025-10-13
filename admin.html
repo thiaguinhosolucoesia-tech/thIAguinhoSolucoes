@@ -6,7 +6,7 @@
     <title>Painel Administrativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; }
+        :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; --info-color: #17a2b8;}
         body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
         .header { background: var(--primary-blue); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; }
@@ -17,10 +17,20 @@
         .user-email { font-weight: 600; font-size: 1.1rem; }
         .user-uid { font-size: 0.8rem; color: var(--text-light); font-family: monospace; }
         .user-status { font-weight: bold; }
+        .user-actions { display: flex; gap: 10px; }
         .user-actions button { border: none; border-radius: 8px; padding: 10px 15px; font-weight: 600; cursor: pointer; }
         .btn-block { background-color: var(--danger-color); color: white; }
         .btn-unblock { background-color: var(--success-color); color: white; }
+        .btn-view { background-color: var(--info-color); color: white; }
         #loading, #access-denied { text-align: center; padding: 50px; font-size: 1.5rem; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-panel { background: var(--card-background); width: 90%; max-width: 800px; max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 1.5em; color: var(--primary-blue); }
+        .modal-header .close-btn { font-size: 28px; color: var(--text-light); cursor: pointer; background: none; border: none; }
+        .modal-body { padding: 25px; overflow-y: auto; }
+        .modal-body pre { white-space: pre-wrap; word-wrap: break-word; background-color: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -37,10 +47,24 @@
     <div id="loading"><p>Verificando passe de acesso...</p></div>
     <div id="access-denied" style="display: none;"><p>Acesso negado. Retorne ao dashboard e use o código de acesso.</p></div>
 
+    <div class="modal-overlay" id="usage-modal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h2 id="usage-modal-title">Dados do Usuário</h2>
+                <button class="close-btn" id="close-usage-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="usage-modal-content">Carregando dados...</pre>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="config.js"></script> <script>
+    <script src="config.js"></script>
+
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
             authDomain: "thiaguinho-solucoes.firebaseapp.com",
@@ -54,14 +78,10 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        // ======================= NOVO AUTH GUARD =======================
         document.addEventListener('DOMContentLoaded', () => {
-            // Verifica se o passe de acesso existe na sessionStorage
             const adminToken = sessionStorage.getItem('admin_access_token');
 
             if (adminToken === 'true') {
-                // Se o passe existe, remove-o para que não possa ser reutilizado se a página for recarregada
-                // e só funciona para esta sessão.
                 sessionStorage.removeItem('admin_access_token');
                 
                 auth.onAuthStateChanged(user => {
@@ -78,7 +98,6 @@
                 showAccessDenied();
             }
         });
-        // =============================================================
 
         function showAccessDenied() {
             document.getElementById('loading').style.display = 'none';
@@ -86,12 +105,11 @@
             document.getElementById('access-denied').style.display = 'block';
         }
 
-        async function loadUsers() {
+        function loadUsers() {
             try {
                 const usersRef = database.ref('users_public_list');
                 usersRef.on('value', (snapshot) => {
                     const users = snapshot.val() ? Object.values(snapshot.val()) : [];
-                    
                     const userListDiv = document.getElementById('user-list');
                     userListDiv.innerHTML = '';
                     
@@ -107,6 +125,7 @@
                                 </span>
                             </div>
                             <div class="user-actions">
+                                <button class="btn-view" onclick="viewUserData('${user.uid}', '${user.email}')">Ver Uso</button>
                                 ${user.role !== 'admin' ? `
                                 <button class="${user.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleUserBlock('${user.uid}', ${user.isBlocked || false})">
                                     ${user.isBlocked ? 'Desbloquear' : 'Bloquear'}
@@ -117,7 +136,6 @@
                         userListDiv.appendChild(card);
                     });
                 });
-
             } catch (error) {
                 console.error("Erro ao carregar usuários:", error);
                 document.getElementById('user-list').innerHTML = `<p>Ocorreu um erro ao carregar a lista de usuários.</p>`;
@@ -137,6 +155,36 @@
                 alert(`Falha ao ${action} o usuário.`);
             }
         }
+
+        async function viewUserData(uid, email) {
+            const modal = document.getElementById('usage-modal');
+            const title = document.getElementById('usage-modal-title');
+            const content = document.getElementById('usage-modal-content');
+
+            title.textContent = `Dados de: ${email}`;
+            content.textContent = 'Carregando dados...';
+            modal.style.display = 'flex';
+
+            try {
+                // A nova regra de segurança permite esta leitura
+                const dataRef = database.ref(`easy_lists/${uid}`);
+                const snapshot = await dataRef.once('value');
+                const userData = snapshot.val();
+                
+                if (userData) {
+                    content.textContent = JSON.stringify(userData, null, 2);
+                } else {
+                    content.textContent = 'Nenhum dado encontrado para este usuário no nó "easy_lists".';
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados do usuário:", error);
+                content.textContent = `Erro ao carregar dados. Verifique as regras de segurança e o console.\n\n${error.message}`;
+            }
+        }
+
+        document.getElementById('close-usage-modal').addEventListener('click', () => {
+            document.getElementById('usage-modal').style.display = 'none';
+        });
     </script>
 </body>
 </html>
