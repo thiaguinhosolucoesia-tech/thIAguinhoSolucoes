@@ -1,3 +1,4 @@
+// ATENÇÃO: ESTE É O SEU ARQUIVO DE CONFIGURAÇÃO REAL E FUNCIONAL.
 const firebaseConfig = {
     apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
     authDomain: "thiaguinho-solucoes.firebaseapp.com",
@@ -8,14 +9,11 @@ const firebaseConfig = {
     appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
 };
 
-const ADMIN_TRIGGER_KEY = 'KjE3Nw=='; // Base64 encoded for '*177'
+// O CÓDIGO DE ACESSO DO ADMIN
+const ADMIN_TRIGGER_KEY = 'KjE3Nw=='; // Base64 para '*177'
 
-// Verifica se o Firebase já foi inicializado para evitar erros de duplicação
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
-// Torna auth e database acessíveis globalmente
+// INICIALIZA O FIREBASE E EXPORTA AS VARIÁVEIS GLOBAIS
+// Esta é a mudança crucial que conserta os erros de "não definido".
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
-
