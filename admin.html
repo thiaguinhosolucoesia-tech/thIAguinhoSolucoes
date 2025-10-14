@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; --info-color: #17a2b8;}
@@ -41,6 +45,7 @@
         </div>
         <div class="container">
             <h2>Gerenciamento de Usuários</h2>
+            <div id="online-users-count" style="margin-bottom: 15px; font-weight: 600;">Usuários Online: 0</div>
             <div id="user-list"></div>
         </div>
     </div>
@@ -59,36 +64,21 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="config.js"></script>
-
+    
+    
+    
+    
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-            authDomain: "thiaguinho-solucoes.firebaseapp.com",
-            databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-            projectId: "thiaguinho-solucoes",
-            storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-            messagingSenderId: "879610267391",
-            appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const adminToken = sessionStorage.getItem('admin_access_token');
-
-            if (adminToken === 'true') {
-                sessionStorage.removeItem('admin_access_token');
+        document.addEventListener("DOMContentLoaded", () => {
+            const adminToken = sessionStorage.getItem("admin_access_token");
+            if (adminToken === "true") {
+                sessionStorage.removeItem("admin_access_token");
                 
                 auth.onAuthStateChanged(user => {
                     if (user) {
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('access-denied').style.display = 'none';
-                        document.getElementById('admin-panel').style.display = 'block';
+                        document.getElementById("loading").style.display = "none";
+                        document.getElementById("access-denied").style.display = "none";
+                        document.getElementById("admin-panel").style.display = "block";
                         loadUsers();
                     } else {
                         showAccessDenied();
@@ -100,37 +90,50 @@
         });
 
         function showAccessDenied() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'none';
-            document.getElementById('access-denied').style.display = 'block';
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("admin-panel").style.display = "none";
+            document.getElementById("access-denied").style.display = "block";
         }
 
         function loadUsers() {
             try {
-                const usersRef = database.ref('users_public_list');
-                usersRef.on('value', (snapshot) => {
-                    const users = snapshot.val() ? Object.values(snapshot.val()) : [];
-                    const userListDiv = document.getElementById('user-list');
-                    userListDiv.innerHTML = '';
+                const usersRef = database.ref("users_public_list");
+                usersRef.on("value", async (snapshot) => {
+                    const allUsers = snapshot.val() ? Object.values(snapshot.val()) : [];
+                    const onlineUsersSnapshot = await database.ref("users_online").once("value");
+                    const onlineUsers = onlineUsersSnapshot.val() || {};
+                    let onlineCount = 0;
+
+                    const usersWithStatus = allUsers.map(user => {
+                        const isOnline = !!onlineUsers[user.uid];
+                        if (isOnline) onlineCount++;
+                        return { ...user, isOnline };
+                    });
+                    document.getElementById("online-users-count").textContent = `Usuários Online: ${onlineCount}`;
+                    const userListDiv = document.getElementById("user-list");
+                    userListDiv.innerHTML = "";
                     
-                    users.sort((a, b) => a.email.localeCompare(b.email)).forEach(user => {
-                        const card = document.createElement('div');
-                        card.className = 'user-card';
+                    usersWithStatus.sort((a, b) => a.email.localeCompare(b.email)).forEach(user => {
+                        const card = document.createElement("div");
+                        card.className = "user-card";
                         card.innerHTML = `
                             <div class="user-info">
-                                <span class="user-email">${user.email} ${user.role === 'admin' ? '<strong>(Admin)</strong>' : ''}</span>
+                                <span class="user-email">${user.email} ${user.role === "admin" ? "<strong>(Admin)</strong>" : ""}</span>
                                 <span class="user-uid">UID: ${user.uid}</span>
-                                <span class="user-status" style="color: ${user.isBlocked ? 'var(--danger-color)' : 'var(--success-color)'};">
-                                    Status: ${user.isBlocked ? 'Bloqueado' : 'Ativo'}
+                                <span class="user-status" style="color: ${user.isBlocked ? "var(--danger-color)" : "var(--success-color)"};">
+                                    Status: ${user.isBlocked ? "Bloqueado" : "Ativo"}
+                                </span>
+                                <span class="user-online-status" style="color: ${user.isOnline ? "var(--success-color)" : "var(--text-light)"}; font-size: 0.9em;">
+                                    ${user.isOnline ? "Online" : "Offline"}
                                 </span>
                             </div>
                             <div class="user-actions">
-                                <button class="btn-view" onclick="viewUserData('${user.uid}', '${user.email}')">Ver Uso</button>
-                                ${user.role !== 'admin' ? `
-                                <button class="${user.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleUserBlock('${user.uid}', ${user.isBlocked || false})">
-                                    ${user.isBlocked ? 'Desbloquear' : 'Bloquear'}
+                                <button class="btn-view" onclick="viewUserData(\'${user.uid}\', \'${user.email}\')">Ver Uso de Dados</button>
+                                ${user.role !== "admin" ? `
+                                <button class="${user.isBlocked ? "btn-unblock" : "btn-block"}" onclick="toggleUserBlock(\'${user.uid}\', ${user.isBlocked || false})">
+                                    ${user.isBlocked ? "Desbloquear" : "Bloquear"}
                                 </button>
-                                ` : ''}
+                                ` : ""}
                             </div>
                         `;
                         userListDiv.appendChild(card);
@@ -138,7 +141,7 @@
                 });
             } catch (error) {
                 console.error("Erro ao carregar usuários:", error);
-                document.getElementById('user-list').innerHTML = `<p>Ocorreu um erro ao carregar a lista de usuários.</p>`;
+                document.getElementById("user-list").innerHTML = `<p>Ocorreu um erro ao carregar a lista de usuários.</p>`;
             }
         }
         
@@ -166,19 +169,106 @@
             modal.style.display = 'flex';
 
             try {
-                // A nova regra de segurança permite esta leitura
-                const dataRef = database.ref(`easy_lists/${uid}`);
+                // Coleta dados de uso de todas as seções relevantes
+                const easyListsRef = database.ref(`easy_lists/${uid}`);
+                const shoppingListsRef = database.ref(`shopping_lists/${uid}`);
+                const purchaseReportsRef = database.ref(`purchase_reports/${uid}`);
+                const enfermeiroInteligenteRef = database.ref(`enfermeiro_inteligente/${uid}`);
+                const paineisInteligenciaRef = database.ref(`paineis_de_inteligencia/${uid}`); // Assumindo que briefingConfig salva aqui
+
+                const [easyListsSnapshot, shoppingListsSnapshot, purchaseReportsSnapshot, enfermeiroInteligenteSnapshot, paineisInteligenciaSnapshot] = await Promise.all([
+                    easyListsRef.once(\'value\'),
+                    shoppingListsRef.once(\'value\'),
+                    purchaseReportsRef.once(\'value\'),
+                    enfermeiroInteligenteRef.once(\'value\'),
+                    paineisInteligenciaRef.once(\'value\')
+                ]);
+
+                const easyListsData = easyListsSnapshot.val();
+                const shoppingListsData = shoppingListsSnapshot.val();
+                const purchaseReportsData = purchaseReportsSnapshot.val();
+                const enfermeiroInteligenteData = enfermeiroInteligenteSnapshot.val();
+                const paineisInteligenciaData = paineisInteligenciaSnapshot.val();
+
+                let totalDownloads = 0;
+                let totalUploads = 0;
+
+                // Função auxiliar para calcular o tamanho aproximado de um objeto JSON em bytes
+                const getApproximateSizeInBytes = (obj) => {
+                    if (!obj) return 0;
+                    return new TextEncoder().encode(JSON.stringify(obj)).length;
+                };
+
+                // Calcula o uso de dados para cada seção
+                totalDownloads += getApproximateSizeInBytes(easyListsData);
+                totalUploads += getApproximateSizeInBytes(easyListsData); // Assumindo que o upload é o mesmo que o download para easy_lists
+
+                totalDownloads += getApproximateSizeInBytes(shoppingListsData);
+                totalUploads += getApproximateSizeInBytes(shoppingListsData);
+
+                totalDownloads += getApproximateSizeInBytes(purchaseReportsData);
+                totalUploads += getApproximateSizeInBytes(purchaseReportsData);
+
+                totalDownloads += getApproximateSizeInBytes(enfermeiroInteligenteData);
+                totalUploads += getApproximateSizeInBytes(enfermeiroInteligenteData);
+
+                totalDownloads += getApproximateSizeInBytes(paineisInteligenciaData);
+                totalUploads += getApproximateSizeInBytes(paineisInteligenciaData);
+
+                // Converte bytes para uma unidade mais legível (KB, MB)
+                const formatBytes = (bytes) => {
+                    if (bytes === 0) return \'0 Bytes\';
+                    const k = 1024;
+                    const sizes = [\'Bytes\', \'KB\', \'MB\', \'GB\', \'TB\'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + \' \' + sizes[i];
+                };
+
+                const formattedDownloads = formatBytes(totalDownloads);
+                const formattedUploads = formatBytes(totalUploads);
+
+                const usageSummary = `
+Dados de Uso para ${email}:
+
+- Total de Dados Lidos (Downloads): ${formattedDownloads}
+- Total de Dados Escritos (Uploads): ${formattedUploads}
+
+Detalhes por Módulo (Tamanho aproximado em Bytes):
+
+  Easy Lists: ${getApproximateSizeInBytes(easyListsData)} Bytes
+  Shopping Lists: ${getApproximateSizeInBytes(shoppingListsData)} Bytes
+  Purchase Reports: ${getApproximateSizeInBytes(purchaseReportsData)} Bytes
+  Enfermeiro Inteligente: ${getApproximateSizeInBytes(enfermeiroInteligenteData)} Bytes
+  Painéis de Inteligência: ${getApproximateSizeInBytes(paineisInteligenciaData)} Bytes
+
+(Estes são dados agregados e aproximados para fins de monetização e não contêm informações sensíveis do usuário.)
+                `;
+                
+                content.textContent = usageSummary;
+
+                // Registra o evento de visualização de uso de dados
+                database.ref(`admin_logs/${auth.currentUser.uid}`).push({
+                    action: \'view_user_data_usage\',
+                    target_uid: uid,
+                    target_email: email,
+                    timestamp: new Date().toISOString(),
+                    downloads: totalDownloads,
+                    uploads: totalUploads
+                });
+
+                // if (userData) {
+                //     content.textContent = JSON.stringify(userData, null, 2);
+                // } else {
+                //     content.textContent = \'Nenhum dado encontrado para este usuário no nó "easy_lists".\';
+                // }
+
                 const snapshot = await dataRef.once('value');
                 const userData = snapshot.val();
                 
-                if (userData) {
-                    content.textContent = JSON.stringify(userData, null, 2);
-                } else {
-                    content.textContent = 'Nenhum dado encontrado para este usuário no nó "easy_lists".';
-                }
+
             } catch (error) {
-                console.error("Erro ao buscar dados do usuário:", error);
-                content.textContent = `Erro ao carregar dados. Verifique as regras de segurança e o console.\n\n${error.message}`;
+                console.error("Erro ao buscar dados de uso do usuário:", error);
+                content.textContent = `Erro ao carregar dados de uso. Verifique as regras de segurança e o console.\n\n${error.message}`;
             }
         }
 

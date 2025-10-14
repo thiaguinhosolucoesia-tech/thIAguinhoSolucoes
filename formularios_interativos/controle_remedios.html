@@ -4,15 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Enfermeiro Inteligente - Sincronizado</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Firebase SDKs - Usando compat versions para compatibilidade -->
+
+
+
+    <!-- Nosso arquivo de configuração do Firebase -->
+
     
     <style>
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
@@ -94,559 +101,551 @@
         <div class="mt-8 text-center text-white/80 text-sm"><p>Desenvolvido com IA por thIAguinho Soluções</p></div>
     </div>
     
-    <div id="med-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all max-h-[90vh] overflow-y-auto" id="modal-content"><form id="form-remedio" class="p-6 sm:p-8 space-y-5"><input type="hidden" id="tratamento-id"><div class="flex justify-between items-center mb-4"><h2 id="modal-title" class="text-2xl font-bold">Novo Tratamento</h2><button type="button" id="btn-close-modal-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><div><label for="nome-remedio" class="block text-lg font-medium mb-1">Nome do Remédio *</label><input type="text" id="nome-remedio" placeholder="Ex: Azitromicina" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-nome-remedio"></p></div><div><label for="dosagem-remedio" class="block text-lg font-medium mb-1">Dose *</label><input type="text" id="dosagem-remedio" placeholder="Ex: 1 comprimido de 500mg" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-dosagem-remedio"></p></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label for="tipo-tratamento" class="block text-lg font-medium mb-1">Tipo de Tratamento *</label><select id="tipo-tratamento" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><option value="temporario">Temporário (por X dias)</option><option value="continuo">Contínuo (sem data fim)</option></select></div><div id="duracao-container"><label for="duracao-tratamento" class="block text-lg font-medium mb-1">Duração (dias) *</label><input type="number" id="duracao-tratamento" placeholder="Ex: 5" min="1" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><p class="error-message hidden" id="error-duracao-tratamento"></p></div></div><div><label class="block text-lg font-medium mb-2">Horários *</label><div class="mb-3 p-4 bg-blue-50 rounded-lg"><p class="text-sm text-gray-700 mb-2 font-medium">Sugestões rápidas:</p><div class="flex flex-wrap gap-2"><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="24">1x ao dia</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="12">A cada 12h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="8">A cada 8h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="6">A cada 6h</button><button type="button" class="btn-sugestao px-3 py-1 bg-white border border-blue-300 rounded-full text-sm hover:bg-blue-100 transition" data-intervalo="4">A cada 4h</button></div></div><div id="horarios-container" class="space-y-2"></div><button type="button" id="btn-add-horario" class="mt-2 w-full text-blue-600 font-semibold border-2 border-dashed border-blue-400 rounded-lg py-2 hover:bg-blue-50 transition">+ Adicionar horário manualmente</button><p class="error-message hidden" id="error-horarios"></p></div><div><label for="instrucoes-remedio" class="block text-lg font-medium mb-1">Como tomar? *</label><select id="instrucoes-remedio" required class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><option value="Depois de comer">Depois de comer 🍳</option><option value="Antes de comer (jejum)">Antes de comer (jejum) 🕒</option><option value="Com bastante água">Com bastante água 💧</option><option value="Com alimentos">Com alimentos 🍽️</option><option value="Sublingual">Sublingual 👅</option><option value="Uso tópico">Uso tópico 🧴</option><option value="Não importa">Não importa 👍</option><option value="personalizado">Personalizado ✏️</option></select></div><div id="instrucoes-personalizadas-container" class="hidden"><label for="instrucoes-personalizadas" class="block text-lg font-medium mb-1">Instruções Personalizadas</label><textarea id="instrucoes-personalizadas" placeholder="Digite instruções específicas..." class="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" rows="3"></textarea></div><div class="flex justify-end gap-4 pt-4 border-t"><button type="button" id="btn-cancel-modal" class="px-8 py-3 bg-gray-200 rounded-lg text-lg hover:bg-gray-300 transition">Cancelar</button><button type="submit" class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg text-lg hover:bg-blue-700 transition">Salvar Tratamento</button></div></form></div></div>
-    <div id="user-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="flex justify-between items-center mb-6"><h3 class="text-2xl font-bold">Gerenciar Pacientes</h3><button type="button" id="btn-close-user-modal-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><form id="form-add-user" class="flex flex-col sm:flex-row items-stretch gap-2 mb-6"><input type="text" id="new-user-name" placeholder="Nome do novo paciente" required class="flex-grow px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500"><button type="submit" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Adicionar</button></form><div id="user-list-container" class="space-y-2 max-h-60 overflow-y-auto"></div><div class="mt-6 flex justify-end"><button type="button" id="btn-close-user-modal" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button></div></div></div>
-    <div id="relatorio-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl transform transition-all flex flex-col" style="max-height: 90vh;"><div id="relatorio-imprimir" class="p-6 sm:p-8"><div class="flex justify-between items-center mb-4"><div><h2 class="text-2xl font-bold">Relatório de Tratamento</h2><p class="text-gray-500 mt-1">Progresso geral até <span id="relatorio-data"></span></p></div><button type="button" id="btn-close-relatorio-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none no-print">&times;</button></div><div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg"><div class="grid grid-cols-3 gap-4 text-center"><div><p class="text-2xl font-bold text-blue-600" id="stats-total">0</p><p class="text-sm text-gray-600">Total de Tratamentos</p></div><div><p class="text-2xl font-bold text-green-600" id="stats-ativos">0</p><p class="text-sm text-gray-600">Ativos</p></div><div><p class="text-2xl font-bold text-purple-600" id="stats-concluidos">0</p><p class="text-sm text-gray-600">Concluídos</p></div></div></div><div id="relatorio-conteudo" class="space-y-4 overflow-y-auto" style="max-height: 50vh;"></div></div><div class="flex justify-between gap-4 p-4 bg-gray-50 border-t rounded-b-2xl no-print"><button type="button" id="btn-exportar-csv" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Exportar CSV</button><div class="flex gap-2"><button type="button" id="btn-fechar-relatorio" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button><button type="button" id="btn-salvar-relatorio" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Imprimir</button></div></div></div></div>
-    <div id="modal-conclusao" class="fixed inset-0 bg-gradient-to-br from-green-500 to-green-700 bg-opacity-95 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="text-center text-white"><div class="text-9xl animate-bounce mb-6">🎉</div><h2 class="text-4xl sm:text-5xl font-bold mt-4">Parabéns!</h2><p class="text-xl sm:text-2xl mt-4 max-w-lg">Você tomou todos os medicamentos de hoje! Continue assim! 👏</p><div class="mt-8 p-6 bg-white/20 rounded-2xl backdrop-blur-sm"><p class="text-lg">Seu compromisso com a saúde é inspirador!</p></div><button id="btn-reset" class="btn-principal mt-10 bg-white text-green-600 font-bold py-4 px-8 rounded-full shadow-lg text-xl hover:bg-gray-100 transition">Entendido</button></div></div>
-    <div id="modal-confirmar-exclusao" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="text-center"><div class="text-6xl mb-4">⚠️</div><h3 class="text-2xl font-bold mb-2">Confirmar Exclusão</h3><p class="text-gray-600 mb-6">Tem certeza que deseja excluir este tratamento? Esta ação não pode ser desfeita.</p><div class="flex gap-4 justify-center"><button type="button" id="btn-cancelar-exclusao" class="px-6 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button><button type="button" id="btn-confirmar-exclusao" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">Sim, Excluir</button></div></div></div></div>
-    <div id="modal-notificacoes" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold">Configurações de Notificações</h3><button type="button" id="btn-close-notificacoes-x" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div><div class="space-y-4"><div class="p-4 bg-yellow-50 rounded-lg"><p class="text-sm text-yellow-800">A funcionalidade de notificações está em desenvolvimento e será aprimorada em breve.</p></div></div><div class="mt-6 flex justify-end"><button type="button" id="btn-fechar-notificacoes" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Fechar</button></div></div></div>
+    <div id="modal-adicionar-remedio" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display: none;">
+        <div class="relative p-8 bg-white w-full max-w-md m-auto flex-col flex rounded-lg shadow-lg fade-in-scale">
+            <h2 class="text-2xl font-bold mb-6 text-blue-800">Adicionar Novo Tratamento</h2>
+            <form id="form-remedio" class="space-y-4">
+                <div><label for="nome-remedio" class="block text-sm font-medium text-gray-700">Nome do Remédio:</label><input type="text" id="nome-remedio" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></div>
+                <div><label for="dosagem" class="block text-sm font-medium text-gray-700">Dosagem (ex: 500mg):</label><input type="text" id="dosagem" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                <div><label for="intervalo" class="block text-sm font-medium text-gray-700">Intervalo (horas):</label><input type="number" id="intervalo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" min="1" required></div>
+                <div><label for="data-inicio" class="block text-sm font-medium text-gray-700">Data de Início:</label><input type="date" id="data-inicio" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></div>
+                <div><label for="hora-primeira-dose" class="block text-sm font-medium text-gray-700">Hora da Primeira Dose:</label><input type="time" id="hora-primeira-dose" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></div>
+                <div class="flex justify-end gap-4"><button type="button" id="btn-cancelar-remedio" class="btn-secundario bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full hover:bg-gray-400 transition">Cancelar</button><button type="submit" class="btn-principal bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700 transition">Adicionar</button></div>
+            </form>
+        </div>
+    </div>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-        authDomain: "thiaguinho-solucoes.firebaseapp.com",
-        databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-        projectId: "thiaguinho-solucoes",
-        storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-        messagingSenderId: "879610267391",
-        appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-    };
+    <div id="modal-relatorio" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display: none;">
+        <div class="relative p-8 bg-white w-full max-w-2xl m-auto flex-col flex rounded-lg shadow-lg fade-in-scale">
+            <h2 class="text-2xl font-bold mb-6 text-blue-800">Relatório de Tratamento</h2>
+            <div id="relatorio-imprimir" class="mb-4 p-4 border rounded-md bg-gray-50 overflow-y-auto max-h-96">
+                <h3 class="text-xl font-semibold mb-2">Resumo Geral</h3>
+                <p id="relatorio-resumo"></p>
+                <h3 class="text-xl font-semibold mt-4 mb-2">Detalhes por Remédio</h3>
+                <div id="relatorio-detalhes"></div>
+            </div>
+            <div class="flex justify-end gap-4 no-print"><button type="button" id="btn-imprimir-relatorio" class="btn-secundario bg-green-600 text-white font-bold py-2 px-4 rounded-full hover:bg-green-700 transition">Imprimir</button><button type="button" id="btn-fechar-relatorio" class="btn-secundario bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full hover:bg-gray-400 transition">Fechar</button></div>
+        </div>
+    </div>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-    
-    const DataManager = {
-        uid: null,
-        activePatientId: null,
+    <div id="modal-manage-users" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display: none;">
+        <div class="relative p-8 bg-white w-full max-w-md m-auto flex-col flex rounded-lg shadow-lg fade-in-scale">
+            <h2 class="text-2xl font-bold mb-6 text-blue-800">Gerenciar Pacientes</h2>
+            <div id="patient-list" class="space-y-3 mb-6"></div>
+            <form id="form-add-patient" class="space-y-4">
+                <h3 class="text-xl font-semibold text-gray-700">Adicionar Novo Paciente</h3>
+                <div><label for="new-patient-name" class="block text-sm font-medium text-gray-700">Nome do Paciente:</label><input type="text" id="new-patient-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></div>
+                <div class="flex justify-end gap-4"><button type="submit" class="btn-principal bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700 transition">Adicionar Paciente</button></div>
+            </form>
+            <div class="flex justify-end gap-4 mt-6"><button type="button" id="btn-close-manage-users" class="btn-secundario bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full hover:bg-gray-400 transition">Fechar</button></div>
+        </div>
+    </div>
 
-        async init(uid) {
-            this.uid = uid;
-            const storedPatientId = localStorage.getItem(`activePatientId_${uid}`);
-            this.activePatientId = storedPatientId;
-        },
-        _getBaseRef() {
-            if (!this.uid) return null;
-            return database.ref(`easy_lists/${this.uid}/enfermeiro_inteligente`);
-        },
-        async getUsers() {
-            const ref = this._getBaseRef()?.child('patients');
-            if (!ref) return [];
-            const snapshot = await ref.once('value');
-            const users = snapshot.val();
-            return users ? Object.values(users) : [];
-        },
-        async saveUsers(users) {
-            const ref = this._getBaseRef()?.child('patients');
-            if (!ref) return false;
-            const usersObject = users.reduce((acc, user) => { acc[user.id] = user; return acc; }, {});
-            await ref.set(usersObject);
-            return true;
-        },
-        getActivePatientId() { return this.activePatientId; },
-        async setActivePatientId(patientId) {
-            this.activePatientId = patientId;
-            localStorage.setItem(`activePatientId_${this.uid}`, patientId || '');
-        },
-        _getPatientDataRef() {
-            if (!this.activePatientId) return null;
-            return this._getBaseRef()?.child(`patients_data/${this.activePatientId}`);
-        },
-        async _getData(path) {
-            const ref = this._getPatientDataRef()?.child(path);
-            if (!ref) return null;
-            const snapshot = await ref.once('value');
-            return snapshot.val();
-        },
-        async _saveData(path, data) {
-            const ref = this._getPatientDataRef()?.child(path);
-            if (!ref) { console.error('Paciente não ativo.'); return false; }
-            await ref.set(data);
-            return true;
-        },
-        async carregarTratamentos() { return await this._getData('tratamentos') || []; },
-        async salvarTratamentos(tratamentos) { return await this._saveData('tratamentos', tratamentos); },
-        async carregarDoses() { return await this._getData('dosesDiarias') || []; },
-        async salvarDoses(doses) { return await this._saveData('dosesDiarias', doses); },
-        async precisaGerarDosesHoje() {
-            const hoje = new Date().toLocaleDateString('pt-BR');
-            const ultimaGeracao = await this._getData('ultimaGeracao');
-            return ultimaGeracao !== hoje;
-        },
-        async marcarGeracaoHoje() {
-            await this._saveData('ultimaGeracao', new Date().toLocaleDateString('pt-BR'));
-        },
-        async carregarDarkMode() {
-            const ref = this._getBaseRef()?.child('global_settings/darkMode');
-            if (!ref) return false;
-            const snapshot = await ref.once('value');
-            return snapshot.val() === true;
-        },
-        async salvarDarkMode(ativado) {
-            const ref = this._getBaseRef()?.child('global_settings/darkMode');
-            if (!ref) return;
-            await ref.set(ativado);
-        }
-    };
-    
-    const UI = {
-        mostrarToast(mensagem, tipo = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${tipo}`;
-            toast.textContent = mensagem;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'slideInRight 0.3s ease-out reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        },
-        validarCampo(campo, mensagemErro) {
-            const errorElement = document.getElementById(`error-${campo.id}`);
-            if (!campo.value.trim()) {
-                campo.classList.add('input-error');
-                if (errorElement) { errorElement.textContent = mensagemErro; errorElement.classList.remove('hidden'); }
-                return false;
+    <script>
+        let currentUserId = null;
+        let currentPatientId = null;
+        let patientsRef = null;
+        let remediosRef = null;
+
+        // Variáveis para controle do modo escuro
+        const toggleDarkBtn = document.getElementById('btn-toggle-dark');
+        const htmlElement = document.documentElement;
+
+        // Função para aplicar ou remover o modo escuro
+        function toggleDarkMode() {
+            if (htmlElement.classList.contains('dark-mode')) {
+                htmlElement.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
             } else {
-                campo.classList.remove('input-error');
-                if (errorElement) { errorElement.classList.add('hidden'); }
-                return true;
+                htmlElement.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
             }
-        },
-        limparErros() {
-            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-            document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
-        },
-        async toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            await DataManager.salvarDarkMode(isDark);
-            this.mostrarToast(`Modo ${isDark ? 'escuro' : 'claro'} ativado`, 'info');
-        },
-        async aplicarDarkMode() {
-            if (await DataManager.carregarDarkMode()) {
-                document.body.classList.add('dark-mode');
-            }
-        },
-        formatarData(data) { return new Date(data).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); },
-        calcularTempoAteProximaDose(horario) {
-            const agora = new Date(); const [horas, minutos] = horario.split(':'); const proximaDose = new Date();
-            proximaDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-            if (proximaDose < agora) { proximaDose.setDate(proximaDose.getDate() + 1); }
-            const diff = proximaDose - agora; const horasRestantes = Math.floor(diff / 3600000); const minutosRestantes = Math.floor((diff % 3600000) / 60000);
-            if (horasRestantes === 0 && minutosRestantes <= 0) { return 'agora'; }
-            else if (horasRestantes === 0) { return `em ${minutosRestantes} min`; }
-            else if (horasRestantes < 24) { return `em ${horasRestantes}h ${minutosRestantes}min`; }
-            else { return `amanhã às ${horario}`; }
         }
-    };
 
-    const NotificationManager = {
-        atualizarBadge: async () => {
-             const doses = await DataManager.carregarDoses();
-            const badge = document.getElementById('notification-badge');
-            if (!doses || doses.length === 0) {
-                badge.classList.add('hidden');
-                return;
+        // Verifica o tema preferido do usuário ao carregar a página
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark-mode');
+        }
+
+        // Event listener para o botão de alternar modo escuro
+        toggleDarkBtn.addEventListener('click', toggleDarkMode);
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                patientsRef = database.ref(`enfermeiro_inteligente/${currentUserId}/patients`);
+                
+                // Atualiza o status online do usuário
+                const userOnlineRef = database.ref("users_online/" + user.uid);
+                userOnlineRef.set({ email: user.email, lastOnline: new Date().toISOString() });
+                userOnlineRef.onDisconnect().remove();
+
+                document.getElementById('app-container').style.display = 'block';
+                document.getElementById('auth-container').style.display = 'none';
+                loadPatients();
+            } else {
+                document.getElementById('app-container').style.display = 'none';
+                document.getElementById('auth-container').style.display = 'flex';
             }
-            const agora = new Date();
-            let pendentes = 0;
-            
-            doses.forEach(dose => {
-                if (dose.concluido) return;
-                const [horas, minutos] = dose.horario.split(':');
-                const horarioDose = new Date();
-                horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-                if (horarioDose <= agora) pendentes++;
-            });
+        });
 
-            if (pendentes > 0) {
-                badge.textContent = pendentes;
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (currentUserId) {
+                database.ref("users_online/" + currentUserId).remove(); // Remove o status online ao deslogar
+            }
+            auth.signOut().then(() => {
+                window.location.replace('../index.html');
+            });
+        });
+
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        async function loadPatients() {
+            patientsRef.on('value', (snapshot) => {
+                const patients = snapshot.val();
+                const userSelector = document.getElementById('user-selector');
+                userSelector.innerHTML = '';
+                const patientListDiv = document.getElementById('patient-list');
+                patientListDiv.innerHTML = '';
+
+                if (!patients) {
+                    document.getElementById('placeholder').style.display = 'block';
+                    document.getElementById('checklist-container').innerHTML = '';
+                    document.getElementById('footer-progress').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('placeholder').style.display = 'none';
+                document.getElementById('footer-progress').style.display = 'block';
+
+                let firstPatientId = null;
+                for (let id in patients) {
+                    if (!firstPatientId) firstPatientId = id;
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = patients[id].name;
+                    userSelector.appendChild(option);
+
+                    // Adiciona à lista de gerenciamento de pacientes
+                    const patientItem = document.createElement('div');
+                    patientItem.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-md';
+                    patientItem.innerHTML = `
+                        <span>${patients[id].name}</span>
+                        <button class="text-red-500 hover:text-red-700" onclick="deletePatient('${id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z" clip-rule="evenodd" /></svg>
+                        </button>
+                    `;
+                    patientListDiv.appendChild(patientItem);
+                }
+
+                if (currentPatientId && patients[currentPatientId]) {
+                    userSelector.value = currentPatientId;
+                } else if (firstPatientId) {
+                    currentPatientId = firstPatientId;
+                    userSelector.value = firstPatientId;
+                }
+                userSelector.dispatchEvent(new Event('change'));
+            });
+        }
+
+        document.getElementById('user-selector').addEventListener('change', (e) => {
+            currentPatientId = e.target.value;
+            if (currentPatientId) {
+                remediosRef = database.ref(`enfermeiro_inteligente/${currentUserId}/patients/${currentPatientId}/remedios`);
+                loadRemedios();
+            } else {
+                document.getElementById('checklist-container').innerHTML = '';
+                document.getElementById('placeholder').style.display = 'block';
+                document.getElementById('footer-progress').style.display = 'none';
+            }
+        });
+
+        document.getElementById('btn-manage-users').addEventListener('click', () => {
+            document.getElementById('modal-manage-users').style.display = 'flex';
+        });
+
+        document.getElementById('btn-close-manage-users').addEventListener('click', () => {
+            document.getElementById('modal-manage-users').style.display = 'none';
+        });
+
+        document.getElementById('form-add-patient').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPatientName = document.getElementById('new-patient-name').value;
+            if (newPatientName && currentUserId) {
+                const newPatientRef = patientsRef.push();
+                await newPatientRef.set({ id: newPatientRef.key, name: newPatientName, createdAt: new Date().toISOString() });
+                document.getElementById('new-patient-name').value = '';
+                showToast('Paciente adicionado com sucesso!', 'success');
+            }
+        });
+
+        async function deletePatient(patientId) {
+            if (!confirm('Tem certeza que deseja excluir este paciente e todos os seus tratamentos?')) return;
+            try {
+                await patientsRef.child(patientId).remove();
+                showToast('Paciente excluído com sucesso!', 'success');
+                if (currentPatientId === patientId) {
+                    currentPatientId = null;
+                }
+                loadPatients(); // Recarrega a lista de pacientes
+            } catch (error) {
+                console.error('Erro ao excluir paciente:', error);
+                showToast('Erro ao excluir paciente.', 'error');
+            }
+        }
+
+        function loadRemedios() {
+            if (!remediosRef) return;
+
+            remediosRef.on('value', (snapshot) => {
+                const remedios = snapshot.val();
+                const checklistContainer = document.getElementById('checklist-container');
+                checklistContainer.innerHTML = '';
+                let totalDoses = 0;
+                let dosesTomadas = 0;
+                let nextDoseTime = null;
+                let nextDoseRemedio = null;
+                let atrasadosCount = 0;
+
+                if (!remedios) {
+                    checklistContainer.innerHTML = '<p class="text-center text-gray-600 text-lg">Nenhum tratamento adicionado para este paciente.</p>';
+                    updateProgressBar(0, 0);
+                    document.getElementById('next-dose-info').classList.add('hidden');
+                    document.getElementById('notification-badge').classList.add('hidden');
+                    return;
+                }
+
+                const remediosArray = Object.values(remedios);
+                remediosArray.sort((a, b) => new Date(a.dataInicio + 'T' + a.horaPrimeiraDose).getTime() - new Date(b.dataInicio + 'T' + b.horaPrimeiraDose).getTime());
+
+                remediosArray.forEach(remedio => {
+                    const remedioCard = document.createElement('div');
+                    remedioCard.className = 'bg-white rounded-xl shadow-lg p-6 mb-4 border-l-4 border-blue-500 fade-in-scale';
+                    
+                    const dosesHoje = calcularDosesHoje(remedio);
+                    totalDoses += dosesHoje.total;
+                    dosesTomadas += dosesHoje.tomadas;
+
+                    const agora = new Date();
+                    let statusClass = '';
+                    let statusText = '';
+                    let proximaDose = null;
+
+                    if (remedio.doses && remedio.doses[agora.toISOString().slice(0, 10)]) {
+                        const dosesDoDia = remedio.doses[agora.toISOString().slice(0, 10)];
+                        const horariosDoses = Object.keys(dosesDoDia).sort();
+                        
+                        for (const horario of horariosDoses) {
+                            const doseTime = new Date(agora.toISOString().slice(0, 10) + 'T' + horario);
+                            if (!dosesDoDia[horario].tomada && doseTime > agora) {
+                                if (!proximaDose || doseTime < proximaDose) {
+                                    proximaDose = doseTime;
+                                    nextDoseTime = doseTime;
+                                    nextDoseRemedio = remedio.nome;
+                                }
+                                break; // Encontrou a próxima dose, pode parar
+                            }
+                            if (!dosesDoDia[horario].tomada && doseTime < agora) {
+                                atrasadosCount++;
+                            }
+                        }
+                    }
+
+                    if (dosesHoje.tomadas === dosesHoje.total && dosesHoje.total > 0) {
+                        statusClass = 'card-concluido';
+                        statusText = 'Concluído';
+                    } else if (atrasadosCount > 0) {
+                        statusClass = 'card-atrasado';
+                        statusText = 'Atrasado';
+                    } else if (proximaDose) {
+                        statusClass = 'card-proximo';
+                        statusText = 'Próximo';
+                    } else {
+                        statusText = 'Pendente';
+                    }
+
+                    remedioCard.classList.add(statusClass);
+
+                    remedioCard.innerHTML = `
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-blue-700">${remedio.nome}</h3>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusClass === 'card-concluido' ? 'bg-green-100 text-green-800' : statusClass === 'card-atrasado' ? 'bg-red-100 text-red-800' : statusClass === 'card-proximo' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'}">${statusText}</span>
+                        </div>
+                        <div class="info-remedio text-gray-700 mb-4">
+                            <p><strong>Dosagem:</strong> ${remedio.dosagem || 'Não especificado'}</p>
+                            <p><strong>Intervalo:</strong> ${remedio.intervalo} horas</p>
+                            <p><strong>Início:</strong> ${new Date(remedio.dataInicio).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mb-4" id="doses-${remedio.id}"></div>
+                        <div class="flex justify-end gap-2">
+                            <button class="text-blue-500 hover:text-blue-700" onclick="editRemedio('${remedio.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.827-2.828z" /></svg>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700" onclick="deleteRemedio('${remedio.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    `;
+                    checklistContainer.appendChild(remedioCard);
+                    renderDoses(remedio.id, remedio.intervalo, remedio.dataInicio, remedio.horaPrimeiraDose, remedio.doses);
+                });
+
+                updateProgressBar(dosesTomadas, totalDoses);
+                updateNextDoseInfo(nextDoseTime, nextDoseRemedio);
+                updateNotificationBadge(atrasadosCount);
+            });
+        }
+
+        function calcularDosesHoje(remedio) {
+            const hojeStr = new Date().toISOString().slice(0, 10);
+            const dosesDoDia = remedio.doses && remedio.doses[hojeStr] ? remedio.doses[hojeStr] : {};
+            const horariosGerados = gerarHorariosDoses(remedio.dataInicio, remedio.horaPrimeiraDose, remedio.intervalo);
+            
+            let total = 0;
+            let tomadas = 0;
+
+            for (const horario of horariosGerados) {
+                const doseTime = new Date(hojeStr + 'T' + horario);
+                const agora = new Date();
+                if (doseTime.toISOString().slice(0, 10) === hojeStr) { // Garante que a dose é para hoje
+                    total++;
+                    if (dosesDoDia[horario] && dosesDoDia[horario].tomada) {
+                        tomadas++;
+                    }
+                }
+            }
+            return { total, tomadas };
+        }
+
+        function gerarHorariosDoses(dataInicioStr, horaPrimeiraDoseStr, intervaloHoras) {
+            const horarios = [];
+            const dataInicio = new Date(dataInicioStr + 'T' + horaPrimeiraDoseStr);
+            const agora = new Date();
+            const hojeStr = agora.toISOString().slice(0, 10);
+
+            // Se a data de início for futura, não gera doses para hoje ainda
+            if (new Date(dataInicioStr) > new Date(hojeStr)) {
+                return [];
+            }
+
+            let currentDoseTime = new Date(dataInicio);
+            // Ajusta currentDoseTime para o dia de hoje, mantendo a hora
+            currentDoseTime.setFullYear(agora.getFullYear(), agora.getMonth(), agora.getDate());
+
+            // Se a primeira dose original do dia já passou, avança para a próxima
+            if (currentDoseTime < dataInicio && new Date(dataInicioStr).toISOString().slice(0, 10) === hojeStr) {
+                // Se a primeira dose do dia original já passou, mas é o dia de início, usa a hora original
+            } else if (currentDoseTime < dataInicio) {
+                // Se não é o dia de início e a hora da primeira dose do dia já passou, ajusta para o próximo intervalo
+                while (currentDoseTime < agora) {
+                    currentDoseTime.setHours(currentDoseTime.getHours() + intervaloHoras);
+                }
+                currentDoseTime.setHours(currentDoseTime.getHours() - intervaloHoras); // Volta para a primeira dose válida de hoje
+            }
+
+            // Garante que a primeira dose gerada para hoje não seja antes da hora da primeira dose original se for o dia de início
+            if (new Date(dataInicioStr).toISOString().slice(0, 10) === hojeStr && currentDoseTime.getHours() < dataInicio.getHours()) {
+                currentDoseTime.setHours(dataInicio.getHours());
+                currentDoseTime.setMinutes(dataInicio.getMinutes());
+            }
+
+            // Gera horários para o dia atual
+            for (let i = 0; i < 24 / intervaloHoras + 1; i++) { // +1 para garantir que pega todas as doses
+                const doseTime = new Date(currentDoseTime.getTime() + i * intervaloHoras * 60 * 60 * 1000);
+                if (doseTime.toISOString().slice(0, 10) === hojeStr) {
+                    horarios.push(doseTime.toTimeString().slice(0, 5));
+                }
+            }
+            return horarios.sort();
+        }
+
+        function renderDoses(remedioId, intervalo, dataInicioStr, horaPrimeiraDoseStr, dosesRegistradas) {
+            const dosesContainer = document.getElementById(`doses-${remedioId}`);
+            dosesContainer.innerHTML = '';
+            const hojeStr = new Date().toISOString().slice(0, 10);
+            const dosesDoDia = dosesRegistradas && dosesRegistradas[hojeStr] ? dosesRegistradas[hojeStr] : {};
+            const horariosGerados = gerarHorariosDoses(dataInicioStr, horaPrimeiraDoseStr, intervalo);
+
+            horariosGerados.forEach(horario => {
+                const doseTime = new Date(hojeStr + 'T' + horario);
+                const agora = new Date();
+                const tomada = dosesDoDia[horario] && dosesDoDia[horario].tomada;
+                const atrasada = !tomada && doseTime < agora;
+
+                const button = document.createElement('button');
+                button.className = `py-2 px-3 rounded-lg text-sm font-semibold transition ${tomada ? 'bg-green-500 text-white' : atrasada ? 'bg-red-500 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}`;
+                button.textContent = horario;
+                button.disabled = tomada; // Desabilita o botão se a dose já foi tomada
+                if (!tomada) {
+                    button.onclick = () => toggleDoseTomada(remedioId, horario, !tomada);
+                }
+                dosesContainer.appendChild(button);
+            });
+        }
+
+        async function toggleDoseTomada(remedioId, horario, tomada) {
+            const hojeStr = new Date().toISOString().slice(0, 10);
+            const doseRef = remediosRef.child(`${remedioId}/doses/${hojeStr}/${horario}`);
+            await doseRef.set({ tomada: tomada, timestamp: new Date().toISOString() });
+            showToast(`Dose das ${horario} ${tomada ? 'registrada' : 'desmarcada'}!`, 'info');
+        }
+
+        function updateProgressBar(dosesTomadas, totalDoses) {
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const percentage = totalDoses > 0 ? (dosesTomadas / totalDoses) * 100 : 0;
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${Math.round(percentage)}%`;
+            progressText.textContent = `${dosesTomadas} de ${totalDoses} doses tomadas hoje.`;
+        }
+
+        function updateNextDoseInfo(nextDoseTime, nextDoseRemedio) {
+            const nextDoseInfoDiv = document.getElementById('next-dose-info');
+            const nextDoseText = document.getElementById('next-dose-text');
+
+            if (nextDoseTime && nextDoseRemedio) {
+                nextDoseInfoDiv.classList.remove('hidden');
+                nextDoseText.textContent = `${nextDoseRemedio} às ${nextDoseTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            } else {
+                nextDoseInfoDiv.classList.add('hidden');
+            }
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notification-badge');
+            if (count > 0) {
+                badge.textContent = count;
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
             }
         }
-    };
-    
-    const TreatmentManager = {
-        tratamentos: [], dosesDiarias: [],
-        async init() {
-            this.tratamentos = await DataManager.carregarTratamentos();
-            if (await DataManager.precisaGerarDosesHoje()) {
-                await this.gerarDosesParaHoje(); await DataManager.marcarGeracaoHoje();
-            } else { this.dosesDiarias = await DataManager.carregarDoses(); }
-        },
-        async gerarDosesParaHoje() {
-            const hoje = new Date(); hoje.setHours(0, 0, 0, 0); this.dosesDiarias = [];
-            this.tratamentos.forEach(trat => {
-                const dataInicio = new Date(trat.dataInicio); dataInicio.setHours(0, 0, 0, 0);
-                const diffDays = Math.ceil((hoje - dataInicio) / 86400000);
-                const dentroDoTratamento = trat.tipotratamento === 'continuo' || (diffDays >= 0 && diffDays < trat.duracao);
-                if (dentroDoTratamento) {
-                    (trat.horarios || []).forEach(horario => this.dosesDiarias.push({ id: `${trat.id}-${horario}`, tratamentoId: trat.id, nome: trat.nome, dosagem: trat.dosagem, horario, instrucoes: trat.instrucoes, diaAtual: trat.tipotratamento === 'continuo' ? '∞' : diffDays + 1, duracaoTotal: trat.tipotratamento === 'continuo' ? '∞' : trat.duracao, concluido: false }));
-                }
-            });
-            await DataManager.salvarDoses(this.dosesDiarias);
-        },
-        async adicionarTratamento(dados) {
-            const novoTratamento = { ...dados, id: Date.now().toString(), dataInicio: new Date().toISOString() };
-            this.tratamentos.push(novoTratamento);
-            if (await DataManager.salvarTratamentos(this.tratamentos)) {
-                await this.gerarDosesParaHoje(); await DataManager.marcarGeracaoHoje();
-                UI.mostrarToast('Tratamento adicionado com sucesso!', 'success'); return true;
-            } return false;
-        },
-        async editarTratamento(id, dados) {
-            const index = this.tratamentos.findIndex(t => t.id === id); if (index === -1) return false;
-            this.tratamentos[index] = { ...this.tratamentos[index], ...dados };
-            if (await DataManager.salvarTratamentos(this.tratamentos)) {
-                await this.gerarDosesParaHoje(); await DataManager.marcarGeracaoHoje();
-                UI.mostrarToast('Tratamento atualizado com sucesso!', 'success'); return true;
-            } return false;
-        },
-        async excluirTratamento(id) {
-            this.tratamentos = this.tratamentos.filter(t => t.id !== id);
-            if (await DataManager.salvarTratamentos(this.tratamentos)) {
-                await this.gerarDosesParaHoje(); await DataManager.marcarGeracaoHoje();
-                UI.mostrarToast('Tratamento excluído com sucesso!', 'success'); return true;
-            } return false;
-        },
-        async toggleDose(id) {
-            const dose = this.dosesDiarias.find(d => d.id === id); if (!dose) return false;
-            dose.concluido = !dose.concluido; await DataManager.salvarDoses(this.dosesDiarias);
-            if (dose.concluido) { UI.mostrarToast(`✓ ${dose.nome} marcado como tomado!`, 'success'); } return true;
-        },
-        obterProximaDose() {
-            const agora = new Date(); const dosesNaoConcluidas = this.dosesDiarias.filter(d => !d.concluido).sort((a, b) => a.horario.localeCompare(b.horario));
-            if (dosesNaoConcluidas.length === 0) return null;
-            for (const dose of dosesNaoConcluidas) {
-                const [horas, minutos] = dose.horario.split(':'); const horarioDose = new Date();
-                horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0); if (horarioDose >= agora) return dose;
-            } return dosesNaoConcluidas[0];
-        },
-        todasDosesConcluidas() { return this.dosesDiarias.length > 0 && this.dosesDiarias.every(d => d.concluido); },
-        obterEstatisticas() {
-            const hoje = new Date(); hoje.setHours(0, 0, 0, 0); let ativos = 0, concluidos = 0;
-            this.tratamentos.forEach(trat => {
-                const dataInicio = new Date(trat.dataInicio); dataInicio.setHours(0, 0, 0, 0);
-                const diffDays = Math.ceil((hoje - dataInicio) / 86400000);
-                if (trat.tipotratamento === 'continuo') { ativos++; }
-                else if (diffDays >= 0 && diffDays < trat.duracao) { ativos++; }
-                else if (diffDays >= trat.duracao) { concluidos++; }
-            }); return { total: this.tratamentos.length, ativos, concluidos };
-        }
-    };
-    
-    const Renderer = {
-        async renderApp() {
-            if (DataManager.activePatientId) {
-                document.getElementById('main-controls').style.display = 'flex';
-                document.getElementById('footer-progress').style.display = 'block';
-                await TreatmentManager.init(); this.renderDosesDiarias();
-            } else {
-                document.getElementById('checklist-container').innerHTML = '';
-                document.getElementById('main-controls').style.display = 'none';
-                document.getElementById('footer-progress').style.display = 'none';
-                const placeholder = document.getElementById('placeholder');
-                placeholder.style.display = 'block';
-                placeholder.querySelector('#placeholder-icon').textContent = '👥';
-                placeholder.querySelector('#placeholder-title').textContent = 'Selecione ou crie um perfil de paciente para começar.';
-                placeholder.querySelector('#placeholder-subtitle').textContent = 'Use o menu "Paciente" acima para gerenciar os perfis.';
-            }
-        },
-        renderDosesDiarias() {
-            const container = document.getElementById('checklist-container'); const placeholder = document.getElementById('placeholder');
-            container.innerHTML = '';
-            if (TreatmentManager.dosesDiarias.length === 0) {
-                placeholder.style.display = 'block'; container.style.display = 'none';
-                placeholder.querySelector('#placeholder-icon').textContent = '💊';
-                placeholder.querySelector('#placeholder-title').textContent = 'Nenhum tratamento ativo para hoje.';
-                placeholder.querySelector('#placeholder-subtitle').textContent = 'Clique no botão "Adicionar Tratamento" acima para começar!';
-            } else {
-                placeholder.style.display = 'none'; container.style.display = 'block';
-                const groupedMeds = { 'Manhã ☀️': [], 'Tarde 🌇': [], 'Noite 🌙': [] };
-                TreatmentManager.dosesDiarias.sort((a, b) => a.horario.localeCompare(b.horario)).forEach(dose => {
-                    const hour = parseInt(dose.horario.split(':')[0], 10);
-                    if (hour >= 4 && hour < 12) groupedMeds['Manhã ☀️'].push(dose);
-                    else if (hour >= 12 && hour < 18) groupedMeds['Tarde 🌇'].push(dose);
-                    else groupedMeds['Noite 🌙'].push(dose);
-                });
-                for (const periodo in groupedMeds) {
-                    if (groupedMeds[periodo].length > 0) {
-                        const section = document.createElement('section'); section.className = 'fade-in-scale';
-                        section.innerHTML = `<h2 class="text-3xl font-bold text-white pb-2 mb-4 drop-shadow-lg">${periodo}</h2>`;
-                        groupedMeds[periodo].forEach(dose => section.appendChild(this.createMedCard(dose)));
-                        container.appendChild(section);
-                    }
-                }
-            }
-            this.atualizarProgresso(); this.atualizarProximaDose(); NotificationManager.atualizarBadge();
-        },
-        createMedCard(dose) {
-            const card = document.createElement('div'); const agora = new Date(); const [horas, minutos] = dose.horario.split(':');
-            const horarioDose = new Date(); horarioDose.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-            let cardClass = 'bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border-l-8 border-gray-300 transition-all duration-300 cursor-pointer p-5 flex items-center gap-5 fade-in-scale hover:shadow-xl hover:scale-[1.02]';
-            if (dose.concluido) { cardClass += ' card-concluido'; } else if (horarioDose < agora) { cardClass += ' card-atrasado'; } else if (horarioDose - agora < 1800000) { cardClass += ' card-proximo'; }
-            card.className = cardClass; card.dataset.id = dose.id;
-            const diaInfo = dose.duracaoTotal === '∞' ? '(Contínuo)' : `(Dia ${dose.diaAtual}/${dose.duracaoTotal})`;
-            card.innerHTML = `<div class="text-5xl flex-shrink-0">${dose.concluido ? '✅' : '⬜️'}</div><div class="flex-grow info-remedio"><h3 class="font-bold text-2xl">${dose.nome} <span class="text-lg font-medium text-gray-500">${diaInfo}</span></h3><p class="text-gray-600 text-lg mt-1">💊 ${dose.dosagem}</p><p class="text-gray-600 text-lg">⏰ ${dose.horario}</p><p class="text-gray-600 text-lg">🍽️ ${dose.instrucoes}</p></div>`;
-            return card;
-        },
-        atualizarProgresso() {
-            const total = TreatmentManager.dosesDiarias.length; const concluidos = TreatmentManager.dosesDiarias.filter(d => d.concluido).length;
-            const percent = total > 0 ? Math.round((concluidos / total) * 100) : 0;
-            const progressBar = document.getElementById('progress-bar'); const progressText = document.getElementById('progress-text');
-            progressBar.style.width = `${percent}%`; progressBar.textContent = total > 0 ? `${percent}%` : '';
-            progressText.textContent = total > 0 ? `Você tomou ${concluidos} de ${total} medicamentos hoje.` : 'Nenhum medicamento para hoje.';
-        },
-        atualizarProximaDose() {
-            const proximaDose = TreatmentManager.obterProximaDose(); const container = document.getElementById('next-dose-info');
-            const text = document.getElementById('next-dose-text');
-            if (proximaDose) {
-                const tempo = UI.calcularTempoAteProximaDose(proximaDose.horario);
-                text.textContent = `${proximaDose.nome} às ${proximaDose.horario} (${tempo})`; container.classList.remove('hidden');
-            } else { container.classList.add('hidden'); }
-        },
-        renderRelatorio() {
-            const conteudo = document.getElementById('relatorio-conteudo'); document.getElementById('relatorio-data').textContent = new Date().toLocaleDateString('pt-BR');
-            conteudo.innerHTML = '';
-            if (TreatmentManager.tratamentos.length === 0) {
-                conteudo.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhum tratamento cadastrado.</p>';
-                document.getElementById('stats-total').textContent = 0; document.getElementById('stats-ativos').textContent = 0; document.getElementById('stats-concluidos').textContent = 0;
-                return;
-            }
-            const stats = TreatmentManager.obterEstatisticas(); document.getElementById('stats-total').textContent = stats.total;
-            document.getElementById('stats-ativos').textContent = stats.ativos; document.getElementById('stats-concluidos').textContent = stats.concluidos;
-            const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-            TreatmentManager.tratamentos.forEach(trat => {
-                const dataInicio = new Date(trat.dataInicio); dataInicio.setHours(0, 0, 0, 0); const diasPassados = Math.max(0, Math.ceil((hoje - dataInicio) / 86400000));
-                let diaAtual, progresso, statusBadge;
-                if (trat.tipotratamento === 'continuo') { progresso = 100; statusBadge = '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">Contínuo</span>'; }
-                else {
-                    diaAtual = Math.min(diasPassados + 1, trat.duracao); progresso = Math.min(100, Math.round((diaAtual / trat.duracao) * 100));
-                    if (diaAtual >= trat.duracao) { statusBadge = '<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">Concluído</span>'; }
-                    else { statusBadge = '<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold">Em andamento</span>'; }
-                }
-                const itemRelatorio = document.createElement('div');
-                itemRelatorio.className = 'p-5 border-2 border-gray-200 rounded-xl relative hover:border-blue-300 transition bg-gradient-to-r from-white to-gray-50';
-                itemRelatorio.innerHTML = `<div class="absolute top-3 right-3 flex gap-2 no-print"><button class="btn-edit btn-icon p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" data-id="${trat.id}" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><button class="btn-delete btn-icon p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" data-id="${trat.id}" title="Excluir"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button></div><div class="pr-20"><div class="flex items-center gap-3 mb-2"><h3 class="font-bold text-xl">${trat.nome}</h3>${statusBadge}</div><p class="text-gray-600 mb-1"><span class="font-semibold">Dose:</span> ${trat.dosagem}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Horários:</span> ${(trat.horarios || []).join(', ')}</p><p class="text-gray-600 mb-1"><span class="font-semibold">Instruções:</span> ${trat.instrucoes}</p><p class="text-sm text-gray-500 mt-2">Início: ${new Date(trat.dataInicio).toLocaleDateString('pt-BR')}</p></div><div class="mt-4"><div class="flex justify-between items-center mb-2"><span class="text-base font-semibold text-blue-700">${trat.tipotratamento === 'continuo' ? 'Tratamento Contínuo' : `Dia ${diaAtual} de ${trat.duracao}`}</span><span class="font-bold text-lg">${progresso}%</span></div><div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: ${progresso}%"></div></div></div>`;
-                conteudo.appendChild(itemRelatorio);
-            });
-        }
-    };
-    const FormManager = {
-        limparFormulario() {
-            document.getElementById('form-remedio').reset(); document.getElementById('tratamento-id').value = '';
-            document.getElementById('modal-title').textContent = 'Novo Tratamento'; document.getElementById('horarios-container').innerHTML = '';
-            document.getElementById('instrucoes-personalizadas-container').classList.add('hidden');
-            document.getElementById('duracao-container').style.display = 'block'; UI.limparErros(); this.adicionarCampoHorario();
-        },
-        adicionarCampoHorario(horario = '') {
-            const container = document.getElementById('horarios-container'); const div = document.createElement('div');
-            div.className = 'flex items-center gap-2';
-            div.innerHTML = `<input type="time" value="${horario}" required class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"><button type="button" class="btn-remove-horario text-red-500 hover:text-red-700 hover:bg-red-50 font-bold text-2xl px-3 py-2 rounded-lg transition">×</button>`;
-            container.appendChild(div);
-            div.querySelector('.btn-remove-horario').addEventListener('click', () => {
-                if (container.children.length > 1) { div.remove(); } else { UI.mostrarToast('É necessário pelo menos um horário', 'error'); }
-            });
-        },
-        preencherHorariosSugestao(intervalo) {
-            const container = document.getElementById('horarios-container'); container.innerHTML = '';
-            const numDoses = 24 / intervalo;
-            for (let i = 0; i < numDoses; i++) {
-                const hora = (8 + (i * intervalo)) % 24; const horarioFormatado = `${hora.toString().padStart(2, '0')}:00`; this.adicionarCampoHorario(horarioFormatado);
-            } UI.mostrarToast(`Horários sugeridos adicionados (a cada ${intervalo}h)`, 'info');
-        },
-        validarFormulario() {
-            let valido = true;
-            if (!UI.validarCampo(document.getElementById('nome-remedio'), 'Informe o nome')) valido = false;
-            if (!UI.validarCampo(document.getElementById('dosagem-remedio'), 'Informe a dose')) valido = false;
-            const tipoTratamento = document.getElementById('tipo-tratamento').value;
-            if (tipoTratamento === 'temporario') {
-                const duracao = document.getElementById('duracao-tratamento');
-                if (!duracao.value || parseInt(duracao.value) < 1) { duracao.classList.add('input-error'); document.getElementById('error-duracao-tratamento').textContent = 'Informe a duração'; document.getElementById('error-duracao-tratamento').classList.remove('hidden'); valido = false; }
-            }
-            const horarios = Array.from(document.querySelectorAll('#horarios-container input[type="time"]')).map(i => i.value).filter(Boolean);
-            if (horarios.length === 0) { document.getElementById('error-horarios').textContent = 'Adicione um horário'; document.getElementById('error-horarios').classList.remove('hidden'); valido = false; }
-            else { document.getElementById('error-horarios').classList.add('hidden'); }
-            return valido;
-        },
-        coletarDados() {
-            const tipo = document.getElementById('tipo-tratamento').value; const instrucoesSelect = document.getElementById('instrucoes-remedio').value;
-            let instrucoes = instrucoesSelect === 'personalizado' ? (document.getElementById('instrucoes-personalizadas').value.trim() || 'Conforme orientação') : instrucoesSelect;
-            const horarios = Array.from(document.querySelectorAll('#horarios-container input[type="time"]')).map(i => i.value).filter(Boolean).sort();
-            return { nome: document.getElementById('nome-remedio').value.trim(), dosagem: document.getElementById('dosagem-remedio').value.trim(), tipotratamento: tipo, duracao: tipo === 'temporario' ? parseInt(document.getElementById('duracao-tratamento').value) : null, horarios, instrucoes };
-        },
-        preencherFormulario(id) {
-            const trat = TreatmentManager.tratamentos.find(t => t.id === id); if (!trat) return;
-            document.getElementById('tratamento-id').value = trat.id; document.getElementById('modal-title').textContent = 'Editar Tratamento';
-            document.getElementById('nome-remedio').value = trat.nome; document.getElementById('dosagem-remedio').value = trat.dosagem;
-            document.getElementById('tipo-tratamento').value = trat.tipotratamento || 'temporario';
-            document.getElementById('duracao-container').style.display = trat.tipotratamento === 'continuo' ? 'none' : 'block';
-            if (trat.tipotratamento !== 'continuo') document.getElementById('duracao-tratamento').value = trat.duracao;
-            const opcoes = Array.from(document.querySelectorAll('#instrucoes-remedio option')).map(o => o.value);
-            if (opcoes.includes(trat.instrucoes)) {
-                document.getElementById('instrucoes-remedio').value = trat.instrucoes;
-                document.getElementById('instrucoes-personalizadas-container').classList.add('hidden');
-            } else {
-                document.getElementById('instrucoes-remedio').value = 'personalizado';
-                document.getElementById('instrucoes-personalizadas').value = trat.instrucoes;
-                document.getElementById('instrucoes-personalizadas-container').classList.remove('hidden');
-            }
-            document.getElementById('horarios-container').innerHTML = '';
-            (trat.horarios || []).forEach(h => this.adicionarCampoHorario(h));
-        }
-    };
-    const ExportManager = {
-        async exportarCSV() {
-            if (TreatmentManager.tratamentos.length === 0) { UI.mostrarToast('Nenhum tratamento para exportar', 'error'); return; }
-            const users = await DataManager.getUsers(); const activeUserId = DataManager.activePatientId;
-            const activeUser = users.find(u => u.id === activeUserId); const userName = activeUser ? activeUser.name.replace(/\s/g, '_') : 'Paciente';
-            let csv = 'Nome,Dosagem,Tipo,Duração (dias),Horários,Instruções,Data de Início\n';
-            TreatmentManager.tratamentos.forEach(trat => {
-                const tipo = trat.tipotratamento === 'continuo' ? 'Contínuo' : 'Temporário';
-                const duracao = trat.tipotratamento === 'continuo' ? 'N/A' : trat.duracao;
-                const horarios = `"${(trat.horarios || []).join('; ')}"`; const dataInicio = new Date(trat.dataInicio).toLocaleDateString('pt-BR');
-                csv += `"${trat.nome}","${trat.dosagem}","${tipo}","${duracao}",${horarios},"${trat.instrucoes}","${dataInicio}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a');
-            const url = URL.createObjectURL(blob); link.setAttribute('href', url);
-            link.setAttribute('download', `tratamentos_${userName}_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            UI.mostrarToast('Relatório exportado com sucesso!', 'success');
-        }
-    };
-    const UserManager = {
-        async init() {
-            await this.renderUserSelector(); await this.renderUserList();
-            document.getElementById('user-selector').addEventListener('change', async (e) => {
-                await DataManager.setActivePatientId(e.target.value); await Renderer.renderApp();
-            });
-            document.getElementById('form-add-user').addEventListener('submit', async (e) => {
-                e.preventDefault(); const nameInput = document.getElementById('new-user-name');
-                const name = nameInput.value.trim(); if (name) { await this.addUser(name); nameInput.value = ''; }
-            });
-            document.getElementById('user-list-container').addEventListener('click', async (e) => {
-                const deleteButton = e.target.closest('.btn-delete-user'); if (deleteButton) {
-                    const userId = deleteButton.dataset.id;
-                    if (confirm('Tem certeza que deseja excluir este paciente e todos os seus dados?')) { await this.deleteUser(userId); }
-                }
-            });
-        },
-        async addUser(name) {
-            const users = await DataManager.getUsers(); const newUser = { id: Date.now().toString(), name: name };
-            users.push(newUser); await DataManager.saveUsers(users);
-            await this.renderUserSelector(); await this.renderUserList();
-            document.getElementById('user-selector').value = newUser.id;
-            await DataManager.setActivePatientId(newUser.id); await Renderer.renderApp();
-            UI.mostrarToast(`Paciente "${name}" adicionado.`, 'success');
-        },
-        async deleteUser(userId) {
-            let users = await DataManager.getUsers(); const userToDelete = users.find(u => u.id === userId);
-            users = users.filter(user => user.id !== userId); await DataManager.saveUsers(users);
-            if (DataManager.activePatientId === userId) { await DataManager.setActivePatientId(''); }
-            await this.renderUserSelector(); await this.renderUserList(); await Renderer.renderApp();
-            UI.mostrarToast(`Paciente "${userToDelete.name}" excluído.`, 'info');
-        },
-        async renderUserSelector() {
-            const selector = document.getElementById('user-selector'); const users = await DataManager.getUsers();
-            const activeUserId = DataManager.activePatientId;
-            selector.innerHTML = '<option value="">-- Selecione um Paciente --</option>';
-            users.forEach(user => {
-                const option = document.createElement('option'); option.value = user.id; option.textContent = user.name;
-                if (user.id === activeUserId) { option.selected = true; } selector.appendChild(option);
-            });
-        },
-        async renderUserList() {
-            const container = document.getElementById('user-list-container'); const users = await DataManager.getUsers();
-            container.innerHTML = users.length === 0 ? '<p class="text-center text-gray-500">Nenhum paciente cadastrado.</p>' : '';
-            users.forEach(user => {
-                const div = document.createElement('div'); div.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
-                div.innerHTML = `<span class="font-medium">${user.name}</span><button class="btn-delete-user p-2 text-red-500 hover:bg-red-100 rounded-full" data-id="${user.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></button>`;
-                container.appendChild(div);
-            });
-        }
-    };
-    
-    async function main(user) {
-        document.getElementById('auth-container').style.display = 'none';
-        document.getElementById('app-container').style.display = 'block';
-        
-        await DataManager.init(user.uid);
-        await UI.aplicarDarkMode();
-        await UserManager.init();
-        await Renderer.renderApp();
-        document.getElementById('current-date').textContent = UI.formatarData(new Date());
-    }
 
-    auth.onAuthStateChanged(async user => {
-        if (user) {
-            const blockRef = database.ref(`users_public_list/${user.uid}/isBlocked`);
-            const snapshot = await blockRef.once('value');
-            if (snapshot.val() === true) {
-                document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p></div>`;
-                return;
-            }
-            main(user).catch(console.error);
-        } else {
-            document.getElementById('auth-container').style.display = 'flex';
-            document.getElementById('app-container').style.display = 'none';
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-        document.getElementById('btn-toggle-dark').addEventListener('click', () => UI.toggleDarkMode());
-        document.getElementById('btn-manage-users').addEventListener('click', () => document.getElementById('user-modal').classList.remove('hidden'));
-        document.getElementById('btn-close-user-modal').addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
-        document.getElementById('btn-close-user-modal-x').addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
-        
-        document.getElementById('btn-notifications').addEventListener('click', () => {
-            document.getElementById('modal-notificacoes').classList.remove('hidden');
+        document.getElementById('btn-open-modal').addEventListener('click', () => {
+            document.getElementById('modal-adicionar-remedio').style.display = 'flex';
         });
-        document.getElementById('btn-fechar-notificacoes').addEventListener('click', () => document.getElementById('modal-notificacoes').classList.add('hidden'));
-        document.getElementById('btn-close-notificacoes-x').addEventListener('click', () => document.getElementById('modal-notificacoes').classList.add('hidden'));
 
-        document.getElementById('btn-open-modal').addEventListener('click', () => { FormManager.limparFormulario(); document.getElementById('med-modal').classList.remove('hidden'); });
-        document.getElementById('btn-cancel-modal').addEventListener('click', () => document.getElementById('med-modal').classList.add('hidden'));
-        document.getElementById('btn-close-modal-x').addEventListener('click', () => document.getElementById('med-modal').classList.add('hidden'));
-        document.getElementById('btn-add-horario').addEventListener('click', () => FormManager.adicionarCampoHorario());
-        document.querySelectorAll('.btn-sugestao').forEach(btn => btn.addEventListener('click', () => FormManager.preencherHorariosSugestao(parseInt(btn.dataset.intervalo))));
-        document.getElementById('tipo-tratamento').addEventListener('change', function() { document.getElementById('duracao-container').style.display = this.value === 'continuo' ? 'none' : 'block'; document.getElementById('duracao-tratamento').required = this.value !== 'continuo'; });
-        document.getElementById('instrucoes-remedio').addEventListener('change', function() { document.getElementById('instrucoes-personalizadas-container').classList.toggle('hidden', this.value !== 'personalizado'); });
+        document.getElementById('btn-cancelar-remedio').addEventListener('click', () => {
+            document.getElementById('modal-adicionar-remedio').style.display = 'none';
+            document.getElementById('form-remedio').reset();
+        });
+
         document.getElementById('form-remedio').addEventListener('submit', async (e) => {
-            e.preventDefault(); if (!FormManager.validarFormulario()) { UI.mostrarToast('Preencha os campos obrigatórios.', 'error'); return; }
-            const id = document.getElementById('tratamento-id').value; const dados = FormManager.coletarDados();
-            const sucesso = id ? await TreatmentManager.editarTratamento(id, dados) : await TreatmentManager.adicionarTratamento(dados);
-            if (sucesso) { await Renderer.renderDosesDiarias(); document.getElementById('med-modal').classList.add('hidden'); }
-        });
+            e.preventDefault();
+            const nome = document.getElementById('nome-remedio').value;
+            const dosagem = document.getElementById('dosagem').value;
+            const intervalo = parseInt(document.getElementById('intervalo').value);
+            const dataInicio = document.getElementById('data-inicio').value;
+            const horaPrimeiraDose = document.getElementById('hora-primeira-dose').value;
 
-        document.getElementById('checklist-container').addEventListener('click', async (e) => {
-            const card = e.target.closest('[data-id]'); if (card) {
-                await TreatmentManager.toggleDose(card.dataset.id); Renderer.renderDosesDiarias();
-                if (TreatmentManager.todasDosesConcluidas()) { document.getElementById('modal-conclusao').classList.remove('hidden'); }
+            if (nome && intervalo && dataInicio && horaPrimeiraDose && currentPatientId) {
+                const newRemedioRef = remediosRef.push();
+                await newRemedioRef.set({
+                    id: newRemedioRef.key,
+                    nome,
+                    dosagem,
+                    intervalo,
+                    dataInicio,
+                    horaPrimeiraDose,
+                    createdAt: new Date().toISOString()
+                });
+                document.getElementById('modal-adicionar-remedio').style.display = 'none';
+                document.getElementById('form-remedio').reset();
+                showToast('Tratamento adicionado com sucesso!', 'success');
+            } else {
+                showToast('Por favor, preencha todos os campos obrigatórios.', 'error');
             }
         });
-        document.getElementById('btn-reset').addEventListener('click', () => document.getElementById('modal-conclusao').classList.add('hidden'));
 
-        document.getElementById('btn-open-relatorio').addEventListener('click', () => { Renderer.renderRelatorio(); document.getElementById('relatorio-modal').classList.remove('hidden'); });
-        document.getElementById('btn-fechar-relatorio').addEventListener('click', () => document.getElementById('relatorio-modal').classList.add('hidden'));
-        document.getElementById('btn-close-relatorio-x').addEventListener('click', () => document.getElementById('relatorio-modal').classList.add('hidden'));
-        document.getElementById('btn-salvar-relatorio').addEventListener('click', () => window.print());
-        document.getElementById('btn-exportar-csv').addEventListener('click', () => ExportManager.exportarCSV());
-        
-        document.getElementById('relatorio-conteudo').addEventListener('click', (e) => {
-            const btnEdit = e.target.closest('.btn-edit'); const btnDelete = e.target.closest('.btn-delete');
-            if (btnEdit) { FormManager.preencherFormulario(btnEdit.dataset.id); document.getElementById('relatorio-modal').classList.add('hidden'); document.getElementById('med-modal').classList.remove('hidden'); }
-            if (btnDelete) { window.idParaExcluir = btnDelete.dataset.id; document.getElementById('modal-confirmar-exclusao').classList.remove('hidden'); }
+        async function deleteRemedio(remedioId) {
+            if (!confirm('Tem certeza que deseja excluir este tratamento?')) return;
+            try {
+                await remediosRef.child(remedioId).remove();
+                showToast('Tratamento excluído com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir tratamento:', error);
+                showToast('Erro ao excluir tratamento.', 'error');
+            }
+        }
+
+        async function editRemedio(remedioId) {
+            // Implementar lógica de edição aqui, talvez abrindo o modal com os dados preenchidos
+            showToast('Funcionalidade de edição em desenvolvimento!', 'info');
+        }
+
+        document.getElementById('btn-open-relatorio').addEventListener('click', () => {
+            generateRelatorio();
+            document.getElementById('modal-relatorio').style.display = 'flex';
         });
-        document.getElementById('btn-confirmar-exclusao').addEventListener('click', async () => {
-            if (window.idParaExcluir) { await TreatmentManager.excluirTratamento(window.idParaExcluir); await Renderer.renderApp(); Renderer.renderRelatorio(); window.idParaExcluir = null; }
-            document.getElementById('modal-confirmar-exclusao').classList.add('hidden');
+
+        document.getElementById('btn-fechar-relatorio').addEventListener('click', () => {
+            document.getElementById('modal-relatorio').style.display = 'none';
         });
-        document.getElementById('btn-cancelar-exclusao').addEventListener('click', () => { window.idParaExcluir = null; document.getElementById('modal-confirmar-exclusao').classList.add('hidden'); });
-        
-        setInterval(async () => { if (DataManager.activePatientId) { Renderer.atualizarProximaDose(); await NotificationManager.atualizarBadge(); } }, 60000);
-    });
-</script>
+
+        document.getElementById('btn-imprimir-relatorio').addEventListener('click', () => {
+            window.print();
+        });
+
+        function generateRelatorio() {
+            const relatorioResumo = document.getElementById('relatorio-resumo');
+            const relatorioDetalhes = document.getElementById('relatorio-detalhes');
+            relatorioResumo.innerHTML = 'Carregando...';
+            relatorioDetalhes.innerHTML = '';
+
+            remediosRef.once('value', (snapshot) => {
+                const remedios = snapshot.val();
+                if (!remedios) {
+                    relatorioResumo.textContent = 'Nenhum tratamento registrado.';
+                    return;
+                }
+
+                let totalRemedios = 0;
+                let totalDosesGeral = 0;
+                let dosesTomadasGeral = 0;
+
+                let detalhesHtml = '';
+
+                for (const remedioId in remedios) {
+                    totalRemedios++;
+                    const remedio = remedios[remedioId];
+                    detalhesHtml += `<div class="mb-4 p-3 border rounded-md bg-white shadow-sm">`;
+                    detalhesHtml += `<h4 class="font-bold text-blue-700">${remedio.nome} (${remedio.dosagem || 'N/A'})</h4>`;
+                    detalhesHtml += `<p>Intervalo: ${remedio.intervalo}h | Início: ${new Date(remedio.dataInicio).toLocaleDateString('pt-BR')}</p>`;
+                    
+                    let remedioDosesTomadas = 0;
+                    let remedioTotalDoses = 0;
+
+                    if (remedio.doses) {
+                        for (const data in remedio.doses) {
+                            for (const horario in remedio.doses[data]) {
+                                remedioTotalDoses++;
+                                if (remedio.doses[data][horario].tomada) {
+                                    remedioDosesTomadas++;
+                                }
+                            }
+                        }
+                    }
+                    totalDosesGeral += remedioTotalDoses;
+                    dosesTomadasGeral += remedioDosesTomadas;
+
+                    detalhesHtml += `<p>Doses Tomadas: ${remedioDosesTomadas} / ${remedioTotalDoses}</p>`;
+                    detalhesHtml += `</div>`;
+                }
+
+                relatorioResumo.textContent = `Total de ${totalRemedios} tratamentos registrados. ${dosesTomadasGeral} de ${totalDosesGeral} doses tomadas no total.`;
+                relatorioDetalhes.innerHTML = detalhesHtml;
+            });
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

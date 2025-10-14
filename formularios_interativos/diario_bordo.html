@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Diário de Bordo Dinâmico com Análise</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    
+    
+    
 
     <style>
         :root {
@@ -120,19 +125,7 @@
     </div>
 
     <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-        authDomain: "thiaguinho-solucoes.firebaseapp.com",
-        databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-        projectId: "thiaguinho-solucoes",
-        storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-        messagingSenderId: "879610267391",
-        appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
 
     const logbookConfig = {
         layout: "grid",

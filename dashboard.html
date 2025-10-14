@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma thIAguinho Soluções</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -107,36 +111,31 @@
         </div></div></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    
+    
+    
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-            authDomain: "thiaguinho-solucoes.firebaseapp.com",
-            databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-            projectId: "thiaguinho-solucoes",
-            storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-            messagingSenderId: "879610267391",
-            appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-
         let currentUser = null;
 
         auth.onAuthStateChanged(async (user) => { 
             if (user) {
                 currentUser = user;
-                document.getElementById('user-display').textContent = `Logado como: ${user.email}`;
+                document.getElementById("user-display").textContent = `Logado como: ${user.email}`;
+                database.ref("users_online/" + user.uid).set({ email: user.email, lastOnline: new Date().toISOString() });
+                database.ref("users_online/" + user.uid).onDisconnect().remove();
             } else { 
-                window.location.replace('index.html'); 
+                window.location.replace("index.html"); 
             } 
         });
 
         document.getElementById('logout-button').addEventListener('click', () => {
-            auth.signOut().then(() => { window.location.replace('index.html'); });
+            auth.signOut().then(() => {
+                if (currentUser) {
+                    database.ref("users_online/" + currentUser.uid).remove();
+                }
+                window.location.replace("index.html");
+            });
         });
         
         // ======================= LÓGICA DO GATILHO "LONG PRESS + PROMPT" =======================
@@ -147,7 +146,7 @@
             e.preventDefault(); 
             pressTimer = setTimeout(() => {
                 const userInput = prompt("Digite o código de acesso administrativo:");
-                if (userInput === "*177") {
+                if (userInput === atob(ADMIN_TRIGGER_KEY)) {
                     sessionStorage.setItem('admin_access_token', 'true');
                     alert('Acesso administrativo verificado. Redirecionando...');
                     window.location.href = 'admin.html';
