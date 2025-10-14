@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Painel de Inteligência & Estruturação</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    
-    
-    
-    
-    
+    <script src="../firebase-config.js"></script>
     
     <style>
         :root {
@@ -27,7 +23,7 @@
         body { font-family: var(--font-main); margin: 0; padding: 0; background-color: var(--light-color); color: var(--dark-color); }
         .container { max-width: 800px; margin: 20px auto; background-color: var(--white-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
 
-        #auth-container { display: none; align-items: center; justify-content: center; padding: 50px 20px; text-align: center; }
+        #auth-container { display: flex; align-items: center; justify-content: center; padding: 50px 20px; text-align: center; }
         .auth-box { background: var(--white-color); padding: 40px; border-radius: 12px; }
         .auth-box h1 { color: var(--danger-color); }
         .auth-box p { color: var(--gray-color); margin-top: 10px; }
@@ -110,205 +106,144 @@
     <div class="report-overlay" id="report-overlay"><div class="report-panel" id="report-panel"><div class="report-header"><h2 id="report-title">Relatório</h2><button class="close-btn" id="close-report-btn">&times;</button></div><div class="report-body" id="report-output"></div><div class="report-footer"><button class="btn-copy" id="copy-report-btn">Copiar</button></div></div></div>
 
 <script>
-
-
-const briefingConfig = {
-    modules: [
-        { 
-            icon: "📜", 
-            title: "Contexto e Justificativa", 
-            fields: [
-                { id: "background", label: "Background do Projeto", type: "textarea", help: "Qual é a história por trás desta necessidade? Qual problema estamos resolvendo?" },
-                { id: "justification", label: "Por que agora?", type: "text", help: "Qual a urgência ou oportunidade que motiva este projeto neste momento?" }
-            ] 
-        },
-        { 
-            icon: "🎯", 
-            title: "Objetivos e Metas", 
-            fields: [
-                { id: "mainGoal", label: "Objetivo Principal", type: "text", help: "Qual é a única coisa que este projeto precisa alcançar para ser um sucesso?" },
-                { id: "smartGoals", label: "Metas SMART", type: "textarea", help: "Liste metas Específicas, Mensuráveis, Atingíveis, Relevantes e com Prazo." }
-            ] 
-        },
-        { 
-            icon: "👥", 
-            title: "Público e Stakeholders", 
-            fields: [
-                { id: "targetAudience", label: "Público-Alvo", type: "textarea", help: "Para quem estamos fazendo isso? Descreva o perfil, dores e necessidades." },
-                { id: "stakeholders", label: "Stakeholders Principais", type: "text", help: "Quem são as pessoas chave (aprovadores, consultados, informados)?" }
-            ] 
-        },
-        { 
-            icon: "📦", 
-            title: "Escopo e Entregáveis", 
-            fields: [
-                { id: "deliverables", label: "Entregáveis Finais", type: "textarea", help: "O que será produzido concretamente? (Ex: Relatório, Protótipo, Campanha, Website)" },
-                { id: "outOfScope", label: "Fora do Escopo", type: "textarea", help: "O que explicitamente NÃO será feito neste projeto?" }
-            ] 
-        },
-        { 
-            icon: "⚠️", 
-            title: "Restrições e Premissas", 
-            fields: [
-                { id: "constraints", label: "Restrições Conhecidas", type: "textarea", help: "Quais são as limitações de orçamento, prazo, tecnologia ou recursos?" },
-                { id: "assumptions", label: "Premissas", type: "textarea", help: "O que estamos assumindo como verdadeiro para que este projeto seja viável?" }
-            ] 
-        }
-    ]
-};
-
-document.addEventListener('DOMContentLoaded', function() {
-    const App = {
-        currentUser: null,
-        
-        init() {
-            this.addAuthListeners();
-            this.addAppListeners();
-            this.renderDynamicForm();
-        },
-
-        showView(view) {
-            document.getElementById('auth-container').style.display = view === 'auth' ? 'flex' : 'none';
-            document.getElementById('app-container').style.display = view === 'app' ? 'block' : 'none';
-        },
-
-        addAuthListeners() {
-             auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    const blockRef = database.ref(`users_public_list/${user.uid}/isBlocked`);
-                    const snapshot = await blockRef.once('value');
-                    if (snapshot.val() === true) {
-                        document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p><p><a href="../dashboard.html">Voltar</a></p></div>`;
-                        return;
-                    }
-
-                    this.currentUser = user;
-                    document.getElementById('user-email').textContent = user.email;
-                    this.showView('app');
-                } else {
-                    this.currentUser = null;
-                    this.showView('auth');
-                }
-            });
-            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-        },
-
-        renderDynamicForm() {
-            let html = '';
-            briefingConfig.modules.forEach(m => {
-                html += `<div class="form-section"><div class="section-header"><h2>${m.icon} ${m.title}</h2></div><div class="section-body">`;
-                m.fields.forEach(f => {
-                    html += `<div class="form-group"><label for="${f.id}">${f.label}<small>${f.help}</small></label>`;
-                    if (f.type === 'textarea') html += `<textarea id="${f.id}" name="${f.id}"></textarea>`;
-                    else html += `<input type="text" id="${f.id}" name="${f.id}">`;
-                    html += `</div>`;
-                });
-                html += `</div></div>`;
-            });
-            document.getElementById('dynamic-form-content').innerHTML = html;
-        },
-
-        addAppListeners() {
-            document.querySelectorAll('.tab-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.toggle('active', content.id === button.dataset.tab);
-                    });
-                });
-            });
-
-            document.getElementById('briefing-form').addEventListener('submit', (e) => this.handleBriefingSubmit(e));
-            document.getElementById('generate-prompt-btn').addEventListener('click', () => this.handlePromptGeneration());
-            
-            const overlay = document.getElementById('report-overlay');
-            document.getElementById('close-report-btn').addEventListener('click', () => this.togglePopup(false));
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) this.togglePopup(false); });
-            document.getElementById('copy-report-btn').addEventListener('click', (e) => this.copyReport(e.target));
-        },
-        
-        async handleBriefingSubmit(event) {
-            event.preventDefault();
-            if (!this.currentUser) { alert("Sessão expirada."); return; }
-            
-            const projectName = document.getElementById('projectName').value.trim();
-            if (!projectName) { alert("Por favor, preencha o Nome do Projeto."); return; }
-
-            const formData = new FormData(event.target);
-            let report = `📋 RELATÓRIO DE BRIEFING 📋\n\nProjeto: ${projectName}\nGerado em: ${new Date().toLocaleString('pt-BR')}\n========================\n\n`;
-            briefingConfig.modules.forEach(m => {
-                report += `--- ${m.title.toUpperCase()} ---\n`;
-                m.fields.forEach(f => {
-                    report += `▶ ${f.label}:\n${formData.get(f.id) || 'Não preenchido'}\n\n`;
-                });
-            });
-
-            this.showReport("Briefing Estratégico", report);
-
-            const briefingId = `${Date.now()}-${projectName.replace(/\s+/g, '-')}`;
-            try {
-                await database.ref(`easy_lists/${this.currentUser.uid}/paineis_de_inteligencia/${briefingId}`).set({
-                    projectName: projectName,
-                    createdAt: new Date().toISOString(),
-                    content: report
-                });
-                 alert('Briefing salvo com sucesso!');
-            } catch (error) {
-                console.error("Erro ao salvar no Firebase: ", error);
-                alert("Houve um erro ao salvar o briefing. Verifique as regras do seu banco de dados.");
-            }
-        },
-        
-        handlePromptGeneration() {
-            const rawText = document.getElementById('rawText').value.trim();
-            const categories = document.getElementById('categories').value.trim();
-            if (!rawText || !categories) { alert("Preencha o texto bruto e as categorias."); return; }
-
-            let prompt = `**TAREFA DE ANÁLISE ESTRUTURADA**\n\n**OBJETIVO:** Extrair citações diretas (verbatim) do texto abaixo, organizando-as nas categorias especificadas. A fidelidade ao texto original é máxima.\n\n**REGRAS:**\n1.  **NÃO ALTERE, RESUMA OU PARAFRASEIE** o texto original. Copie as frases exatamente como estão.\n2.  Não corrija erros ou vícios de linguagem (ex: "né", "certo?").\n\n**CATEGORIAS:**\n- ${categories.split(',').map(c => c.trim()).join('\n- ')}\n\n**TEXTO BRUTO PARA ANÁLISE:**\n---\n${rawText}\n---\n\n**FORMATO DA SAÍDA:**\n`;
-            categories.split(',').forEach(c => { prompt += `**${c.trim()}**\n- [Citação 1]\n- [Citação 2]\n\n`; });
-            
-            this.showReport("Prompt de Análise Gerado", prompt);
-        },
-
-        togglePopup(show, title = '', content = '') {
-            const overlay = document.getElementById('report-overlay');
-            const panel = document.getElementById('report-panel');
-            if (show) {
-                document.getElementById('report-title').textContent = title;
-                document.getElementById('report-output').textContent = content;
-                overlay.style.display = 'flex';
-                setTimeout(() => {
-                    overlay.style.opacity = 1;
-                    panel.style.transform = 'scale(1)';
-                }, 10);
-            } else {
-                overlay.style.opacity = 0;
-                panel.style.transform = 'scale(0.95)';
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
-            }
-        },
-
-        showReport(title, content) {
-            this.togglePopup(true, title, content);
-        },
-
-        copyReport(button) {
-            const content = document.getElementById('report-output').textContent;
-            navigator.clipboard.writeText(content).then(() => {
-                const originalText = button.textContent;
-                button.textContent = 'Copiado!';
-                button.style.backgroundColor = '#2ecc71';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.backgroundColor = 'var(--success-color)';
-                }, 2000);
-            });
-        }
+    const briefingConfig = {
+        modules: [
+            { icon: "📜", title: "Contexto e Justificativa", fields: [ { id: "background", label: "Background do Projeto", type: "textarea", help: "Qual é a história por trás desta necessidade? Qual problema estamos resolvendo?" }, { id: "justification", label: "Por que agora?", type: "text", help: "Qual a urgência ou oportunidade que motiva este projeto neste momento?" } ] },
+            { icon: "🎯", title: "Objetivos e Metas", fields: [ { id: "mainGoal", label: "Objetivo Principal", type: "text", help: "Qual é a única coisa que este projeto precisa alcançar para ser um sucesso?" }, { id: "smartGoals", label: "Metas SMART", type: "textarea", help: "Liste metas Específicas, Mensuráveis, Atingíveis, Relevantes e com Prazo." } ] },
+            { icon: "👥", title: "Público e Stakeholders", fields: [ { id: "targetAudience", label: "Público-Alvo", type: "textarea", help: "Para quem estamos fazendo isso? Descreva o perfil, dores e necessidades." }, { id: "stakeholders", label: "Stakeholders Principais", type: "text", help: "Quem são as pessoas chave (aprovadores, consultados, informados)?" } ] },
+            { icon: "📦", title: "Escopo e Entregáveis", fields: [ { id: "deliverables", label: "Entregáveis Finais", type: "textarea", help: "O que será produzido concretamente? (Ex: Relatório, Protótipo, Campanha, Website)" }, { id: "outOfScope", label: "Fora do Escopo", type: "textarea", help: "O que explicitamente NÃO será feito neste projeto?" } ] },
+            { icon: "⚠️", title: "Restrições e Premissas", fields: [ { id: "constraints", label: "Restrições Conhecidas", type: "textarea", help: "Quais são as limitações de orçamento, prazo, tecnologia ou recursos?" }, { id: "assumptions", label: "Premissas", type: "textarea", help: "O que estamos assumindo como verdadeiro para que este projeto seja viável?" } ] }
+        ]
     };
 
-    App.init();
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        const App = {
+            currentUser: null,
+            init() { this.addAuthListeners(); this.addAppListeners(); this.renderDynamicForm(); },
+            showView(view) {
+                document.getElementById('auth-container').style.display = view === 'auth' ? 'flex' : 'none';
+                document.getElementById('app-container').style.display = view === 'app' ? 'block' : 'none';
+            },
+            addAuthListeners() {
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        const blockRef = database.ref(`users_public_list/${user.uid}/isBlocked`);
+                        const snapshot = await blockRef.once('value');
+                        if (snapshot.val() === true) {
+                            document.body.innerHTML = `<div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;"><h1>Acesso Bloqueado</h1><p>Sua conta foi bloqueada por um administrador.</p><p><a href="../dashboard.html">Voltar</a></p></div>`;
+                            return;
+                        }
+                        this.currentUser = user;
+                        document.getElementById('user-email').textContent = user.email;
+                        this.showView('app');
+                    } else {
+                        this.currentUser = null;
+                        this.showView('auth');
+                    }
+                });
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+            },
+            renderDynamicForm() {
+                let html = '';
+                briefingConfig.modules.forEach(m => {
+                    html += `<div class="form-section"><div class="section-header"><h2>${m.icon} ${m.title}</h2></div><div class="section-body">`;
+                    m.fields.forEach(f => {
+                        html += `<div class="form-group"><label for="${f.id}">${f.label}<small>${f.help}</small></label>`;
+                        if (f.type === 'textarea') html += `<textarea id="${f.id}" name="${f.id}"></textarea>`;
+                        else html += `<input type="text" id="${f.id}" name="${f.id}">`;
+                        html += `</div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                document.getElementById('dynamic-form-content').innerHTML = html;
+            },
+            addAppListeners() {
+                document.querySelectorAll('.tab-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        document.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.toggle('active', content.id === button.dataset.tab);
+                        });
+                    });
+                });
+                document.getElementById('briefing-form').addEventListener('submit', (e) => this.handleBriefingSubmit(e));
+                document.getElementById('generate-prompt-btn').addEventListener('click', () => this.handlePromptGeneration());
+                const overlay = document.getElementById('report-overlay');
+                document.getElementById('close-report-btn').addEventListener('click', () => this.togglePopup(false));
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) this.togglePopup(false); });
+                document.getElementById('copy-report-btn').addEventListener('click', (e) => this.copyReport(e.target));
+            },
+            async handleBriefingSubmit(event) {
+                event.preventDefault();
+                if (!this.currentUser) { alert("Sessão expirada."); return; }
+                const projectName = document.getElementById('projectName').value.trim();
+                if (!projectName) { alert("Por favor, preencha o Nome do Projeto."); return; }
+                const formData = new FormData(event.target);
+                let report = `📋 RELATÓRIO DE BRIEFING 📋\n\nProjeto: ${projectName}\nGerado em: ${new Date().toLocaleString('pt-BR')}\n========================\n\n`;
+                briefingConfig.modules.forEach(m => {
+                    report += `--- ${m.title.toUpperCase()} ---\n`;
+                    m.fields.forEach(f => {
+                        report += `▶ ${f.label}:\n${formData.get(f.id) || 'Não preenchido'}\n\n`;
+                    });
+                });
+                this.showReport("Briefing Estratégico", report);
+                const briefingId = `${Date.now()}-${projectName.replace(/\s+/g, '-')}`;
+                try {
+                    await database.ref(`easy_lists/${this.currentUser.uid}/paineis_de_inteligencia/${briefingId}`).set({
+                        projectName: projectName,
+                        createdAt: new Date().toISOString(),
+                        content: report
+                    });
+                     alert('Briefing salvo com sucesso!');
+                } catch (error) {
+                    console.error("Erro ao salvar no Firebase: ", error);
+                    alert("Houve um erro ao salvar o briefing. Verifique as regras do seu banco de dados.");
+                }
+            },
+            handlePromptGeneration() {
+                const rawText = document.getElementById('rawText').value.trim();
+                const categories = document.getElementById('categories').value.trim();
+                if (!rawText || !categories) { alert("Preencha o texto bruto e as categorias."); return; }
+                let prompt = `**TAREFA DE ANÁLISE ESTRUTURADA**\n\n**OBJETIVO:** Extrair citações diretas (verbatim) do texto abaixo, organizando-as nas categorias especificadas. A fidelidade ao texto original é máxima.\n\n**REGRAS:**\n1.  **NÃO ALTERE, RESUMA OU PARAFRASEIE** o texto original. Copie as frases exatamente como estão.\n2.  Não corrija erros ou vícios de linguagem (ex: "né", "certo?").\n\n**CATEGORIAS:**\n- ${categories.split(',').map(c => c.trim()).join('\n- ')}\n\n**TEXTO BRUTO PARA ANÁLISE:**\n---\n${rawText}\n---\n\n**FORMATO DA SAÍDA:**\n`;
+                categories.split(',').forEach(c => { prompt += `**${c.trim()}**\n- [Citação 1]\n- [Citação 2]\n\n`; });
+                this.showReport("Prompt de Análise Gerado", prompt);
+            },
+            togglePopup(show, title = '', content = '') {
+                const overlay = document.getElementById('report-overlay');
+                const panel = document.getElementById('report-panel');
+                if (show) {
+                    document.getElementById('report-title').textContent = title;
+                    document.getElementById('report-output').textContent = content;
+                    overlay.style.display = 'flex';
+                    setTimeout(() => {
+                        overlay.style.opacity = 1;
+                        panel.style.transform = 'scale(1)';
+                    }, 10);
+                } else {
+                    overlay.style.opacity = 0;
+                    panel.style.transform = 'scale(0.95)';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                }
+            },
+            showReport(title, content) {
+                this.togglePopup(true, title, content);
+            },
+            copyReport(button) {
+                const content = document.getElementById('report-output').textContent;
+                navigator.clipboard.writeText(content).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copiado!';
+                    button.style.backgroundColor = '#2ecc71';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.backgroundColor = 'var(--success-color)';
+                    }, 2000);
+                });
+            }
+        };
+        App.init();
+    });
 </script>
 </body>
 </html>
