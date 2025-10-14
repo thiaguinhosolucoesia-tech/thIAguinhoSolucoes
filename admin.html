@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; --info-color: #17a2b8;}
@@ -34,7 +30,10 @@
         .modal-header h2 { margin: 0; font-size: 1.5em; color: var(--primary-blue); }
         .modal-header .close-btn { font-size: 28px; color: var(--text-light); cursor: pointer; background: none; border: none; }
         .modal-body { padding: 25px; overflow-y: auto; }
-        .modal-body pre { white-space: pre-wrap; word-wrap: break-word; background-color: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9em; }
+        /* Estilo para o resumo de uso */
+        .usage-summary p { margin: 0 0 10px; font-size: 1.1rem; }
+        .usage-summary strong { color: var(--primary-blue); }
+        .usage-summary hr { border: 0; height: 1px; background-color: #eee; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -58,28 +57,34 @@
                 <h2 id="usage-modal-title">Dados do Usuário</h2>
                 <button class="close-btn" id="close-usage-modal">&times;</button>
             </div>
-            <div class="modal-body">
-                <pre id="usage-modal-content">Carregando dados...</pre>
+            <div class="modal-body" id="usage-modal-content">
+                Carregando dados...
             </div>
         </div>
     </div>
 
-    
-    
-    
-    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const adminToken = sessionStorage.getItem("admin_access_token");
             if (adminToken === "true") {
                 sessionStorage.removeItem("admin_access_token");
                 
-                auth.onAuthStateChanged(user => {
+                auth.onAuthStateChanged(async (user) => {
                     if (user) {
-                        document.getElementById("loading").style.display = "none";
-                        document.getElementById("access-denied").style.display = "none";
-                        document.getElementById("admin-panel").style.display = "block";
-                        loadUsers();
+                        const roleRef = database.ref(`users_public_list/${user.uid}/role`);
+                        const snapshot = await roleRef.once('value');
+                        if (snapshot.val() === 'admin') {
+                            document.getElementById("loading").style.display = "none";
+                            document.getElementById("access-denied").style.display = "none";
+                            document.getElementById("admin-panel").style.display = "block";
+                            loadUsers();
+                        } else {
+                            showAccessDenied("Você não tem permissão de administrador.");
+                        }
                     } else {
                         showAccessDenied();
                     }
@@ -89,10 +94,12 @@
             }
         });
 
-        function showAccessDenied() {
+        function showAccessDenied(message = "Acesso negado. Retorne ao dashboard e use o código de acesso.") {
             document.getElementById("loading").style.display = "none";
             document.getElementById("admin-panel").style.display = "none";
-            document.getElementById("access-denied").style.display = "block";
+            const accessDeniedDiv = document.getElementById("access-denied");
+            accessDeniedDiv.style.display = "block";
+            accessDeniedDiv.querySelector('p').textContent = message;
         }
 
         function loadUsers() {
@@ -128,9 +135,9 @@
                                 </span>
                             </div>
                             <div class="user-actions">
-                                <button class="btn-view" onclick="viewUserData(\'${user.uid}\', \'${user.email}\')">Ver Uso de Dados</button>
+                                <button class="btn-view" onclick="viewUserData('${user.uid}', '${user.email}')">Ver Uso</button>
                                 ${user.role !== "admin" ? `
-                                <button class="${user.isBlocked ? "btn-unblock" : "btn-block"}" onclick="toggleUserBlock(\'${user.uid}\', ${user.isBlocked || false})">
+                                <button class="${user.isBlocked ? "btn-unblock" : "btn-block"}" onclick="toggleUserBlock('${user.uid}', ${user.isBlocked || false})">
                                     ${user.isBlocked ? "Desbloquear" : "Bloquear"}
                                 </button>
                                 ` : ""}
@@ -164,111 +171,66 @@
             const title = document.getElementById('usage-modal-title');
             const content = document.getElementById('usage-modal-content');
 
-            title.textContent = `Dados de: ${email}`;
-            content.textContent = 'Carregando dados...';
+            title.textContent = `Resumo de Uso: ${email}`;
+            content.innerHTML = '<p>Calculando métricas de uso...</p>';
             modal.style.display = 'flex';
 
             try {
-                // Coleta dados de uso de todas as seções relevantes
-                const easyListsRef = database.ref(`easy_lists/${uid}`);
-                const shoppingListsRef = database.ref(`shopping_lists/${uid}`);
-                const purchaseReportsRef = database.ref(`purchase_reports/${uid}`);
-                const enfermeiroInteligenteRef = database.ref(`enfermeiro_inteligente/${uid}`);
-                const paineisInteligenciaRef = database.ref(`paineis_de_inteligencia/${uid}`); // Assumindo que briefingConfig salva aqui
+                const promises = [
+                    database.ref(`shopping_lists/${uid}`).once('value'),
+                    database.ref(`purchase_reports/${uid}`).once('value'),
+                    database.ref(`easy_lists/${uid}`).once('value'),
+                    database.ref(`enfermeiro_inteligente/${uid}`).once('value')
+                ];
+                const [shoppingSnapshot, reportsSnapshot, easyListsSnapshot, enfermeiroSnapshot] = await Promise.all(promises);
 
-                const [easyListsSnapshot, shoppingListsSnapshot, purchaseReportsSnapshot, enfermeiroInteligenteSnapshot, paineisInteligenciaSnapshot] = await Promise.all([
-                    easyListsRef.once(\'value\'),
-                    shoppingListsRef.once(\'value\'),
-                    purchaseReportsRef.once(\'value\'),
-                    enfermeiroInteligenteRef.once(\'value\'),
-                    paineisInteligenciaRef.once(\'value\')
-                ]);
-
+                const shoppingData = shoppingSnapshot.val();
+                const reportsData = reportsSnapshot.val();
                 const easyListsData = easyListsSnapshot.val();
-                const shoppingListsData = shoppingListsSnapshot.val();
-                const purchaseReportsData = purchaseReportsSnapshot.val();
-                const enfermeiroInteligenteData = enfermeiroInteligenteSnapshot.val();
-                const paineisInteligenciaData = paineisInteligenciaSnapshot.val();
+                const enfermeiroData = enfermeiroSnapshot.val();
 
-                let totalDownloads = 0;
-                let totalUploads = 0;
+                let totalDataSize = 0;
+                let summaryHtml = '<div class="usage-summary">';
 
-                // Função auxiliar para calcular o tamanho aproximado de um objeto JSON em bytes
-                const getApproximateSizeInBytes = (obj) => {
-                    if (!obj) return 0;
-                    return new TextEncoder().encode(JSON.stringify(obj)).length;
-                };
+                const shoppingItemsCount = shoppingData ? Object.keys(shoppingData).length : 0;
+                const easyListItemsCount = easyListsData && easyListsData.items ? Object.keys(easyListsData.items).length : 0;
+                summaryHtml += `<p><strong>Listas de Compras:</strong> ${shoppingItemsCount + easyListItemsCount} itens criados.</p>`;
 
-                // Calcula o uso de dados para cada seção
-                totalDownloads += getApproximateSizeInBytes(easyListsData);
-                totalUploads += getApproximateSizeInBytes(easyListsData); // Assumindo que o upload é o mesmo que o download para easy_lists
-
-                totalDownloads += getApproximateSizeInBytes(shoppingListsData);
-                totalUploads += getApproximateSizeInBytes(shoppingListsData);
-
-                totalDownloads += getApproximateSizeInBytes(purchaseReportsData);
-                totalUploads += getApproximateSizeInBytes(purchaseReportsData);
-
-                totalDownloads += getApproximateSizeInBytes(enfermeiroInteligenteData);
-                totalUploads += getApproximateSizeInBytes(enfermeiroInteligenteData);
-
-                totalDownloads += getApproximateSizeInBytes(paineisInteligenciaData);
-                totalUploads += getApproximateSizeInBytes(paineisInteligenciaData);
-
-                // Converte bytes para uma unidade mais legível (KB, MB)
-                const formatBytes = (bytes) => {
-                    if (bytes === 0) return \'0 Bytes\';
-                    const k = 1024;
-                    const sizes = [\'Bytes\', \'KB\', \'MB\', \'GB\', \'TB\'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + \' \' + sizes[i];
-                };
-
-                const formattedDownloads = formatBytes(totalDownloads);
-                const formattedUploads = formatBytes(totalUploads);
-
-                const usageSummary = `
-Dados de Uso para ${email}:
-
-- Total de Dados Lidos (Downloads): ${formattedDownloads}
-- Total de Dados Escritos (Uploads): ${formattedUploads}
-
-Detalhes por Módulo (Tamanho aproximado em Bytes):
-
-  Easy Lists: ${getApproximateSizeInBytes(easyListsData)} Bytes
-  Shopping Lists: ${getApproximateSizeInBytes(shoppingListsData)} Bytes
-  Purchase Reports: ${getApproximateSizeInBytes(purchaseReportsData)} Bytes
-  Enfermeiro Inteligente: ${getApproximateSizeInBytes(enfermeiroInteligenteData)} Bytes
-  Painéis de Inteligência: ${getApproximateSizeInBytes(paineisInteligenciaData)} Bytes
-
-(Estes são dados agregados e aproximados para fins de monetização e não contêm informações sensíveis do usuário.)
-                `;
+                const reportsCount = reportsData ? Object.keys(reportsData).length : 0;
+                summaryHtml += `<p><strong>Relatórios de Compra:</strong> ${reportsCount} relatórios salvos.</p>`;
                 
-                content.textContent = usageSummary;
+                const briefingsCount = easyListsData && easyListsData.paineis_de_inteligencia ? Object.keys(easyListsData.paineis_de_inteligencia).length : 0;
+                summaryHtml += `<p><strong>Gerador de Briefing:</strong> ${briefingsCount} briefings criados.</p>`;
 
-                // Registra o evento de visualização de uso de dados
-                database.ref(`admin_logs/${auth.currentUser.uid}`).push({
-                    action: \'view_user_data_usage\',
-                    target_uid: uid,
-                    target_email: email,
-                    timestamp: new Date().toISOString(),
-                    downloads: totalDownloads,
-                    uploads: totalUploads
-                });
+                const diarioCount = easyListsData && easyListsData.diario_de_bordo ? Object.keys(easyListsData.diario_de_bordo).length : 0;
+                summaryHtml += `<p><strong>Diário de Bordo:</strong> ${diarioCount} registros diários.</p>`;
 
-                // if (userData) {
-                //     content.textContent = JSON.stringify(userData, null, 2);
-                // } else {
-                //     content.textContent = \'Nenhum dado encontrado para este usuário no nó "easy_lists".\';
-                // }
+                let patientsCount = 0;
+                let remediosCount = 0;
+                if (enfermeiroData && enfermeiroData.patients) {
+                    patientsCount = Object.keys(enfermeiroData.patients).length;
+                    Object.values(enfermeiroData.patients).forEach(patient => {
+                        if (patient.remedios) {
+                            remediosCount += Object.keys(patient.remedios).length;
+                        }
+                    });
+                }
+                summaryHtml += `<p><strong>Controle de Remédios:</strong> ${remediosCount} tratamentos para ${patientsCount} pacientes.</p>`;
 
-                const snapshot = await dataRef.once('value');
-                const userData = snapshot.val();
+                totalDataSize += JSON.stringify(shoppingData).length;
+                totalDataSize += JSON.stringify(reportsData).length;
+                totalDataSize += JSON.stringify(easyListsData).length;
+                totalDataSize += JSON.stringify(enfermeiroData).length;
                 
+                const dataInKB = (totalDataSize / 1024).toFixed(2);
+                summaryHtml += `<hr><p><strong>Estimativa de Uso Total de Dados:</strong> ${dataInKB} KB</p>`;
+                
+                summaryHtml += '</div>';
+                content.innerHTML = summaryHtml;
 
             } catch (error) {
-                console.error("Erro ao buscar dados de uso do usuário:", error);
-                content.textContent = `Erro ao carregar dados de uso. Verifique as regras de segurança e o console.\n\n${error.message}`;
+                console.error("Erro ao buscar dados do usuário:", error);
+                content.innerHTML = `<p style="color: var(--danger-color);">Erro ao carregar dados. Verifique o console para mais detalhes.</p><pre>${error.message}</pre>`;
             }
         }
 
