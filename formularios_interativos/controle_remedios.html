@@ -195,7 +195,7 @@
 
         document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        async function loadPatients() {
+        function loadPatients() {
             patientsRef.on('value', (snapshot) => {
                 const patients = snapshot.val();
                 const userSelector = document.getElementById('user-selector');
@@ -325,29 +325,22 @@
                     let proximaDose = null;
                     let atrasadasNesteRemedio = 0;
 
-                    if (remedio.doses && remedio.doses[agora.toISOString().slice(0, 10)]) {
-                        const dosesDoDia = remedio.doses[agora.toISOString().slice(0, 10)];
-                        const horariosDoses = Object.keys(dosesDoDia).sort();
-                        
-                        for (const horario of horariosDoses) {
-                            const doseTime = new Date(agora.toISOString().slice(0, 10) + 'T' + horario);
-                            if (!dosesDoDia[horario].tomada && doseTime < agora) {
-                                atrasadasNesteRemedio++;
-                                atrasadosCount++;
-                            }
-                        }
-                    }
-                    
+                    const hojeStr = agora.toISOString().slice(0, 10);
                     const horariosParaHoje = gerarHorariosDoses(remedio.dataInicio, remedio.horaPrimeiraDose, remedio.intervalo);
-                    for (const horario of horariosParaHoje) {
-                        const doseTime = new Date(agora.toISOString().slice(0, 10) + 'T' + horario);
-                        if (doseTime > agora) {
-                             if (!proximaDose || doseTime < proximaDose) {
+
+                    horariosParaHoje.forEach(horario => {
+                        const doseTime = new Date(hojeStr + 'T' + horario);
+                        const tomada = remedio.doses && remedio.doses[hojeStr] && remedio.doses[hojeStr][horario]?.tomada;
+                        if(!tomada && doseTime < agora) {
+                            atrasadasNesteRemedio++;
+                        }
+                        if(!tomada && doseTime > agora) {
+                            if(!proximaDose || doseTime < proximaDose) {
                                 proximaDose = doseTime;
                             }
                         }
-                    }
-
+                    });
+                    
                     if(proximaDose) {
                         if (!nextDoseTime || proximaDose < nextDoseTime) {
                             nextDoseTime = proximaDose;
@@ -356,19 +349,18 @@
                     }
 
                     if (dosesHoje.tomadas === dosesHoje.total && dosesHoje.total > 0) {
-                        statusClass = 'card-concluido';
-                        statusText = 'Concluído';
+                        statusClass = 'card-concluido'; statusText = 'Concluído';
                     } else if (atrasadasNesteRemedio > 0) {
-                        statusClass = 'card-atrasado';
-                        statusText = 'Atrasado';
+                        statusClass = 'card-atrasado'; statusText = 'Atrasado';
                     } else if (proximaDose) {
-                        statusClass = 'card-proximo';
-                        statusText = 'Próximo';
+                        statusClass = 'card-proximo'; statusText = 'Próximo';
+                    } else if (dosesHoje.total > 0 && dosesHoje.tomadas < dosesHoje.total) {
+                        statusClass = 'card-atrasado'; statusText = 'Atrasado'; // Se todas as doses já passaram e não foram tomadas
                     } else {
-                        statusText = 'Pendente';
+                        statusText = 'Finalizado'; // Se o tratamento acabou
                     }
 
-                    remedioCard.classList.add(statusClass);
+                    if (statusClass) remedioCard.classList.add(statusClass);
 
                     remedioCard.innerHTML = `
                         <div class="flex justify-between items-center mb-4">
@@ -378,7 +370,7 @@
                         <div class="info-remedio text-gray-700 mb-4">
                             <p><strong>Dosagem:</strong> ${remedio.dosagem || 'Não especificado'}</p>
                             <p><strong>Intervalo:</strong> ${remedio.intervalo} horas</p>
-                            <p><strong>Início:</strong> ${new Date(remedio.dataInicio + 'T00:00:00-03:00').toLocaleDateString('pt-BR')}</p>
+                            <p><strong>Início:</strong> ${new Date(remedio.dataInicio + 'T03:00:00').toLocaleDateString('pt-BR')}</p>
                         </div>
                         <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4" id="doses-${remedio.id}"></div>
                         <div class="flex justify-end gap-2">
@@ -389,6 +381,7 @@
                     `;
                     checklistContainer.appendChild(remedioCard);
                     renderDoses(remedio.id, remedio.intervalo, remedio.dataInicio, remedio.horaPrimeiraDose, remedio.doses);
+                    atrasadosCount += atrasadasNesteRemedio;
                 });
 
                 updateProgressBar(dosesTomadas, totalDoses);
@@ -413,13 +406,9 @@
         function gerarHorariosDoses(dataInicioStr, horaPrimeiraDoseStr, intervaloHoras) {
             const horarios = new Set();
             const dataInicio = new Date(dataInicioStr + 'T' + horaPrimeiraDoseStr);
-            const agora = new Date();
-            const hojeStr = agora.toISOString().slice(0, 10);
-            const hojeDate = new Date(hojeStr + 'T00:00:00');
+            const hojeStr = new Date().toISOString().slice(0, 10);
+            if (new Date(dataInicioStr) > new Date(hojeStr)) return [];
 
-            if (dataInicio > new Date(hojeStr + 'T23:59:59')) {
-                return [];
-            }
             let currentDoseTime = new Date(dataInicio);
             while (currentDoseTime.toISOString().slice(0, 10) < hojeStr) {
                  currentDoseTime.setHours(currentDoseTime.getHours() + parseInt(intervaloHoras));
@@ -585,15 +574,15 @@
                     const remedio = remedios[remedioId];
                     detalhesHtml += `<div class="mb-4 p-3 border rounded-md bg-white shadow-sm">`;
                     detalhesHtml += `<h4 class="font-bold text-blue-700">${remedio.nome} (${remedio.dosagem || 'N/A'})</h4>`;
-                    detalhesHtml += `<p>Intervalo: ${remedio.intervalo}h | Início: ${new Date(remedio.dataInicio + 'T00:00:00-03:00').toLocaleDateString('pt-BR')}</p>`;
+                    detalhesHtml += `<p>Intervalo: ${remedio.intervalo}h | Início: ${new Date(remedio.dataInicio + 'T03:00:00').toLocaleDateString('pt-BR')}</p>`;
                     
                     let remedioDosesTomadas = 0;
                     let remedioTotalDoses = 0;
 
                     if (remedio.doses) {
                         for (const data in remedio.doses) {
+                            remedioTotalDoses += Object.keys(remedio.doses[data]).length;
                             for (const horario in remedio.doses[data]) {
-                                remedioTotalDoses++;
                                 if (remedio.doses[data][horario].tomada) {
                                     remedioDosesTomadas++;
                                 }
@@ -603,7 +592,7 @@
                     totalDosesGeral += remedioTotalDoses;
                     dosesTomadasGeral += remedioDosesTomadas;
 
-                    detalhesHtml += `<p>Doses Tomadas: ${remedioDosesTomadas} / ${remedioTotalDoses}</p>`;
+                    detalhesHtml += `<p>Doses Tomadas: ${remedioDosesTomadas} de ${remedioTotalDoses} (Total)</p>`;
                     detalhesHtml += `</div>`;
                 }
 
