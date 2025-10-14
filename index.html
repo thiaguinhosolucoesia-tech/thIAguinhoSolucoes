@@ -94,7 +94,7 @@
         .help-text a { color: #6c757d; cursor: pointer; text-decoration: none; }
         footer {
             position: absolute;
-            bottom: -70px; /* Adjust as needed */
+            bottom: -70px;
             left: 0;
             width: 100%;
             text-align: center;
@@ -179,8 +179,6 @@
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(userCredential => {
                         const user = userCredential.user;
-                        // **AQUI ESTÁ A CORREÇÃO CRÍTICA**
-                        // Adiciona o usuário recém-criado à lista pública para o admin visualizar
                         const userPublicData = {
                             uid: user.uid,
                             email: user.email,
