@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Minha Lista de Compras</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2c3e50">
@@ -244,217 +240,23 @@
         </div>
     </div>
 
-
-
-
-
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../../firebase-config.js"></script>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // !!! SUBSTITUA O OBJETO ABAIXO PELO SEU firebaseConfig DO SEU PROJETO !!!
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        const database = firebase.database();
-        const auth = firebase.auth();
-
-        // --- ESTADO DA APLICAÇÃO ---
         let itemsRef = null;
         let localItems = [];
-
-        // --- MAPA DE EMOJIS ---
-const emojiMap = {
-    // --- Hortifrúti: Frutas ---
-    'maca': '🍎',
-    'maçã': '🍎',
-    'maca verde': '🍏',
-    'maçã verde': '🍏',
-    'pera': '🍐',
-    'pêra': '🍐', // Sinônimo (forma antiga)
-    'laranja': '🍊',
-    'limao': '🍋',
-    'limão': '🍋',
-    'banana': '🍌',
-    'uva': '🍇',
-    'morango': '🍓',
-    'mirtilo': '🫐',
-    'melancia': '🍉',
-    'cereja': '🍒',
-    'pessego': '🍑',
-    'pêssego': '🍑',
-    'manga': '🥭',
-    'abacaxi': '🍍',
-    'coco': '🥥',
-    'kiwi': '🥝',
-    'tomate': '🍅',
-    'abacate': '🥑',
-    'melao': '🍈',
-    'melão': '🍈',
-
-    // --- Hortifrúti: Verduras e Legumes ---
-    'cenoura': '🥕',
-    'berinjela': '🍆',
-    'batata': '🥔',
-    'batata doce': '🍠',
-    'milho': '🌽',
-    'pimenta': '🌶️',
-    'pimentao': '🫑',
-    'pimentão': '🫑',
-    'pepino': '🥒',
-    'alface': '🥬',
-    'brocolis': '🥦',
-    'brócolis': '🥦',
-    'alho': '🧄',
-    'cebola': '🧅',
-    'cogumelo': '🍄',
-    'amendoim': '🥜',
-    'castanha': '🌰',
-    'ervilha': '🫛',
-    'gengibre': '🫚',
-    'azeitona': '🫒',
-    'salada': '🥗',
-
-    // --- Padaria e Cereais ---
-    'pao': '🍞',
-    'pão': '🍞',
-    'baguete': '🥖',
-    'croissant': '🥐',
-    'pretzel': '🥨',
-    'bagel': '🥯',
-    'panqueca': '🥞',
-    'waffle': '🧇',
-    'cereal': '🥣',
-    'arroz': '🍚',
-    'feijao': '🫘',
-    'feijão': '🫘',
-    'macarrao': '🍝',
-    'macarrão': '🍝',
-    'massa': '🍝',
-    'ramen': '🍜',
-
-    // --- Açougue e Peixaria ---
-    'carne': '🥩',
-    'bife': '🥩',
-    'pernil': '🍖',
-    'presunto': '🍖',
-    'frango': '🍗',
-    'peixe': '🐟',
-    'salsicha': '🌭',
-    'bacon': '🥓',
-    'camarao': '🍤',
-    'camarão': '🍤',
-    'lagosta': '🦞',
-    'caranguejo': '🦀',
-    'lula': '🦑',
-    'ostra': '🦪',
-    'sushi': '🍣',
-
-    // --- Laticínios e Frios ---
-    'leite': '🥛',
-    'ovo': '🥚',
-    'queijo': '🧀',
-    'manteiga': '🧈',
-
-    // --- Bebidas ---
-    'cafe': '☕️',
-    'café': '☕️',
-    'cha': '🍵',
-    'chá': '🍵',
-    'suco': '🧃',
-    'refrigerante': '🥤',
-    'agua': '💧',
-    'água': '💧',
-    'agua de coco': '🥥',
-    'cerveja': '🍺',
-    'vinho': '🍷',
-    'espumante': '🍾',
-    'whisky': '🥃',
-    'drink': '🍹',
-    'coquetel': '🍸',
-    'chimarrao': '🧉',
-    'chimarrão': '🧉',
-    'gelo': '🧊',
-
-    // --- Doces e Sobremesas ---
-    'chocolate': '🍫',
-    'doce': '🍬',
-    'pirulito': '🍭',
-    'biscoito': '🍪',
-    'bolacha': '🍪',
-    'bolo': '🍰',
-    'cupcake': '🧁',
-    'torta': '🥧',
-    'sorvete': '🍦',
-    'raspadinha': '🍧',
-    'sorvete de taca': '🍨',
-    'sorvete de taça': '🍨',
-    'donut': '🍩',
-    'pudim': '🍮',
-    'mel': '🍯',
-    'pipoca': '🍿',
-
-    // --- Pratos Prontos e Congelados ---
-    'pizza': '🍕',
-    'hamburguer': '🍔',
-    'hambúrguer': '🍔',
-    'sanduiche': '🥪',
-    'sanduíche': '🥪',
-    'batata frita': '🍟',
-    'taco': '🌮',
-    'burrito': '🌯',
-    'kebab': '🥙',
-    'falafel': '🧆',
-    'onigiri': '🍙',
-    'comida chinesa': '🥡',
-    'fondue': '🫕',
-    'enlatado': '🥫',
-    'conserva': '🫙',
-
-    // --- Limpeza ---
-    'sabao': '🧼',
-    'sabão': '🧼',
-    'detergente': '🧽',
-    'esponja': '🧽',
-    'limpeza': '🧹',
-    'vassoura': '🧹',
-    'balde': '🪣',
-    'cesto': '🧺',
-    'saco de lixo': '🗑️',
-
-    // --- Higiene e Saúde ---
-    'shampoo': '🧴',
-    'condicionador': '🧴',
-    'papel': '🧻',
-    'papel higienico': '🧻',
-    'papel higiênico': '🧻',
-    'escova de dentes': '🪥',
-    'lamina de barbear': '🪒',
-    'lâmina de barbear': '🪒',
-    'curativo': '🩹',
-    'remedio': '💊',
-    'remédio': '💊',
-
-    // --- Utilidades e Outros ---
-    'racao': '🦴',
-    'ração': '🦴',
-    'vela': '🕯️',
-    'lampada': '💡',
-    'lâmpada': '💡',
-    'pilha': '🔋',
-    'planta': '🪴',
-    'flor': '💐',
-
-    // --- Padrão ---
-    'default': '🛒'
-};
-
+        const emojiMap = {
+            'maca': '🍎', 'maçã': '🍎', 'maca verde': '🍏', 'maçã verde': '🍏', 'pera': '🍐', 'pêra': '🍐', 'laranja': '🍊', 'limao': '🍋', 'limão': '🍋', 'banana': '🍌', 'uva': '🍇', 'morango': '🍓', 'mirtilo': '🫐', 'melancia': '🍉', 'cereja': '🍒', 'pessego': '🍑', 'pêssego': '🍑', 'manga': '🥭', 'abacaxi': '🍍', 'coco': '🥥', 'kiwi': '🥝', 'tomate': '🍅', 'abacate': '🥑', 'melao': '🍈', 'melão': '🍈', 'cenoura': '🥕', 'berinjela': '🍆', 'batata': '🥔', 'batata doce': '🍠', 'milho': '🌽', 'pimenta': '🌶️', 'pimentao': '🫑', 'pimentão': '🫑', 'pepino': '🥒', 'alface': '🥬', 'brocolis': '🥦', 'brócolis': '🥦', 'alho': '🧄', 'cebola': '🧅', 'cogumelo': '🍄', 'amendoim': '🥜', 'castanha': '🌰', 'ervilha': '🫛', 'gengibre': '🫚', 'azeitona': '🫒', 'salada': '🥗', 'pao': '🍞', 'pão': '🍞', 'baguete': '🥖', 'croissant': '🥐', 'pretzel': '🥨', 'bagel': '🥯', 'panqueca': '🥞', 'waffle': '🧇', 'cereal': '🥣', 'arroz': '🍚', 'feijao': '🫘', 'feijão': '🫘', 'macarrao': '🍝', 'macarrão': '🍝', 'massa': '🍝', 'ramen': '🍜', 'carne': '🥩', 'bife': '🥩', 'pernil': '🍖', 'presunto': '🍖', 'frango': '🍗', 'peixe': '🐟', 'salsicha': '🌭', 'bacon': '🥓', 'camarao': '🍤', 'camarão': '🍤', 'lagosta': '🦞', 'caranguejo': '🦀', 'lula': '🦑', 'ostra': '🦪', 'sushi': '🍣', 'leite': '🥛', 'ovo': '🥚', 'queijo': '🧀', 'manteiga': '🧈', 'cafe': '☕️', 'café': '☕️', 'cha': '🍵', 'chá': '🍵', 'suco': '🧃', 'refrigerante': '🥤', 'agua': '💧', 'água': '💧', 'agua de coco': '🥥', 'cerveja': '🍺', 'vinho': '🍷', 'espumante': '🍾', 'whisky': '🥃', 'drink': '🍹', 'coquetel': '🍸', 'chimarrao': '🧉', 'chimarrão': '🧉', 'gelo': '🧊', 'chocolate': '🍫', 'doce': '🍬', 'pirulito': '🍭', 'biscoito': '🍪', 'bolacha': '🍪', 'bolo': '🍰', 'cupcake': '🧁', 'torta': '🥧', 'sorvete': '🍦', 'raspadinha': '🍧', 'sorvete de taca': '🍨', 'sorvete de taça': '🍨', 'donut': '🍩', 'pudim': '🍮', 'mel': '🍯', 'pipoca': '🍿', 'pizza': '🍕', 'hamburguer': '🍔', 'hambúrguer': '🍔', 'sanduiche': '🥪', 'sanduíche': '🥪', 'batata frita': '🍟', 'taco': '🌮', 'burrito': '🌯', 'kebab': '🥙', 'falafel': '🧆', 'onigiri': '🍙', 'comida chinesa': '🥡', 'fondue': '🫕', 'enlatado': '🥫', 'conserva': '🫙', 'sabao': '🧼', 'sabão': '🧼', 'detergente': '🧽', 'esponja': '🧽', 'limpeza': '🧹', 'vassoura': '🧹', 'balde': '🪣', 'cesto': '🧺', 'saco de lixo': '🗑️', 'shampoo': '🧴', 'condicionador': '🧴', 'papel': '🧻', 'papel higienico': '🧻', 'papel higiênico': '🧻', 'escova de dentes': '🪥', 'lamina de barbear': '🪒', 'lâmina de barbear': '🪒', 'curativo': '🩹', 'remedio': '💊', 'remédio': '💊', 'racao': '🦴', 'ração': '🦴', 'vela': '🕯️', 'lampada': '💡', 'lâmpada': '💡', 'pilha': '🔋', 'planta': '🪴', 'flor': '💐', 'default': '🛒'
+        };
         const getEmojiForItem = (nome) => {
             const nomeLower = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             for (const key in emojiMap) { if (nomeLower.includes(key)) return emojiMap[key]; }
             return emojiMap.default;
         };
-
-        // --- ELEMENTOS DA UI ---
         const ui = {
             appContainer: document.querySelector('.app-container'),
             form: document.getElementById('form-adicionar-item'),
@@ -477,8 +279,6 @@ const emojiMap = {
             btnZerarLista: document.getElementById('btn-zerar-lista'),
             btnFecharRelatorio: document.getElementById('btn-fechar-relatorio'),
         };
-        
-        // --- LÓGICA DE MODAIS ---
         const modals = {
             showNotification: (title, message) => {
                 ui.notificationTitle.textContent = title;
@@ -489,26 +289,21 @@ const emojiMap = {
                 ui.confirmationTitle.textContent = title;
                 ui.confirmationMessage.textContent = message;
                 ui.confirmationModal.classList.add('visible');
-                
                 return new Promise((resolve) => {
                     ui.btnConfirm.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(true); };
                     ui.btnCancel.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(false); };
                 });
             }
         };
-
-        // --- RENDERIZAÇÃO ---
         const render = {
             createItemElement: (item, isBasket = false) => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 card.dataset.id = item.id;
-                
                 let content = `<div class="item-emoji">${item.emoji}</div>`;
                 if (!isBasket) {
                     content += `<div class="item-name">${item.nome}</div>`;
                 }
-
                 card.innerHTML = `
                     <button class="delete-btn" title="Remover item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -518,13 +313,11 @@ const emojiMap = {
                 return card;
             },
             updateLists: (items) => {
-                localItems = items; // Atualiza a lista local
+                localItems = items;
                 ui.listaAComprar.innerHTML = '';
                 ui.listaComprados.innerHTML = '';
-                
                 const itensFaltando = items.filter(i => !i.comprado);
                 const itensComprados = items.filter(i => i.comprado);
-
                 if (items.length === 0) {
                      ui.listaAComprar.innerHTML = `<p style="color: var(--cor-texto-secundario); grid-column: 1 / -1; text-align: center;">Sua lista está vazia. Adicione um item acima.</p>`;
                 } else {
@@ -537,16 +330,14 @@ const emojiMap = {
                 }
             }
         };
-
-        // --- LÓGICA DO FIREBASE ---
         const interactions = {
             addItem: async (e) => {
                 e.preventDefault();
                 const nome = ui.input.value.trim();
                 if (nome && itemsRef) {
-                    const newItemRef = itemsRef.push(); // Gera um ID único
+                    const newItemRef = itemsRef.push();
                     await newItemRef.set({
-                        id: newItemRef.key, // Salva o ID junto com os dados
+                        id: newItemRef.key,
                         nome: nome,
                         emoji: getEmojiForItem(nome),
                         comprado: false,
@@ -563,7 +354,6 @@ const emojiMap = {
             toggleItemStatus: async (id, element) => {
                 const item = localItems.find(i => i.id === id);
                 if (!item) return;
-
                 const isComprado = item.comprado;
                 if (!isComprado) {
                     element.classList.add('falling');
@@ -597,13 +387,10 @@ const emojiMap = {
             }
         };
 
-        // --- INICIALIZAÇÃO ---
         function init() {
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    // **MODIFICADO** A referência agora é para o Realtime Database
                     itemsRef = database.ref(`easy_lists/${user.uid}/items`);
-                    
                     ui.appContainer.classList.add('loaded');
                     ui.loadingOverlay.classList.remove('visible');
 
@@ -616,7 +403,7 @@ const emojiMap = {
                         modals.showNotification('Erro de Conexão', 'Não foi possível carregar sua lista. Verifique sua internet.');
                     });
                 } else {
-                    window.location.replace('../index.html');
+                    window.location.replace('../../index.html');
                 }
             });
         }
@@ -637,7 +424,6 @@ const emojiMap = {
 
         init();
         
-        // --- REGISTRO DO SERVICE WORKER (PWA) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
