@@ -179,7 +179,7 @@
                     database.ref(`shopping_lists/${uid}`).once('value'),
                     database.ref(`purchase_reports/${uid}`).once('value'),
                     database.ref(`easy_lists/${uid}`).once('value'),
-                    database.ref(`enfermeiro_inteligente/${uid}`).once('value')
+                    database.ref(`easy_lists/${uid}/enfermeiro_inteligente`).once('value')
                 ];
                 const [shoppingSnapshot, reportsSnapshot, easyListsSnapshot, enfermeiroSnapshot] = await Promise.all(promises);
 
@@ -205,16 +205,16 @@
                 summaryHtml += `<p><strong>Diário de Bordo:</strong> ${diarioCount} registros diários.</p>`;
 
                 let patientsCount = 0;
-                let remediosCount = 0;
+                let tratamentosCount = 0;
                 if (enfermeiroData && enfermeiroData.patients) {
                     patientsCount = Object.keys(enfermeiroData.patients).length;
                     Object.values(enfermeiroData.patients).forEach(patient => {
-                        if (patient.remedios) {
-                            remediosCount += Object.keys(patient.remedios).length;
+                        if (patient.tratamentos) {
+                            tratamentosCount += patient.tratamentos.length;
                         }
                     });
                 }
-                summaryHtml += `<p><strong>Controle de Remédios:</strong> ${remediosCount} tratamentos para ${patientsCount} pacientes.</p>`;
+                summaryHtml += `<p><strong>Controle de Remédios:</strong> ${tratamentosCount} tratamentos para ${patientsCount} pacientes.</p>`;
 
                 totalDataSize += JSON.stringify(shoppingData).length;
                 totalDataSize += JSON.stringify(reportsData).length;
