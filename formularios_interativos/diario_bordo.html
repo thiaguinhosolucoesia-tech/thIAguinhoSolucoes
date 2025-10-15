@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Diário de Bordo Dinâmico com Análise</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../../../../firebase-config.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50; --accent-color: #3498db; --dark-color: #222;
+            --light-color: #f4f6f8; --gray-color: #7f8c8d; --white-color: #ffffff;
+            --success-color: #27ae60; --danger-color: #e74c3c; --border-color: #dfe4ea;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-headings: 'Lato', var(--font-main);
+        }
+        @keyframes pulse { 50% { opacity: .5; } }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body { font-family: var(--font-main); background-color: var(--light-color); color: var(--dark-color); line-height: 1.6; }
+        
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+        #auth-container { display: none; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .auth-box { background: var(--white-color); padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .auth-box h1 { color: var(--danger-color); } .auth-box p { color: var(--gray-color); margin-top: 10px; }
+
+        #app-header { background: var(--white-color); padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .back-btn { background-color: var(--light-color); color: var(--primary-color); text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: background-color 0.2s; }
+        .back-btn:hover { background-color: #e0e5e9; }
+        #app-header h1 { color: var(--primary-color); font-size: 1.8em; margin: 0; }
+        #user-info { display: flex; align-items: center; gap: 15px; }
+        #user-email { color: var(--gray-color); font-size: 0.9em; font-weight: 500; }
+        #logout-btn { background: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        #loader-container { display: block; }
+        .skeleton { background-color: #e0e0e0; border-radius: 8px; animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .skeleton-header { height: 74px; margin-bottom: 20px; }
+        .skeleton-nav { height: 40px; width: 300px; margin: 0 auto 25px auto;}
+        .skeleton-box { min-height: 450px; }
+
+        .daily-wrapper { display: grid; grid-template-columns: 1fr; gap: 30px; }
+        @media (min-width: 900px) { .daily-wrapper { grid-template-columns: 1fr 1fr; } }
+        header.date-header { text-align: center; margin-bottom: 25px; }
+        .date-navigation { display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .nav-btn { background: none; border: none; font-size: 2.2em; cursor: pointer; color: var(--primary-color); padding: 0 10px; }
+        #currentDate { font-size: 1.3em; color: var(--primary-color); font-weight: 600; }
+        .section-box { border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; background-color: var(--white-color); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .section-box h2 { font-family: var(--font-headings); font-size: 1.6em; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; }
+        .form-section { margin-bottom: 20px; }
+        .form-section label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; }
+        textarea { resize: vertical; min-height: 100px; }
+        .button-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 30px; }
+        .btn-action { background-color: var(--accent-color); color: var(--white-color); border: none; padding: 12px 25px; border-radius: 8px; font-size: 1.05em; font-weight: 600; cursor: pointer; }
+        .btn-secondary { background-color: var(--primary-color); }
+        .btn-tertiary { background-color: var(--gray-color); }
+        footer { text-align: center; margin-top: 40px; color: var(--gray-color); font-size: 0.9em; padding: 20px 0; }
+
+        .report-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s ease; }
+        .report-panel { background: var(--white-color); color: var(--dark-color); width: 90%; max-width: 700px; max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s ease; }
+        .report-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .report-header h2 { color: var(--primary-color); font-size: 1.5em; margin: 0; }
+        .report-header .close-btn { font-size: 28px; color: var(--gray-color); cursor: pointer; background: none; border: none; }
+        .report-body { padding: 25px; overflow-y: auto; white-space: pre-wrap; line-height: 1.8; font-family: 'Courier New', monospace; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div id="auth-container">
+        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua sessão é inválida ou expirou. Por favor, retorne à plataforma e faça login novamente.</p></div>
+    </div>
+
+    <div id="loader-container" class="main-container">
+        <div class="skeleton skeleton-header"></div>
+        <div class="skeleton skeleton-nav"></div>
+        <div class="daily-wrapper"><div class="skeleton skeleton-box"></div><div class="skeleton skeleton-box"></div></div>
+    </div>
+
+    <div id="app-container" class="main-container" style="display: none;">
+        <header id="app-header">
+            <div class="header-left">
+                <a href="../dashboard.html" class="back-btn"><span>&larr;</span> Voltar</a>
+                <h1>Diário de Bordo</h1>
+            </div>
+            <div id="user-info">
+                <span id="user-email"></span>
+                <button id="logout-btn">Sair</button>
+            </div>
+        </header>
+
+        <main>
+            <header class="date-header">
+                <div class="date-navigation">
+                    <button id="prevDayBtn" class="nav-btn"><</button>
+                    <p id="currentDate"></p>
+                    <button id="nextDayBtn" class="nav-btn">></button>
+                </div>
+            </header>
+            <div id="dynamic-logbook-content"></div>
+        </main>
+        
+        <div class="button-container">
+            <button type="button" id="saveDayBtn" class="btn-action">Salvar Registros</button>
+            <button type="button" id="view-summary-btn" class="btn-action btn-tertiary" style="display: none;">Ver Resumo do Dia</button>
+            <button type="button" id="generate-weekly-report-btn" class="btn-action btn-secondary">Gerar Análise da Semana</button>
+        </div>
+
+        <footer><p>Desenvolvido com 🤖 por thIAguinho Soluções</p></footer>
+    </div>
+
+    <div class="report-overlay" id="report-modal">
+        <div class="report-panel">
+            <div class="report-header"><h2 id="report-title">Relatório</h2><button class="close-btn" id="close-report-btn">&times;</button></div>
+            <div class="report-body" id="report-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const logbookConfig = {
+            layout: "grid",
+            sections: [
+                {
+                    id: "planning", title: "Planejamento e Metas", fields: [
+                        { id: "dailyFocus", label: "Foco Principal do Dia", type: "text", placeholder: "Qual é a tarefa mais importante de hoje?" },
+                        { id: "criticalTasks", label: "Tarefas Críticas", type: "textarea", placeholder: "Liste as 3-5 prioridades." }
+                    ]
+                },
+                {
+                    id: "execution", title: "Execução e KPIs", fields: [
+                        { id: "keyActivities", label: "Atividades Chave Realizadas", type: "textarea", placeholder: "Descreva os principais avanços." },
+                        { id: "leadsGerados", label: "Leads Gerados", type: "number", placeholder: "0", isKPI: true, kpiName: "Total de Leads" },
+                        { id: "energia", label: "Nível de Energia (1-5)", type: "number", placeholder: "3", isKPI: true, kpiName: "Energia Média" }
+                    ]
+                },
+                {
+                    id: "review", title: "Revisão e Aprendizados", fields: [
+                        { id: "mainAchievement", label: "Principal Conquista", type: "text", placeholder: "Qual foi a maior vitória de hoje?" },
+                        { id: "mainChallenge", label: "Principal Desafio / Bloqueio", type: "textarea", placeholder: "O que te impediu de avançar?" }
+                    ]
+                }
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const App = {
+                currentUser: null,
+                displayedDate: new Date(),
+                today: new Date(),
+
+                init() {
+                    this.today.setHours(0, 0, 0, 0);
+                    this.displayedDate.setHours(0, 0, 0, 0);
+                    this.addAuthListeners();
+                    this.addEventListeners();
+                },
+
+                showView(view) {
+                    document.getElementById('loader-container').style.display = view === 'loader' ? 'block' : 'none';
+                    document.getElementById('auth-container').style.display = view === 'auth' ? 'flex' : 'none';
+                    document.getElementById('app-container').style.display = view === 'app' ? 'block' : 'none';
+                },
+
+                addAuthListeners() {
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            if (!this.currentUser) {
+                                this.currentUser = user;
+                                document.getElementById('user-email').textContent = user.email;
+                                this.renderDynamicLogbook();
+                                this.loadDayData(this.getDateString(this.displayedDate));
+                            }
+                        } else {
+                            this.currentUser = null; this.showView('auth');
+                        }
+                    });
+                    document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                },
+
+                renderDynamicLogbook() {
+                    const container = document.getElementById('dynamic-logbook-content');
+                    container.innerHTML = '';
+                    const wrapper = document.createElement('div');
+                    wrapper.className = logbookConfig.layout === 'grid' ? 'daily-wrapper' : '';
+                    
+                    logbookConfig.sections.forEach(section => {
+                        let fieldsHtml = '';
+                        section.fields.forEach(field => {
+                            fieldsHtml += `<div class="form-section"><label for="${field.id}">${field.label}</label>`;
+                            if (field.type === 'textarea') {
+                                fieldsHtml += `<textarea id="${field.id}" placeholder="${field.placeholder || ''}"></textarea>`;
+                            } else {
+                                fieldsHtml += `<input type="${field.type}" id="${field.id}" placeholder="${field.placeholder || ''}">`;
+                            }
+                            fieldsHtml += `</div>`;
+                        });
+                        wrapper.innerHTML += `<div class="section-box"><h2>${section.title}</h2><form id="${section.id}-form">${fieldsHtml}</form></div>`;
+                    });
+                    container.appendChild(wrapper);
+                },
+
+                getDateString: date => date.toISOString().split('T')[0],
+
+                async loadDayData(dateString) {
+                    if (!this.currentUser) return;
+                    this.showView('loader');
+                    const dataRef = database.ref(`easy_lists/${this.currentUser.uid}/diario_de_bordo/${dateString}`);
+                    try {
+                        const snapshot = await dataRef.once('value');
+                        const dayData = snapshot.val();
+                        this.updateUI(dateString, dayData);
+                    } catch (error) { console.error("Erro ao carregar dados:", error); } 
+                    finally { this.showView('app'); }
+                },
+
+                updateUI(dateString, dayData) {
+                    document.getElementById('currentDate').textContent = this.displayedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+                    document.getElementById('nextDayBtn').disabled = this.getDateString(this.displayedDate) === this.getDateString(this.today);
+                    document.getElementById('view-summary-btn').style.display = dayData ? 'block' : 'none';
+                    
+                    logbookConfig.sections.forEach(s => s.fields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (el) el.value = dayData?.[s.id]?.[f.id] || '';
+                    }));
+                },
+                
+                addEventListeners() {
+                    document.getElementById('saveDayBtn').addEventListener('click', () => this.saveCurrentState());
+                    document.getElementById('prevDayBtn').addEventListener('click', () => this.navigateDays(-1));
+                    document.getElementById('nextDayBtn').addEventListener('click', () => this.navigateDays(1));
+                    document.getElementById('view-summary-btn').addEventListener('click', () => this.showDailySummary());
+                    document.getElementById('generate-weekly-report-btn').addEventListener('click', () => this.generateWeeklyReport());
+                    document.getElementById('close-report-btn').addEventListener('click', () => this.toggleReportModal(false));
+                    document.getElementById('report-modal').addEventListener('click', (e) => { if (e.target.id === 'report-modal') this.toggleReportModal(false); });
+                },
+
+                navigateDays(direction) {
+                    this.displayedDate.setDate(this.displayedDate.getDate() + direction);
+                    this.loadDayData(this.getDateString(this.displayedDate));
+                },
+
+                async saveCurrentState() {
+                    if (!this.currentUser) { alert("Sessão expirada."); return false; }
+                    const dayData = { lastUpdated: new Date().toISOString() };
+                    logbookConfig.sections.forEach(s => {
+                        dayData[s.id] = {};
+                        s.fields.forEach(f => {
+                            const el = document.getElementById(f.id);
+                            if(el) dayData[s.id][f.id] = el.value.trim();
+                        });
+                    });
+                    
+                    try {
+                        const dateString = this.getDateString(this.displayedDate);
+                        const dataRef = database.ref(`easy_lists/${this.currentUser.uid}/diario_de_bordo/${dateString}`);
+                        await dataRef.set(dayData);
+                        alert('Registros salvos com sucesso!');
+                        document.getElementById('view-summary-btn').style.display = 'block';
+                        return true;
+                    } catch (error) {
+                        console.error("Erro ao salvar:", error); alert("Não foi possível salvar os dados.");
+                        return false;
+                    }
+                },
+
+                async showDailySummary() {
+                    const dateString = this.getDateString(this.displayedDate);
+                    const dataRef = database.ref(`easy_lists/${this.currentUser.uid}/diario_de_bordo/${dateString}`);
+                    const snapshot = await dataRef.once('value');
+                    const dayData = snapshot.val();
+
+                    if (!dayData) { alert("Nenhum dado salvo para este dia."); return; }
+                    
+                    let reportText = `RESUMO DE ${this.displayedDate.toLocaleDateString('pt-BR').toUpperCase()}\n====================================\n\n`;
+                    logbookConfig.sections.forEach(section => {
+                        reportText += `--- ${section.title.toUpperCase()} ---\n`;
+                        section.fields.forEach(field => {
+                            const value = dayData[section.id]?.[field.id] || '(Não preenchido)';
+                            reportText += `${field.label}: ${value}\n`;
+                        });
+                        reportText += `\n`;
+                    });
+                    this.toggleReportModal(true, "Resumo do Dia", reportText);
+                },
+                
+                async generateWeeklyReport() {
+                    if (!this.currentUser) return;
+                    this.toggleReportModal(true, "Análise Semanal", "Gerando relatório, por favor aguarde...");
+                    
+                    const today = new Date(this.displayedDate);
+                    const dayOfWeek = today.getDay();
+                    const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                    const firstDay = new Date(today);
+                    firstDay.setDate(today.getDate() + offsetToMonday);
+
+                    let weekPromises = [];
+                    for(let i=0; i<7; i++) {
+                        const date = new Date(firstDay);
+                        date.setDate(date.getDate() + i);
+                        const dateString = this.getDateString(date);
+                        weekPromises.push(database.ref(`easy_lists/${this.currentUser.uid}/diario_de_bordo/${dateString}`).once('value'));
+                    }
+
+                    const snapshots = await Promise.all(weekPromises);
+                    const weekData = snapshots.map((snap, i) => {
+                        const date = new Date(firstDay);
+                        date.setDate(date.getDate() + i);
+                        return { date, data: snap.val() };
+                    });
+
+                    let reportText = `ANÁLISE DE PERFORMANCE SEMANAL\nSemana de ${firstDay.toLocaleDateString('pt-BR')} a ${new Date(firstDay).setDate(firstDay.getDate() + 6) && firstDay.toLocaleDateString('pt-BR')}\n================================================\n\n`;
+                    
+                    const kpis = {};
+                    let energySum = 0; let energyCount = 0; let filledDays = 0;
+                    
+                    weekData.forEach(dayEntry => {
+                        if (dayEntry.data) {
+                            filledDays++;
+                            const dayLabel = dayEntry.date.toLocaleDateString('pt-BR', {weekday: 'short'}).toUpperCase();
+                            const focusField = logbookConfig.sections.find(s=>s.id==='planning')?.fields.find(f=>f.id==='dailyFocus');
+                            const achievementField = logbookConfig.sections.find(s=>s.id==='review')?.fields.find(f=>f.id==='mainAchievement');
+                            
+                            reportText += `--- ${dayLabel} (${dayEntry.date.toLocaleDateString('pt-BR')}) ---\n`;
+                            reportText += `  Foco: ${dayEntry.data.planning?.[focusField.id] || 'N/A'}\n`;
+                            reportText += `  Conquista: ${dayEntry.data.review?.[achievementField.id] || 'N/A'}\n\n`;
+
+                            logbookConfig.sections.forEach(section => {
+                                section.fields.forEach(field => {
+                                    if (field.isKPI) {
+                                        if (!kpis[field.kpiName]) kpis[field.kpiName] = 0;
+                                        const value = parseFloat(dayEntry.data[section.id]?.[field.id]) || 0;
+                                        kpis[field.kpiName] += value;
+
+                                        if(field.id.toLowerCase().includes('energy') || field.id.toLowerCase().includes('energia')) {
+                                            if (value > 0) {
+                                                energySum += value;
+                                                energyCount++;
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    });
+
+                    if (filledDays === 0) {
+                        reportText += "Nenhum dia preenchido nesta semana. Preencha seus registros para gerar a análise.";
+                    } else {
+                        reportText += `--- SÍNTESE E RECOMENDAÇÕES ---\n\n  Diagnóstico de KPIs:\n`;
+                        for(const key in kpis) {
+                            if (key.toLowerCase().includes('energia')) {
+                                const avgEnergy = energyCount > 0 ? (energySum / energyCount).toFixed(1) : 'N/A';
+                                reportText += `    - ${key}: ${avgEnergy} / 5.0\n`;
+                            } else {
+                                reportText += `    - ${key}: ${kpis[key]}\n`;
+                            }
+                        }
+
+                        reportText += `\n  Recomendações Estratégicas:\n`;
+                        const avgEnergy = energyCount > 0 ? (energySum / energyCount) : null;
+                        if(avgEnergy !== null) {
+                            if (avgEnergy < 2.5) {
+                                reportText += `    - ALERTA DE ENERGIA: Seu nível médio de energia esteve baixo. Priorize delegar uma tarefa ou agendar uma pausa estratégica amanhã para evitar burnout.\n`;
+                            } else if (avgEnergy >= 4.0) {
+                                reportText += `    - ALTA PERFORMANCE: Sua energia esteve em alta. Analise os dias de pico e replique as condições favoráveis na próxima semana para maximizar os resultados.\n`;
+                            } else {
+                                reportText += `    - GESTÃO CONSISTENTE: Seus níveis de energia estão estáveis. Mantenha as boas práticas e identifique pequenos ajustes para otimizar ainda mais sua rotina.\n`;
+                            }
+                        }
+                    }
+                    document.getElementById('report-content').textContent = reportText;
+                },
+
+                toggleReportModal(show, title = '', content = '') {
+                    const modal = document.getElementById('report-modal');
+                    if (show) {
+                        document.getElementById('report-title').textContent = title;
+                        document.getElementById('report-content').textContent = content;
+                        modal.style.display = 'flex';
+                        setTimeout(() => modal.style.opacity = 1, 10);
+                    } else {
+                        modal.style.opacity = 0;
+                        setTimeout(() => modal.style.display = 'none', 300);
+                    }
+                }
+            };
+            App.init();
+        });
+    </script>
+</body>
+</html>

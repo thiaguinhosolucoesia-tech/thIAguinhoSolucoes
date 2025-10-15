@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras Rápida</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="../../../../../../../firebase-config.js"></script>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f9ff; padding: 20px; max-width: 600px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1 { text-align: center; color: #0066cc; margin: 0; }
+    #back-button { padding: 8px 16px; font-size: 1rem; background-color: #e9ecef; border: none; border-radius: 8px; cursor: pointer; color: #495057; text-decoration: none;}
+    #add-item-form { display: flex; gap: 10px; margin-bottom: 20px; }
+    #new-item-input { flex-grow: 1; padding: 12px; border-radius: 10px; border: 1px solid #ced4da; font-size: 1.1rem; }
+    #add-item-btn { padding: 12px 20px; border: none; border-radius: 10px; background-color: #007aff; color: white; font-size: 1.1rem; cursor: pointer; }
+    .item { display: flex; align-items: center; padding: 10px; background-color: white; margin: 8px 0; border-radius: 10px; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); font-size: 1.1em; transition: opacity 0.3s; }
+    .item input[type="checkbox"] { transform: scale(1.5); margin-right: 15px; cursor: pointer; }
+    .item span { flex-grow: 1; }
+    .item.checked { opacity: 0.6; text-decoration: line-through; }
+    .delete-item-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #ff3b30; opacity: 0.5; transition: opacity 0.2s; }
+    .item:hover .delete-item-btn { opacity: 1; }
+    button#gerar-relatorio { display: block; width: 100%; padding: 15px; background-color: #28a745; color: white; font-size: 1.2em; font-weight: bold; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+    #relatorio-div { background-color: #fffbe6; padding: 20px; margin-top: 20px; border-radius: 10px; border: 2px solid #ffe58f; display: none; white-space: pre-wrap; font-family: 'Courier New', monospace; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="../../dashboard.html" id="back-button">❮ Voltar</a>
+    <h1>⚡ Lista Rápida</h1>
+</div>
+
+<form id="add-item-form" onsubmit="addItem(event)">
+    <input type="text" id="new-item-input" placeholder="Adicionar novo item..." required>
+    <button id="add-item-btn" type="submit">Adicionar</button>
+</form>
+
+<div id="lista-container"></div>
+
+<button id="gerar-relatorio" onclick="gerarRelatorio()">📋 Gerar Relatório</button>
+
+<div id="relatorio-div"></div>
+
+<script>
+    let items = JSON.parse(localStorage.getItem('listaRapidaItems')) || [];
+
+    function renderItems() {
+        const container = document.getElementById('lista-container');
+        container.innerHTML = '';
+        items.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `item ${item.checked ? 'checked' : ''}`;
+            itemDiv.innerHTML = `
+                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${index})">
+                <span>${item.name}</span>
+                <button class="delete-item-btn" onclick="deleteItem(${index})">&times;</button>
+            `;
+            container.appendChild(itemDiv);
+        });
+    }
+
+    function saveItems() {
+        localStorage.setItem('listaRapidaItems', JSON.stringify(items));
+    }
+
+    function addItem(event) {
+        event.preventDefault();
+        const input = document.getElementById('new-item-input');
+        const itemName = input.value.trim();
+        if (itemName) {
+            items.push({ name: itemName, checked: false });
+            input.value = '';
+            input.focus();
+            saveItems();
+            renderItems();
+        }
+    }
+
+    function deleteItem(index) {
+        items.splice(index, 1);
+        saveItems();
+        renderItems();
+    }
+    
+    function toggleCheck(index) {
+        items[index].checked = !items[index].checked;
+        saveItems();
+        renderItems();
+    }
+
+    function gerarRelatorio() {
+        const divRelatorio = document.getElementById("relatorio-div");
+        const comprados = items.filter(item => item.checked);
+        const faltando = items.filter(item => !item.checked);
+
+        let relatorioHTML = `RELATÓRIO DE COMPRAS\nData: ${new Date().toLocaleString('pt-BR')}\n\n`;
+
+        if (comprados.length > 0) {
+            relatorioHTML += `--- COMPRADOS (${comprados.length}) ---\n`;
+            comprados.forEach(item => {
+                relatorioHTML += `- ${item.name}\n`;
+            });
+        }
+        
+        if (faltando.length > 0) {
+            relatorioHTML += `\n--- FALTANDO (${faltando.length}) ---\n`;
+            faltando.forEach(item => {
+                relatorioHTML += `- ${item.name}\n`;
+            });
+        }
+
+        if (comprados.length === 0 && faltando.length === 0) {
+             relatorioHTML += "Sua lista está vazia.";
+        }
+
+        divRelatorio.textContent = relatorioHTML;
+        divRelatorio.style.display = "block";
+    }
+
+    // Renderiza a lista inicial ao carregar a página
+    renderItems();
+</script>
+
+</body>
+</html>

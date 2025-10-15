@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Painel de Inteligência & Estruturação</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../../../../firebase-config.js"></script>
+    <style>
+        :root {
+            --primary-color: #34495e; --accent-color: #1abc9c; --dark-color: #2c3e50;
+            --light-color: #ecf0f1; --gray-color: #7f8c8d; --white-color: #ffffff;
+            --success-color: #27ae60; --danger-color: #c0392b;
+            --font-main: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-headings: 'Lato', serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@700&family=Roboto:wght@400;500;700&display=swap');
+        * { box-sizing: border-box; }
+        body { font-family: var(--font-main); margin: 0; padding: 0; background-color: var(--light-color); color: var(--dark-color); }
+        .container { max-width: 800px; margin: 20px auto; background-color: var(--white-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+
+        #auth-container { display: none; align-items: center; justify-content: center; padding: 50px 20px; text-align: center; }
+        .auth-box { background: var(--white-color); padding: 40px; border-radius: 12px; }
+        .auth-box h1 { color: var(--danger-color); } .auth-box p { color: var(--gray-color); margin-top: 10px; }
+        
+        #app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: var(--white-color); border-bottom: 1px solid #eee; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .back-btn { background-color: var(--light-color); color: var(--primary-color); text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: background-color 0.2s; }
+        .back-btn:hover { background-color: #e0e5e9; }
+        #app-header #user-email { color: var(--gray-color); }
+        #app-header #logout-btn { background: var(--danger-color); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        
+        .tab-navigation { display: flex; background-color: #34495e; }
+        .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: var(--light-color); font-size: 1.1em; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { background-color: var(--white-color); color: var(--dark-color); border-bottom-color: var(--accent-color); }
+        .tab-content { display: none; } .tab-content.active { display: block; } .form-content { padding: 30px; }
+        .form-section { margin-bottom: 40px; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+        .section-header { padding: 20px; background-color: #f9f9f9; border-bottom: 1px solid #ddd; }
+        .section-header h2 { font-family: var(--font-headings); margin: 0; font-size: 1.5em; }
+        .section-body { padding: 25px; } .form-group { margin-bottom: 30px; }
+        label { display: block; font-weight: 700; margin-bottom: 10px; } label small { display: block; font-weight: 400; color: var(--gray-color); }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; }
+        textarea { resize: vertical; min-height: 120px; }
+        .button-group { padding: 30px; background-color: #f0f0f0; border-top: 1px solid #ddd; }
+        .btn-action { display: block; width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 1.2em; font-weight: 700; cursor: pointer; color: var(--white-color); }
+        
+        .report-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s ease; }
+        .report-panel { background: var(--dark-color); color: var(--white-color); width: 90%; max-width: 600px; max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s ease; }
+        .report-header { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        .report-header h2 { color: var(--accent-color); font-size: 1.5em; }
+        .report-header .close-btn { font-size: 28px; color: #fff; cursor: pointer; background: none; border: none; }
+        .report-body { padding: 25px; overflow-y: auto; white-space: pre-wrap; line-height: 1.8; }
+        .report-footer { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-copy { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background-color: var(--success-color); color: #fff; }
+    </style>
+</head>
+<body>
+    <div id="auth-container">
+        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua sessão é inválida ou expirou. Por favor, retorne à plataforma e faça login novamente.</p></div>
+    </div>
+
+    <div id="app-container" class="container" style="display: none;">
+        <header id="app-header">
+             <div class="header-left">
+                <a href="../dashboard.html" class="back-btn"><span>&larr;</span> Voltar</a>
+                </div>
+            <span id="user-email"></span>
+            <button id="logout-btn">Sair</button>
+        </header>
+
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="briefing">Gerador de Briefing</button>
+            <button class="tab-btn" data-tab="synthesis">Sintetizador de Dados</button>
+        </nav>
+        
+        <div class="form-content" style="border-bottom: 1px solid #eee;">
+             <div class="form-group"><label for="projectName">Nome do Projeto / Briefing</label><input type="text" id="projectName" placeholder="Ex: Campanha de Marketing Q4"></div>
+        </div>
+
+        <div id="briefing" class="tab-content active">
+            <form id="briefing-form">
+                <div id="dynamic-form-content" class="form-content"></div>
+                <div class="button-group"><button type="submit" class="btn-action" style="background-color: var(--primary-color);">Gerar e Salvar Briefing</button></div>
+            </form>
+        </div>
+
+        <div id="synthesis" class="tab-content">
+            <div class="form-content">
+                <div class="form-section"><div class="section-header"><h2>Módulo de Síntese de Transcrições</h2></div>
+                    <div class="section-body">
+                        <div class="form-group"><label for="rawText">Cole aqui o texto bruto</label><textarea id="rawText" name="rawText" rows="10"></textarea></div>
+                        <div class="form-group"><label for="categories">Categorias para extração (separadas por vírgula)</label><input type="text" id="categories" name="categories" value="Dores, Sugestões, Desafios"></div>
+                    </div>
+                </div>
+                 <div class="button-group"><button id="generate-prompt-btn" type="button" class="btn-action" style="background-color: var(--accent-color);">Gerar Prompt de Análise</button></div>
+            </div>
+        </div>
+        <footer><p style="padding: 20px; text-align: center; color: var(--gray-color);">Desenvolvido com 🤖 por thIAguinho Soluções</p></footer>
+    </div>
+    
+    <div class="report-overlay" id="report-overlay"><div class="report-panel" id="report-panel"><div class="report-header"><h2 id="report-title">Relatório</h2><button class="close-btn" id="close-report-btn">&times;</button></div><div class="report-body" id="report-output"></div><div class="report-footer"><button class="btn-copy" id="copy-report-btn">Copiar</button></div></div></div>
+
+<script>
+// =============== CONFIGURAÇÃO DO BRIEFING CUSTOMIZÁVEL ===============
+// Edite este objeto para criar qualquer tipo de formulário de briefing.
+// A interface será construída automaticamente a partir daqui.
+const briefingConfig = {
+    modules: [
+        { 
+            icon: "📜", 
+            title: "Contexto e Justificativa", 
+            fields: [
+                { id: "background", label: "Background do Projeto", type: "textarea", help: "Qual é a história por trás desta necessidade? Qual problema estamos resolvendo?" },
+                { id: "justification", label: "Por que agora?", type: "text", help: "Qual a urgência ou oportunidade que motiva este projeto neste momento?" }
+            ] 
+        },
+        { 
+            icon: "🎯", 
+            title: "Objetivos e Metas", 
+            fields: [
+                { id: "mainGoal", label: "Objetivo Principal", type: "text", help: "Qual é a única coisa que este projeto precisa alcançar para ser um sucesso?" },
+                { id: "smartGoals", label: "Metas SMART", type: "textarea", help: "Liste metas Específicas, Mensuráveis, Atingíveis, Relevantes e com Prazo." }
+            ] 
+        },
+        { 
+            icon: "👥", 
+            title: "Público e Stakeholders", 
+            fields: [
+                { id: "targetAudience", label: "Público-Alvo", type: "textarea", help: "Para quem estamos fazendo isso? Descreva o perfil, dores e necessidades." },
+                { id: "stakeholders", label: "Stakeholders Principais", type: "text", help: "Quem são as pessoas chave (aprovadores, consultados, informados)?" }
+            ] 
+        },
+        { 
+            icon: "📦", 
+            title: "Escopo e Entregáveis", 
+            fields: [
+                { id: "deliverables", label: "Entregáveis Finais", type: "textarea", help: "O que será produzido concretamente? (Ex: Relatório, Protótipo, Campanha, Website)" },
+                { id: "outOfScope", label: "Fora do Escopo", type: "textarea", help: "O que explicitamente NÃO será feito neste projeto?" }
+            ] 
+        },
+        { 
+            icon: "⚠️", 
+            title: "Restrições e Premissas", 
+            fields: [
+                { id: "constraints", label: "Restrições Conhecidas", type: "textarea", help: "Quais são as limitações de orçamento, prazo, tecnologia ou recursos?" },
+                { id: "assumptions", label: "Premissas", type: "textarea", help: "O que estamos assumindo como verdadeiro para que este projeto seja viável?" }
+            ] 
+        }
+    ]
+};
+// =====================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const App = {
+        currentUser: null,
+        
+        init() {
+            this.addAuthListeners();
+            this.addAppListeners();
+            this.renderDynamicForm();
+        },
+
+        showView(view) {
+            document.getElementById('auth-container').style.display = view === 'auth' ? 'flex' : 'none';
+            document.getElementById('app-container').style.display = view === 'app' ? 'block' : 'none';
+        },
+
+        addAuthListeners() {
+             auth.onAuthStateChanged(user => {
+                if (user) {
+                    this.currentUser = user;
+                    document.getElementById('user-email').textContent = user.email;
+                    this.showView('app');
+                } else {
+                    this.currentUser = null;
+                    this.showView('auth');
+                }
+            });
+            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+        },
+
+        renderDynamicForm() {
+            let html = '';
+            briefingConfig.modules.forEach(m => {
+                html += `<div class="form-section"><div class="section-header"><h2>${m.icon} ${m.title}</h2></div><div class="section-body">`;
+                m.fields.forEach(f => {
+                    html += `<div class="form-group"><label for="${f.id}">${f.label}<small>${f.help}</small></label>`;
+                    if (f.type === 'textarea') html += `<textarea id="${f.id}" name="${f.id}"></textarea>`; 
+                    else html += `<input type="text" id="${f.id}" name="${f.id}">`;
+                    html += `</div>`;
+                });
+                html += `</div></div>`;
+            });
+            document.getElementById('dynamic-form-content').innerHTML = html;
+        },
+
+        addAppListeners() {
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.toggle('active', content.id === button.dataset.tab);
+                    });
+                });
+            });
+
+            document.getElementById('briefing-form').addEventListener('submit', (e) => this.handleBriefingSubmit(e));
+            document.getElementById('generate-prompt-btn').addEventListener('click', () => this.handlePromptGeneration());
+            
+            const overlay = document.getElementById('report-overlay');
+            document.getElementById('close-report-btn').addEventListener('click', () => this.togglePopup(false));
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) this.togglePopup(false); });
+            document.getElementById('copy-report-btn').addEventListener('click', (e) => this.copyReport(e.target));
+        },
+        
+        async handleBriefingSubmit(event) {
+            event.preventDefault();
+            if (!this.currentUser) { alert("Sessão expirada."); return; }
+            
+            const projectName = document.getElementById('projectName').value.trim();
+            if (!projectName) { alert("Por favor, preencha o Nome do Projeto."); return; }
+
+            const formData = new FormData(event.target);
+            let report = `📋 RELATÓRIO DE BRIEFING 📋\n\nProjeto: ${projectName}\nGerado em: ${new Date().toLocaleString('pt-BR')}\n========================\n\n`;
+            briefingConfig.modules.forEach(m => {
+                report += `--- ${m.title.toUpperCase()} ---\n`;
+                m.fields.forEach(f => {
+                    report += `▶ ${f.label}:\n${formData.get(f.id) || 'Não preenchido'}\n\n`;
+                });
+            });
+
+            this.showReport("Briefing Estratégico", report);
+
+            const briefingId = `${Date.now()}-${projectName.replace(/\s+/g, '-')}`;
+            try {
+                // CAMINHO ADAPTADO PARA AS REGRAS FORNECIDAS
+                await database.ref(`easy_lists/${this.currentUser.uid}/paineis_de_inteligencia/${briefingId}`).set({
+                    projectName: projectName,
+                    createdAt: new Date().toISOString(),
+                    content: report
+                });
+                 alert('Briefing salvo com sucesso!');
+            } catch (error) {
+                console.error("Erro ao salvar no Firebase: ", error);
+                alert("Houve um erro ao salvar o briefing. Verifique as regras do seu banco de dados.");
+            }
+        },
+        
+        handlePromptGeneration() {
+            const rawText = document.getElementById('rawText').value.trim();
+            const categories = document.getElementById('categories').value.trim();
+            if (!rawText || !categories) { alert("Preencha o texto bruto e as categorias."); return; }
+
+            let prompt = `**TAREFA DE ANÁLISE ESTRUTURADA**\n\n**OBJETIVO:** Extrair citações diretas (verbatim) do texto abaixo, organizando-as nas categorias especificadas. A fidelidade ao texto original é máxima.\n\n**REGRAS:**\n1.  **NÃO ALTERE, RESUMA OU PARAFRASEIE** o texto original. Copie as frases exatamente como estão.\n2.  Não corrija erros ou vícios de linguagem (ex: "né", "certo?").\n\n**CATEGORIAS:**\n- ${categories.split(',').map(c => c.trim()).join('\n- ')}\n\n**TEXTO BRUTO PARA ANÁLISE:**\n---\n${rawText}\n---\n\n**FORMATO DA SAÍDA:**\n`;
+            categories.split(',').forEach(c => { prompt += `**${c.trim()}**\n- [Citação 1]\n- [Citação 2]\n\n`; });
+            
+            this.showReport("Prompt de Análise Gerado", prompt);
+        },
+
+        togglePopup(show, title = '', content = '') {
+            const overlay = document.getElementById('report-overlay');
+            const panel = document.getElementById('report-panel');
+            if (show) {
+                document.getElementById('report-title').textContent = title;
+                document.getElementById('report-output').textContent = content;
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    overlay.style.opacity = 1;
+                    panel.style.transform = 'scale(1)';
+                }, 10);
+            } else {
+                overlay.style.opacity = 0;
+                panel.style.transform = 'scale(0.95)';
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            }
+        },
+
+        showReport(title, content) {
+            this.togglePopup(true, title, content);
+        },
+
+        copyReport(button) {
+            const content = document.getElementById('report-output').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copiado!';
+                button.style.backgroundColor = '#2ecc71';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.backgroundColor = 'var(--success-color)';
+                }, 2000);
+            });
+        }
+    };
+
+    App.init();
+});
+</script>
+</body>
+</html>
