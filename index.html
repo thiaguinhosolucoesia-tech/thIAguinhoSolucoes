@@ -134,6 +134,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <script src="firebase-config.js"></script>
 
     <script>
@@ -149,20 +150,16 @@
         const contactInfo = document.getElementById('contact-info');
         let isLogin = true;
 
-        // Redireciona se o usuário já estiver logado
         auth.onAuthStateChanged(user => { 
             if (user) { 
-                // Verifica se o usuário já tem um registro em users_public_list
-                // Isso cobre casos de usuários criados ANTES da correção
                 database.ref(`users_public_list/${user.uid}`).once('value')
                     .then(snapshot => {
                         if (!snapshot.exists()) {
-                            // Se o usuário existe na autenticação mas não no public_list, cria-o
                             const userPublicData = {
                                 uid: user.uid,
                                 email: user.email,
                                 isBlocked: false,
-                                role: 'user', // Usuário padrão ao ser detectado e criado
+                                role: 'user',
                                 createdAt: new Date().toISOString()
                             };
                             return database.ref(`users_public_list/${user.uid}`).set(userPublicData);
@@ -173,7 +170,6 @@
                     })
                     .catch(error => {
                         console.error("Erro ao verificar/criar user public list ao fazer login:", error);
-                        // Ainda tenta redirecionar mesmo com erro para não travar o usuário
                         window.location.replace('dashboard.html'); 
                     });
             } 
@@ -198,14 +194,10 @@
             if (!email || !password) { errorMessage.textContent = 'Por favor, preencha e-mail e senha.'; return; }
             if (isLogin) {
                 auth.signInWithEmailAndPassword(email, password)
-                    .then(userCredential => { 
-                        // Após login, a verificação no onAuthStateChanged cuidará do registro no public_list
-                        // e redirecionará.
-                    })
                     .catch(error => { 
                         errorMessage.textContent = 'E-mail ou senha incorretos.'; 
                     });
-            } else { // Caso de Cadastro (Sign Up)
+            } else {
                 if (password.length < 6) { errorMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.'; return; }
                 if (secretCode !== atob(ADMIN_TRIGGER_KEY)) { errorMessage.textContent = 'Código de Administrador incorreto.'; return; }
                 
@@ -219,11 +211,7 @@
                             role: 'user', 
                             createdAt: new Date().toISOString()
                         };
-                        // ESTE É O PONTO CRÍTICO: Garantir a escrita no users_public_list
                         return database.ref(`users_public_list/${user.uid}`).set(userPublicData);
-                    })
-                    .then(() => {
-                        window.location.replace('dashboard.html');
                     })
                     .catch(error => { 
                          if (error.code === 'auth/email-already-in-use') {

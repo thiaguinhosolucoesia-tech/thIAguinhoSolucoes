@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="../../../../firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
     <style>
         :root {
             --primary-color: #34495e; --accent-color: #1abc9c; --dark-color: #2c3e50;
@@ -21,7 +21,7 @@
         body { font-family: var(--font-main); margin: 0; padding: 0; background-color: var(--light-color); color: var(--dark-color); }
         .container { max-width: 800px; margin: 20px auto; background-color: var(--white-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
 
-        #auth-container { display: none; align-items: center; justify-content: center; padding: 50px 20px; text-align: center; }
+        #auth-container { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 50px 20px; text-align: center; height: 100vh; }
         .auth-box { background: var(--white-color); padding: 40px; border-radius: 12px; }
         .auth-box h1 { color: var(--danger-color); } .auth-box p { color: var(--gray-color); margin-top: 10px; }
         
@@ -58,7 +58,7 @@
 </head>
 <body>
     <div id="auth-container">
-        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua sessão é inválida ou expirou. Por favor, retorne à plataforma e faça login novamente.</p></div>
+        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua conta foi bloqueada. Por favor, contate o administrador.</p></div>
     </div>
 
     <div id="app-container" class="container" style="display: none;">
@@ -103,9 +103,6 @@
     <div class="report-overlay" id="report-overlay"><div class="report-panel" id="report-panel"><div class="report-header"><h2 id="report-title">Relatório</h2><button class="close-btn" id="close-report-btn">&times;</button></div><div class="report-body" id="report-output"></div><div class="report-footer"><button class="btn-copy" id="copy-report-btn">Copiar</button></div></div></div>
 
 <script>
-// =============== CONFIGURAÇÃO DO BRIEFING CUSTOMIZÁVEL ===============
-// Edite este objeto para criar qualquer tipo de formulário de briefing.
-// A interface será construída automaticamente a partir daqui.
 const briefingConfig = {
     modules: [
         { 
@@ -150,7 +147,6 @@ const briefingConfig = {
         }
     ]
 };
-// =====================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     const App = {
@@ -168,14 +164,29 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         addAuthListeners() {
-             auth.onAuthStateChanged(user => {
+             auth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    this.currentUser = user;
-                    document.getElementById('user-email').textContent = user.email;
-                    this.showView('app');
+                    const userRef = database.ref(`users_public_list/${user.uid}`);
+                    try {
+                        const snapshot = await userRef.once('value');
+                        const userData = snapshot.val();
+
+                        if (userData && userData.isBlocked) {
+                            this.showView('auth');
+                            return;
+                        }
+                        
+                        this.currentUser = user;
+                        document.getElementById('user-email').textContent = user.email;
+                        this.showView('app');
+                    } catch (error) {
+                        console.error("Erro ao verificar status do usuário:", error);
+                        this.showView('auth');
+                    }
                 } else {
                     this.currentUser = null;
-                    this.showView('auth');
+                    // CORREÇÃO: Redirecionamento para o index.html na raiz
+                    window.location.href = '../index.html';
                 }
             });
             document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -236,7 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const briefingId = `${Date.now()}-${projectName.replace(/\s+/g, '-')}`;
             try {
-                // CAMINHO ADAPTADO PARA AS REGRAS FORNECIDAS
                 await database.ref(`easy_lists/${this.currentUser.uid}/paineis_de_inteligencia/${briefingId}`).set({
                     projectName: projectName,
                     createdAt: new Date().toISOString(),

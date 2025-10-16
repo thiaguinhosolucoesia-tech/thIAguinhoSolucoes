@@ -2,200 +2,98 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minhas Compras Inteligentes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minhas Compras</title>
+    <meta name="theme-color" content="#007aff"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="../firebase-config.js"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <script src="../../firebase-config.js"></script>
+
     <style>
         :root {
-            --cor-fundo: #f8f9fa;
-            --cor-container: #ffffff;
-            --cor-primaria: #007bff;
-            --cor-sucesso: #28a745;
-            --cor-perigo: #dc3545;
-            --cor-texto-principal: #333;
-            --cor-texto-secundario: #6c757d;
-            --cor-borda: #dee2e6;
-            --sombra: 0 4px 15px rgba(0, 0, 0, 0.1);
-            --raio-borda: 12px;
-            --font-principal: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            --cor-fundo: #dee2e6; --cor-container: #f8f9fa; --cor-primaria: #007aff;
+            --cor-sucesso: #34c759; --cor-perigo: #ff3b30; --cor-aviso: #ff9500;
+            --cor-texto-principal: #212529; --cor-texto-secundario: #6c757d;
+            --cor-borda: #ced4da; --sombra-painel: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --raio-borda: 16px; --font-principal: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'Courier New', monospace;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; font-family: var(--font-principal); background-color: var(--cor-fundo); color: var(--cor-texto-principal); }
-        .app-container { max-width: 1000px; margin: 0 auto; padding: 15px; visibility: hidden; }
+        html, body { height: 100%; overflow: hidden; font-family: var(--font-principal); background-color: var(--cor-fundo); color: var(--cor-texto-principal); }
+        #update-banner { display: none; background-color: var(--cor-aviso); color: white; padding: 10px; text-align: center; position: fixed; top: 0; width: 100%; z-index: 6000; }
+        #update-banner button { border: 1px solid white; background: transparent; color: white; padding: 5px 10px; border-radius: 5px; margin-left: 15px; cursor: pointer; }
+        #install-banner{display:none;position:fixed;bottom:10px;left:10px;right:10px;background-color:var(--cor-container);color:var(--cor-texto-principal);padding:15px;border-radius:var(--raio-borda);box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:5000;align-items:center;justify-content:space-between;animation:slideUp 0.5s ease-out}
+        #install-banner p{margin:0;font-size:0.9rem;line-height:1.3}
+        #install-banner-buttons{display:flex;gap:10px}
+        #install-btn,#dismiss-btn{border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer}
+        #install-btn{background-color:var(--cor-primaria);color:white}
+        #dismiss-btn{background-color:transparent;color:var(--cor-texto-secundario)}
+        @keyframes slideUp{from{transform:translateY(150%);opacity:0}to{transform:translateY(0);opacity:1}}
+        .app-container{display:flex;flex-direction:column;height:100%; visibility: hidden;}
         .app-container.loaded { visibility: visible; }
-
-        #back-button { padding: 8px 16px; font-size: 1rem; background-color: var(--cor-container); border: 1px solid var(--cor-borda); border-radius: 8px; cursor: pointer; color: var(--cor-texto-principal); text-decoration: none; display: inline-block; margin-bottom: 20px; }
-
-        .header-card {
-            background: linear-gradient(145deg, #007bff, #0056b3);
-            padding: 20px;
-            border-radius: var(--raio-borda);
-            box-shadow: var(--sombra);
-            margin-bottom: 30px;
-            color: white;
-            border: 1px solid var(--cor-borda);
-        }
-
-        #form-adicionar-item { display: flex; flex-direction: column; gap: 10px; }
-        #input-novo-item {
-            width: 100%; padding: 15px; border-radius: 10px;
-            border: 1px solid var(--cor-borda); font-size: 1.2rem;
-            background-color: var(--cor-container); color: var(--cor-texto-principal);
-            box-sizing: border-box;
-        }
-        #input-novo-item::placeholder { color: var(--cor-texto-secundario); }
-        #input-novo-item:focus {
-            outline: none; border-color: var(--cor-primaria);
-            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
-        }
-        .btn {
-            padding: 15px; border: none; border-radius: 10px;
-            font-size: 1.2rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s ease; color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .btn-adicionar { background: var(--cor-primaria); }
-        .btn-finalizar { background: var(--cor-sucesso); width: 100%; margin-top: 10px; }
-        .btn:hover { filter: brightness(1.1); }
-        .btn:active { transform: scale(0.98); filter: brightness(0.9); }
-
-        .lista-titulo {
-            font-size: 1.8rem; font-weight: 700; margin-top: 40px;
-            margin-bottom: 20px; padding-bottom: 10px;
-            border-bottom: 2px solid var(--cor-borda);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .item-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 20px; min-height: 140px;
-        }
-
-        .item-card {
-            aspect-ratio: 1 / 1; background-color: var(--cor-container);
-            border-radius: var(--raio-borda); box-shadow: var(--sombra);
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-align: center; padding: 10px; position: relative;
-            border: 1px solid var(--cor-borda);
-        }
-        .item-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .item-card.falling { animation: fall-into-cart 0.9s cubic-bezier(0.55, 0, 1, 0.45) forwards; z-index: 1000; }
-        .item-emoji { font-size: 3.5rem; line-height: 1; user-select: none; }
-        .item-name { font-size: 1.1rem; font-weight: 500; margin-top: 8px; word-break: break-word; }
-        
-        .delete-btn {
-            position: absolute; top: 5px; right: 5px; width: 28px; height: 28px;
-            background-color: rgba(0,0,0,0.2); border: none; border-radius: 50%;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: all 0.3s; z-index: 2;
-        }
-        .item-card:hover .delete-btn { opacity: 1; }
-        .delete-btn:hover { background-color: var(--cor-perigo); }
-        .delete-btn svg { width: 16px; height: 16px; stroke: var(--cor-texto-principal); }
-
-        .carrinho-container {
-            margin-top: 40px; position: relative; width: 100%;
-            max-width: 650px; margin-left: auto; margin-right: auto;
-        }
-        .carrinho-svg { width: 100%; height: auto; filter: drop-shadow(10px 20px 25px rgba(0,0,0,0.3)); }
-        #lista-comprados {
-            position: absolute; top: 10%; left: 8%;
-            width: 80%; height: 52%;
-            display: flex; flex-wrap: wrap; gap: 12px;
-            align-content: flex-start; padding: 15px;
-            overflow-y: auto; box-sizing: border-box;
-            transform: skewY(-4.5deg) rotate(-1.8deg);
-            border-radius: 5px 5px 20px 20px;
-        }
-        #lista-comprados .item-card {
-            width: 60px; height: 60px; border-radius: 12px;
-            background-color: var(--cor-container);
-            border: 1px solid var(--cor-borda);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.6);
-            animation: land-in-cart 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        #lista-comprados .item-emoji { font-size: 2rem; }
-        #lista-comprados .item-name { display: none; }
-        #lista-comprados .delete-btn { display: none; }
-
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s; z-index: 2000;
-        }
-        .overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: var(--cor-container); padding: 20px; border-radius: var(--raio-borda);
-            width: 90%; max-width: 400px; border: 1px solid var(--cor-borda);
-            text-align: center;
-        }
-        .modal-content h3 { font-size: 1.5rem; margin-top: 0; margin-bottom: 10px; }
-        .modal-content p { font-size: 1.1rem; color: var(--cor-texto-secundario); margin-bottom: 20px; }
-        .modal-actions { display: flex; gap: 10px; justify-content: center; }
-        .btn-confirm { background-color: var(--cor-perigo); }
-        .btn-cancel { background-color: #6c757d; }
-
-        #report-paper {
-            background: #f8f9fa; color: #333; padding: 20px;
-            font-family: 'Courier New', monospace; white-space: pre-wrap;
-            max-height: 60vh; overflow-y: auto; border: 1px solid var(--cor-borda);
-            margin-bottom: 20px; border-radius: 8px; text-align: left;
-        }
-        
-        .spinner {
-            width: 50px; height: 50px; border: 6px solid rgba(0,0,0,0.1);
-            border-top-color: var(--cor-primaria); border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 0 auto 15px;
-        }
-        
-        @keyframes fall-into-cart {
-            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-            30% { transform: translate(20px, -50px) scale(1.1) rotate(-5deg); opacity: 1; }
-            100% { transform: translate(30px, 400px) scale(0.25) rotate(15deg); opacity: 0; }
-        }
-
-        @keyframes land-in-cart {
-            0% { transform: scale(0.5); opacity: 0; }
-            70% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        #install-banner {
-            position: fixed; bottom: 0; left: 0; right: 0; padding: 15px;
-            background-color: #007bff; color: white; text-align: center; display: none;
-            z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-        }
-        #install-banner-buttons {
-            margin-top: 10px;
-        }
-        #install-banner-buttons button {
-            background: white; color: #007bff; border: none; padding: 8px 16px;
-            border-radius: 5px; margin: 0 5px; cursor: pointer;
-        }
-        #install-banner-buttons button:last-child {
-            background: #28a745; color: white;
-        }
-        #install-banner-buttons button:last-child:hover {
-            background: #218838;
-        }
-        #install-banner-buttons button:first-child:hover {
-            background: #e9ecef;
-        }
+        .header-section{padding:10px 15px;background-color:var(--cor-container);box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:10;flex-shrink:0}
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .top-bar h1{font-size:1.2rem;margin:0}
+        #header-total{font-size:1.5rem;font-weight:bold;color:var(--cor-sucesso)}
+        .header-controls{display:flex;gap:10px;align-items:center}
+        #form-adicionar-item{display:flex;gap:10px;flex-grow:1}
+        #input-novo-item{flex-grow:1;padding:12px;border-radius:10px;border:1px solid var(--cor-borda);font-size:1rem;height:50px}
+        .btn{padding:12px;border:none;border-radius:10px;font-size:1.5rem;font-weight:600;cursor:pointer;transition:all 0.2s;color:white;display:flex;align-items:center;justify-content:center;width:50px;height:50px;flex-shrink:0}
+        .btn-primary{background-color:var(--cor-primaria)}
+        .btn-success{background-color:var(--cor-sucesso)}
+        .main-content{flex-grow:1;overflow-y:auto;padding:15px}
+        .tabs{display:flex;gap:10px;margin-bottom:15px}
+        .tab-btn{flex:1;padding:10px;background:#e9ecef;border:none;border-radius:8px;font-size:1rem;font-weight:500;cursor:pointer;transition:all 0.2s;color:var(--cor-texto-secundario)}
+        .tab-btn.active{background-color:var(--cor-primaria);color:white}
+        .tab-btn[data-tab="adiados"].action-mode{background-color:var(--cor-aviso);color:white;font-weight:bold}
+        .list-container{display:none}
+        .list-container.active{display:block}
+        .item-list{list-style:none;padding:0}
+        .item-row, .report-item{display:flex;align-items:center;padding:10px;background:var(--cor-container);border-radius:12px;margin-bottom:10px;box-shadow:var(--sombra-painel);transition:all 0.3s ease;cursor:pointer}
+        .report-item:hover{transform:scale(1.02); box-shadow:0 0 0 2px var(--cor-primaria);}
+        .item-row.status-comprado{opacity:0.7}
+        .item-row.status-comprado .item-name{text-decoration:line-through}
+        .item-row.status-adiado{border-left:5px solid var(--cor-aviso);opacity:0.8}
+        .item-row.active{box-shadow:0 0 0 3px var(--cor-primaria),0 4px 12px rgba(0,122,255,0.3);transform:scale(1.02)}
+        .item-emoji{font-size:1.5rem;margin-right:10px;user-select:none}
+        .item-details, .report-details{display:flex;flex-direction:column;flex-grow:1;pointer-events:none}
+        .item-name, .report-date{font-size:1.2rem;font-weight:500}
+        .report-location{font-size: 1rem; color: var(--cor-texto-principal); font-weight: 500;}
+        .item-price-info, .report-total{font-size:0.9rem;color:var(--cor-texto-secundario)}
+        .delete-btn, .delete-report-btn{background:none;border:none;cursor:pointer;padding:5px;margin-left:10px; flex-shrink: 0;}
+        .calculator-footer{flex-shrink:0;background-color:#212529;padding:0 15px 15px 15px;border-top:2px solid #495057;position:relative}
+        #toggle-calc-btn{position:absolute;top:-25px;left:50%;transform:translateX(-50%);width:50px;height:25px;background-color:#212529;border:2px solid #495057;border-bottom:none;border-radius:10px 10px 0 0;color:#adb5bd;cursor:pointer}
+        #toggle-calc-btn svg{transition:transform 0.4s ease}
+        .calculator-footer.collapsed #toggle-calc-btn svg{transform:rotate(180deg)}
+        .calculator-body{overflow:hidden;max-height:300px;transition:max-height 0.4s ease-out,padding-top 0.4s ease-out,opacity 0.3s ease-out;padding-top:15px;opacity:1}
+        .calculator-footer.collapsed .calculator-body{max-height:0;padding-top:0;opacity:0}
+        .calculator-display-wrapper{background:#000;border-radius:10px;padding:5px 10px;margin-bottom:10px;border:2px solid #495057}
+        #active-item-display{color:#adb5bd;font-size:0.8rem;text-align:right;height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #calc-display{font-family:var(--font-mono);color:#4eff89;text-shadow:0 0 5px #4eff89,0 0 8px #4eff89;font-size:2.5rem;text-align:right}
+        .keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+        .keypad button{font-size:1.3rem;font-weight:bold;border:none;border-radius:8px;background-color:#495057;color:#f8f9fa;height:48px;transition:all 0.1s}
+        .keypad button:active{transform:scale(0.95);background-color:#6c757d}
+        .keypad .operator{background-color:#ff9f0a}
+        .keypad .action{background-color:var(--cor-sucesso);font-size:1.7rem}
+        .keypad .clear{background-color:var(--cor-perigo)}
+        .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity 0.3s;z-index:2000}
+        .modal-overlay.visible{opacity:1;visibility:visible}
+        .modal-content{background:#f0f1f6;padding:20px;border-radius:var(--raio-borda);width:90%;max-width:400px; display: flex; flex-direction: column;}
+        #report-paper, #report-view-content{background:white;padding:20px;font-family:'Courier New',Courier,monospace;white-space:pre-wrap;max-height:60vh;overflow-y:auto;border:1px dashed #ccc;margin-bottom:20px}
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+        #back-button { padding: 8px 16px; font-size: 1rem; background-color: #e9ecef; border: none; border-radius: 8px; cursor: pointer; color: #495057; text-decoration: none;}
     </style>
 </head>
 <body>
+    <div id="update-banner">
+        Nova versão disponível!
+        <button id="update-btn">Atualizar</button>
+    </div>
 
     <div id="install-banner">
         <p>Leve sua lista de compras para a tela inicial!</p>
@@ -206,460 +104,480 @@
     </div>
 
     <div class="app-container">
-        <a href="../../dashboard.html" id="back-button">❮ Voltar</a>
-        <div class="header-card">
-            <form id="form-adicionar-item">
-                <input type="text" id="input-novo-item" placeholder="O que você precisa comprar?">
-                <button type="submit" class="btn btn-adicionar">Adicionar à Lista</button>
-            </form>
-            <button id="btn-finalizar" class="btn btn-finalizar">Finalizar Compra</button>
-        </div>
-
-        <h2 class="lista-titulo">Prateleira</h2>
-        <div id="lista-a-comprar" class="item-grid"></div>
-
-        <h2 class="lista-titulo">Seu Carrinho</h2>
-        <div class="carrinho-container">
-            <svg class="carrinho-svg" viewBox="0 0 650 420" xmlns="http://www.w3.org/2000/svg">
-                <defs><linearGradient id="gradMetal" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#E0E0E0"/><stop offset="50%" stop-color="#BDBDBD"/><stop offset="100%" stop-color="#E0E0E0"/></linearGradient><linearGradient id="gradHandle" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4dabf7"/><stop offset="100%" stop-color="#1864ab"/></linearGradient></defs><g fill="none" stroke="url(#gradMetal)" stroke-width="8"><path d="M140 380 Q 130 400, 110 400 H 90" stroke-width="12"/><path d="M520 380 Q 510 400, 490 400 H 470" stroke-width="12"/><g stroke-width="6" fill="#343a40"><circle cx="140" cy="380" r="30"/><circle cx="520" cy="380" r="30"/></g><g fill="#BDBDBD"><circle cx="140" cy="380" r="12"/><circle cx="520" cy="380" r="12"/></g><path d="M170 380 H 490" stroke-width="12"/><path d="M60 60 L120 280 L530 280 L590 60 Z" stroke-linejoin="round" stroke-linecap="round" stroke-width="14"/><g stroke-width="5" stroke-linecap="round" opacity="0.8"><path d="M85 120 H 565"/><path d="M100 180 H 550"/><path d="M110 240 H 540"/></g><path d="M120 280 Q 70 310, 90 400"/><path d="M530 280 L 490 350"/><path d="M590 60 C 620 40, 640 50, 640 80 L 610 180" stroke-width="12"/><rect x="595" y="40" width="30" height="60" rx="15" fill="url(#gradHandle)" stroke="#1c2b3a" stroke-width="2" transform="rotate(25 610 70)"/><g fill="#495057" stroke="#212529" stroke-width="1"><rect x="45" y="45" width="30" height="30" rx="5"/><rect x="575" y="45" width="30" height="30" rx="5"/></g></g>
-            </svg>
-            <div id="lista-comprados"></div>
-        </div>
-    </div>
-
-    <div id="confirmation-modal" class="overlay">
-        <div class="modal-content">
-            <h3 id="confirmation-title"></h3>
-            <p id="confirmation-message"></p>
-            <div class="modal-actions">
-                <button id="btn-confirm-action" class="btn btn-confirm">Confirmar</button>
-                <button id="btn-cancel-action" class="btn btn-cancel">Cancelar</button>
+        <header class="header-section">
+            <div class="top-bar">
+                <a href="../../dashboard.html" id="back-button">❮ Voltar</a>
+                <h1>Sua Compra</h1>
+                <div id="header-total">R$ 0,00</div>
             </div>
-        </div>
-    </div>
-
-    <div id="notification-modal" class="overlay">
-        <div class="modal-content">
-            <h3 id="notification-title"></h3>
-            <p id="notification-message"></p>
-            <div class="modal-actions">
-                <button id="btn-ok-notification" class="btn btn-adicionar">Ok</button>
+            <div class="header-controls">
+                <form id="form-adicionar-item">
+                    <input type="text" id="input-novo-item" placeholder="Adicionar item...">
+                    <button type="submit" class="btn btn-primary" title="Adicionar">+</button>
+                </form>
+                <button id="btn-finalizar" class="btn btn-success" title="Finalizar Compra e Gerar Relatório">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </button>
             </div>
-        </div>
+        </header>
+
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="faltando">A Comprar</button>
+                <button class="tab-btn" data-tab="comprados">Comprados</button>
+                <button class="tab-btn" data-tab="adiados">Adiados</button>
+                <button class="tab-btn" data-tab="relatorios">Relatórios</button>
+            </div>
+            <div id="lista-faltando-container" class="list-container active"><ul id="lista-faltando" class="item-list"></ul></div>
+            <div id="lista-comprados-container" class="list-container"><ul id="lista-comprados" class="item-list"></ul></div>
+            <div id="lista-adiados-container" class="list-container"><ul id="lista-adiados" class="item-list"></ul></div>
+            <div id="lista-relatorios-container" class="list-container"><ul id="lista-relatorios" class="item-list"></ul></div>
+        </main>
+
+        <footer class="calculator-footer">
+            <button id="toggle-calc-btn" title="Mostrar/Ocultar Calculadora"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
+            <div class="calculator-body">
+                <div class="calculator-display-wrapper">
+                    <div id="active-item-display">Nenhum item selecionado</div>
+                    <div id="calc-display">0</div>
+                </div>
+                <div class="keypad">
+                    <button>7</button><button>8</button><button>9</button><button class="operator" data-action="multiply">×</button>
+                    <button>4</button><button>5</button><button>6</button><button class="operator" data-action="subtract">−</button>
+                    <button>1</button><button>2</button><button>3</button><button class="action" data-action="add">+</button>
+                    <button class="clear" data-action="clear">C</button><button>0</button><button data-action="decimal">.</button><button class="operator" data-action="divide">÷</button>
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <div id="report-modal" class="overlay">
+    <div id="report-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Relatório da Compra</h3>
+            <div style="margin-bottom: 15px;">
+                <label for="purchase-location" style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--cor-texto-secundario);">Local da Compra:</label>
+                <input type="text" id="purchase-location" placeholder="Ex: Supermercado Central" style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid var(--cor-borda); font-size: 1rem;">
+            </div>
             <div id="report-paper"></div>
-            <div class="modal-actions">
-                <button id="btn-zerar-lista" class="btn btn-confirm">Zerar e Nova Compra</button>
-                <button id="btn-fechar-relatorio" class="btn btn-cancel">Fechar</button>
+            <div class="modal-actions" style="justify-content: space-between;">
+                <div><button id="download-report-btn">Baixar</button><button id="print-report-btn">Imprimir</button></div>
+                <div><button id="close-modal-btn">Fechar</button><button id="finalize-purchase-btn" class="btn btn-success" style="padding: 8px 12px; font-size: 1rem; width: auto; height: auto;">Finalizar Compra</button></div>
             </div>
         </div>
     </div>
 
-    <div id="loading-overlay" class="overlay visible">
-        <div style="text-align: center; color: var(--cor-texto-principal);">
-            <div class="spinner"></div>
-            <p>Carregando sua lista...</p>
+    <div id="report-view-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top: 0;">Relatório de Compra</h3>
+            <div id="report-view-content"></div>
+            <div class="modal-actions">
+                <button id="close-view-modal-btn">Fechar</button>
+            </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- ESTADO DA APLICAÇÃO ---
-            let itemsRef = null;
-            let localItems = [];
 
-            // --- MAPA DE EMOJIS ---
-            const emojiMap = {
-                'maca': '🍎',
-                'maçã': '🍎',
-                'maca verde': '🍏',
-                'maçã verde': '🍏',
-                'pera': '🍐',
-                'pêra': '🍐',
-                'laranja': '🍊',
-                'limao': '🍋',
-                'limão': '🍋',
-                'banana': '🍌',
-                'uva': '🍇',
-                'morango': '🍓',
-                'mirtilo': '🫐',
-                'melancia': '🍉',
-                'cereja': '🍒',
-                'pessego': '🍑',
-                'pêssego': '🍑',
-                'manga': '🥭',
-                'abacaxi': '🍍',
-                'coco': '🥥',
-                'kiwi': '🥝',
-                'tomate': '🍅',
-                'abacate': '🥑',
-                'melao': '🍈',
-                'melão': '🍈',
-                'cenoura': '🥕',
-                'berinjela': '🍆',
-                'batata': '🥔',
-                'batata doce': '🍠',
-                'milho': '🌽',
-                'pimenta': '🌶️',
-                'pimentao': '🫑',
-                'pimentão': '🫑',
-                'pepino': '🥒',
-                'alface': '🥬',
-                'brocolis': '🥦',
-                'brócolis': '🥦',
-                'alho': '🧄',
-                'cebola': '🧅',
-                'cogumelo': '🍄',
-                'amendoim': '🥜',
-                'castanha': '🌰',
-                'ervilha': '🫛',
-                'gengibre': '🫚',
-                'azeitona': '🫒',
-                'salada': '🥗',
-                'pao': '🍞',
-                'pão': '🍞',
-                'baguete': '🥖',
-                'croissant': '🥐',
-                'pretzel': '🥨',
-                'bagel': '🥯',
-                'panqueca': '🥞',
-                'waffle': '🧇',
-                'cereal': '🥣',
-                'arroz': '🍚',
-                'feijao': '🫘',
-                'feijão': '🫘',
-                'macarrao': '🍝',
-                'macarrão': '🍝',
-                'massa': '🍝',
-                'ramen': '🍜',
-                'carne': '🥩',
-                'bife': '🥩',
-                'pernil': '🍖',
-                'presunto': '🍖',
-                'frango': '🍗',
-                'peixe': '🐟',
-                'salsicha': '🌭',
-                'bacon': '🥓',
-                'camarao': '🍤',
-                'camarão': '🍤',
-                'lagosta': '🦞',
-                'caranguejo': '🦀',
-                'lula': '🦑',
-                'ostra': '🦪',
-                'sushi': '🍣',
-                'leite': '🥛',
-                'ovo': '🥚',
-                'queijo': '🧀',
-                'manteiga': '🧈',
-                'cafe': '☕️',
-                'café': '☕️',
-                'cha': '🍵',
-                'chá': '🍵',
-                'suco': '🧃',
-                'refrigerante': '🥤',
-                'agua': '💧',
-                'água': '💧',
-                'agua de coco': '🥥',
-                'cerveja': '🍺',
-                'vinho': '🍷',
-                'espumante': '🍾',
-                'whisky': '🥃',
-                'drink': '🍹',
-                'coquetel': '🍸',
-                'chimarrao': '🧉',
-                'chimarrão': '🧉',
-                'gelo': '🧊',
-                'chocolate': '🍫',
-                'doce': '🍬',
-                'pirulito': '🍭',
-                'biscoito': '🍪',
-                'bolacha': '🍪',
-                'bolo': '🍰',
-                'cupcake': '🧁',
-                'torta': '🥧',
-                'sorvete': '🍦',
-                'raspadinha': '🍧',
-                'sorvete de taca': '🍨',
-                'sorvete de taça': '🍨',
-                'donut': '🍩',
-                'pudim': '🍮',
-                'mel': '🍯',
-                'pipoca': '🍿',
-                'pizza': '🍕',
-                'hamburguer': '🍔',
-                'hambúrguer': '🍔',
-                'sanduiche': '🥪',
-                'sanduíche': '🥪',
-                'batata frita': '🍟',
-                'taco': '🌮',
-                'burrito': '🌯',
-                'kebab': '🥙',
-                'falafel': '🧆',
-                'onigiri': '🍙',
-                'comida chinesa': '🥡',
-                'fondue': '🫕',
-                'enlatado': '🥫',
-                'conserva': '🫙',
-                'sabao': '🧼',
-                'sabão': '🧼',
-                'detergente': '🧽',
-                'esponja': '🧽',
-                'limpeza': '🧹',
-                'vassoura': '🧹',
-                'balde': '🪣',
-                'cesto': '🧺',
-                'saco de lixo': '🗑️',
-                'shampoo': '🧴',
-                'condicionador': '🧴',
-                'papel': '🧻',
-                'papel higienico': '🧻',
-                'papel higiênico': '🧻',
-                'escova de dentes': '🪥',
-                'lamina de barbear': '🪒',
-                'lâmina de barbear': '🪒',
-                'curativo': '🩹',
-                'remedio': '💊',
-                'remédio': '💊',
-                'racao': '🦴',
-                'ração': '🦴',
-                'vela': '🕯️',
-                'lampada': '💡',
-                'lâmpada': '💡',
-                'pilha': '🔋',
-                'planta': '🪴',
-                'flor': '💐',
-                'default': '🛒'
-            };
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Nenhuma configuração de API ou inicialização do Firebase aqui.
+    // Tudo é gerenciado pelo `firebase-config.js` carregado no <head>.
+    
+    let listRef = null;
+    let reportsRef = null;
+    let userId = null;
 
-            const getEmojiForItem = (nome) => {
-                const nomeLower = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                for (const key in emojiMap) { if (nomeLower.includes(key)) return emojiMap[key]; }
-                return emojiMap.default;
-            };
+    auth.onAuthStateChanged(async user => {
+        if (user) {
+            const userPublicRef = database.ref(`users_public_list/${user.uid}`);
+            const snapshot = await userPublicRef.once('value');
+            const userData = snapshot.val();
 
-            // --- ELEMENTOS DA UI ---
-            const ui = {
-                appContainer: document.querySelector('.app-container'),
-                form: document.getElementById('form-adicionar-item'),
-                input: document.getElementById('input-novo-item'),
-                listaAComprar: document.getElementById('lista-a-comprar'),
-                listaComprados: document.getElementById('lista-comprados'),
-                btnFinalizar: document.getElementById('btn-finalizar'),
-                loadingOverlay: document.getElementById('loading-overlay'),
-                confirmationModal: document.getElementById('confirmation-modal'),
-                confirmationTitle: document.getElementById('confirmation-title'),
-                confirmationMessage: document.getElementById('confirmation-message'),
-                btnConfirm: document.getElementById('btn-confirm-action'),
-                btnCancel: document.getElementById('btn-cancel-action'),
-                notificationModal: document.getElementById('notification-modal'),
-                notificationTitle: document.getElementById('notification-title'),
-                notificationMessage: document.getElementById('notification-message'),
-                btnOk: document.getElementById('btn-ok-notification'),
-                reportModal: document.getElementById('report-modal'),
-                reportPaper: document.getElementById('report-paper'),
-                btnZerarLista: document.getElementById('btn-zerar-lista'),
-                btnFecharRelatorio: document.getElementById('btn-fechar-relatorio'),
-            };
-            
-            // --- LÓGICA DE MODAIS ---
-            const modals = {
-                showNotification: (title, message) => {
-                    ui.notificationTitle.textContent = title;
-                    ui.notificationMessage.textContent = message;
-                    ui.notificationModal.classList.add('visible');
-                },
-                showConfirmation: (title, message) => {
-                    ui.confirmationTitle.textContent = title;
-                    ui.confirmationMessage.textContent = message;
-                    ui.confirmationModal.classList.add('visible');
-                    
-                    return new Promise((resolve) => {
-                        ui.btnConfirm.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(true); };
-                        ui.btnCancel.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(false); };
-                    });
-                }
-            };
-
-            // --- RENDERIZAÇÃO ---
-            const render = {
-                createItemElement: (item, isBasket = false) => {
-                    const card = document.createElement('div');
-                    card.className = 'item-card';
-                    card.dataset.id = item.id;
-                    
-                    let content = `<div class="item-emoji">${item.emoji}</div>`;
-                    if (!isBasket) {
-                        content += `<div class="item-name">${item.nome}</div>`;
-                    }
-
-                    card.innerHTML = `
-                        <button class="delete-btn" title="Remover item">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                        ${content}
-                    `;
-                    return card;
-                },
-                updateLists: (items) => {
-                    localItems = items; // Atualiza a lista local
-                    ui.listaAComprar.innerHTML = '';
-                    ui.listaComprados.innerHTML = '';
-                    
-                    const itensFaltando = items.filter(i => !i.comprado);
-                    const itensComprados = items.filter(i => i.comprado);
-
-                    if (items.length === 0) {
-                         ui.listaAComprar.innerHTML = `<p style="color: var(--cor-texto-secundario); grid-column: 1 / -1; text-align: center;">Sua lista está vazia. Adicione um item acima.</p>`;
-                    } else {
-                        itensFaltando.sort((a, b) => a.createdAt - b.createdAt).forEach(item => ui.listaAComprar.appendChild(render.createItemElement(item)));
-                        itensComprados.sort((a, b) => a.createdAt - b.createdAt).forEach(item => {
-                            const card = render.createItemElement(item, true);
-                            card.style.animation = 'none';
-                            ui.listaComprados.appendChild(card);
-                        });
-                    }
-                }
-            };
-
-            // --- LÓGICA DO FIREBASE ---
-            const interactions = {
-                addItem: async (e) => {
-                    e.preventDefault();
-                    const nome = ui.input.value.trim();
-                    if (nome && itemsRef) {
-                        const newItemRef = itemsRef.push(); // Gera um ID único
-                        await newItemRef.set({
-                            id: newItemRef.key, // Salva o ID junto com os dados
-                            nome: nome,
-                            emoji: getEmojiForItem(nome),
-                            comprado: false,
-                            createdAt: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        ui.input.value = '';
-                        ui.input.focus();
-                    }
-                },
-                deleteItem: async (id) => {
-                    const confirmed = await modals.showConfirmation('Remover Item', 'Deseja realmente remover este item?');
-                    if (confirmed) await itemsRef.child(id).remove();
-                },
-                toggleItemStatus: async (id, element) => {
-                    const item = localItems.find(i => i.id === id);
-                    if (!item) return;
-
-                    const isComprado = item.comprado;
-                    if (!isComprado) {
-                        element.classList.add('falling');
-                        setTimeout(() => itemsRef.child(id).update({ comprado: true }), 850);
-                    } else {
-                        itemsRef.child(id).update({ comprado: false });
-                    }
-                },
-                showReport: () => {
-                    const itensComprados = localItems.filter(i => i.comprado);
-                    if (itensComprados.length === 0) {
-                        modals.showNotification('Carrinho Vazio', 'Você ainda não adicionou nenhum item ao seu carrinho.');
-                        return;
-                    }
-                    const itensFaltando = localItems.filter(i => !i.comprado);
-                    let reportText = `Relatório de Compras - ${new Date().toLocaleString('pt-BR')}\n\n--- ITENS NO CARRINHO (${itensComprados.length}) ---\n`;
-                    itensComprados.forEach(i => reportText += `- ${i.nome}\n`);
-                    if (itensFaltando.length > 0) {
-                        reportText += `\n--- ITENS PENDENTES (${itensFaltando.length}) ---\n`;
-                        itensFaltando.forEach(i => reportText += `- ${i.nome}\n`);
-                    }
-                    ui.reportPaper.textContent = reportText;
-                    ui.reportModal.classList.add('visible');
-                },
-                resetList: async () => {
-                    const confirmed = await modals.showConfirmation('Zerar Lista', 'Tem certeza que deseja apagar TUDO e começar uma nova compra?');
-                    if (confirmed) {
-                        ui.reportModal.classList.remove('visible');
-                        await itemsRef.remove();
-                    }
-                }
-            };
-
-            // --- INICIALIZAÇÃO ---
-            function init() {
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        // **MODIFICADO** A referência agora é para o Realtime Database
-                        itemsRef = database.ref(`easy_lists/${user.uid}/items`);
-                        
-                        ui.appContainer.classList.add('loaded');
-                        ui.loadingOverlay.classList.remove('visible');
-
-                        itemsRef.on('value', snapshot => {
-                            const data = snapshot.val();
-                            const itemsArray = data ? Object.values(data) : [];
-                            render.updateLists(itemsArray);
-                        }, error => {
-                            console.error("Erro no Realtime Database: ", error);
-                            modals.showNotification('Erro de Conexão', 'Não foi possível carregar sua lista. Verifique sua internet.');
-                        });
-                    } else {
-                        window.location.replace('../index.html');
-                    }
-                });
-            }
-            
-            ui.form.addEventListener('submit', interactions.addItem);
-            ui.btnFinalizar.addEventListener('click', interactions.showReport);
-            ui.btnZerarLista.addEventListener('click', interactions.resetList);
-            ui.btnFecharRelatorio.addEventListener('click', () => ui.reportModal.classList.remove('visible'));
-            ui.btnOk.addEventListener('click', () => ui.notificationModal.classList.remove('visible'));
-
-            document.querySelector('.app-container').addEventListener('click', (e) => {
-                const card = e.target.closest('.item-card');
-                if (!card) return;
-                const id = card.dataset.id;
-                if (e.target.closest('.delete-btn')) interactions.deleteItem(id);
-                else interactions.toggleItemStatus(id, card);
-            });
-
-            init();
-            
-            // --- REGISTRO DO SERVICE WORKER (PWA) ---
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./service-worker.js')
-                        .then(reg => console.log('Service worker registrado.'))
-                        .catch(err => console.log('Erro no registro do Service worker: ', err));
-                });
+            if (userData && userData.isBlocked) {
+                document.body.innerHTML = `<div style="padding: 20px; text-align: center;"><h2>Acesso Negado</h2><p>Sua conta foi bloqueada. Por favor, contate o administrador.</p></div>`;
+                return;
             }
 
-            // --- Instalação PWA ---
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                const installBanner = document.getElementById('install-banner');
-                installBanner.style.display = 'block';
-            });
+            userId = user.uid;
+            listRef = database.ref(`shopping_lists/${userId}`);
+            reportsRef = database.ref(`purchase_reports/${userId}`);
+            
+            document.querySelector('.app-container').classList.add('loaded');
+            interactions.initDataListeners();
+        } else {
+            window.location.replace('../../index.html');
+        }
+    });
 
-            document.getElementById('install-btn').addEventListener('click', () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('Usuário aceitou o prompt de instalação');
-                        } else {
-                            console.log('Usuário recusou o prompt de instalação');
-                        }
-                        deferredPrompt = null;
+    // --- O restante do seu código original, 100% preservado e com a formatação correta ---
+
+    const state = {
+        itens: [],
+        reports: [],
+        activeItemId: null,
+        calcDisplay: '0',
+        currentTab: 'faltando',
+        ui: { isCalculatorCollapsed: false },
+    };
+
+    const ui = {
+        appContainer: document.querySelector('.app-container'),
+        calculatorFooter: document.querySelector('.calculator-footer'),
+        toggleCalcBtn: document.getElementById('toggle-calc-btn'),
+        form: document.getElementById('form-adicionar-item'),
+        input: document.getElementById('input-novo-item'),
+        headerTotal: document.getElementById('header-total'),
+        calcDisplay: document.getElementById('calc-display'),
+        activeItemDisplay: document.getElementById('active-item-display'),
+        keypad: document.querySelector('.keypad'),
+        tabs: document.querySelector('.tabs'),
+        btnFinalizar: document.getElementById('btn-finalizar'),
+        reportModal: document.getElementById('report-modal'),
+        reportPaper: document.getElementById('report-paper'),
+        purchaseLocationInput: document.getElementById('purchase-location'),
+        closeModalBtn: document.getElementById('close-modal-btn'),
+        printReportBtn: document.getElementById('print-report-btn'),
+        downloadReportBtn: document.getElementById('download-report-btn'),
+        finalizePurchaseBtn: document.getElementById('finalize-purchase-btn'),
+        reportViewModal: document.getElementById('report-view-modal'),
+        reportViewContent: document.getElementById('report-view-content'),
+        closeViewModalBtn: document.getElementById('close-view-modal-btn'),
+    };
+
+    const emojiMap = {
+        'leite': '🥛', 'queijo': '🧀', 'manteiga': '🧈', 'ovo': '🥚', 'bacon': '🥓', 'pao': '🍞', 'pão': '🍞',
+        'baguete': '🥖', 'croissant': '🥐', 'pretzel': '🥨', 'bagel': '🥯', 'panqueca': '🥞', 'waffle': '🧇',
+        'arroz': '🍚', 'cereal': '🥣', 'feijao': '🫘', 'feijão': '🫘', 'macarrao': '🍝', 'macarrão': '🍝',
+        'massa': '🍝', 'ramen': '🍜', 'pao sirio': '🫓', 'pão sírio': '🫓', 'carne': '🥩', 'pernil': '🍖',
+        'frango': '🍗', 'peixe': '🐟', 'salsicha': '🌭', 'camarao': '🍤', 'camarão': '🍤', 'lula': '🦑',
+        'lagosta': '🦞', 'caranguejo': '🦀', 'ostra': '🦪', 'sushi': '🍣', 'maca': '🍎', 'maçã': '🍎',
+        'maca verde': '🍏', 'maçã verde': '🍏', 'pera': '🍐', 'pêra': '🍐', 'banana': '🍌', 'laranja': '🍊',
+        'limao': '🍋', 'limão': '🍋', 'uva': '🍇', 'morango': '🍓', 'melancia': '🍉', 'abacaxi': '🍍',
+        'manga': '🥭', 'pessego': '🍑', 'pêssego': '🍑', 'cereja': '🍒', 'kiwi': '🥝', 'melao': '🍈',
+        'melão': '🍈', 'coco': '🥥', 'mirtilo': '🫐', 'tomate': '🍅', 'cenoura': '🥕', 'batata': '🥔',
+        'batata doce': '🍠', 'cebola': '🧅', 'alho': '🧄', 'alface': '🥬', 'brocolis': '🥦', 'brócolis': '🥦',
+        'milho': '🌽', 'pepino': '🥒', 'berinjela': '🍆', 'abacate': '🥑', 'pimentao': '🫑', 'pimentão': '🫑',
+        'pimenta': '🌶️', 'cogumelo': '🍄', 'gengibre': '🫚', 'ervilha': '🫛', 'salada': '🥗', 'azeitona': '🫒',
+        'ervas': '🌿', 'hortela': '🍃', 'hortelã': '🍃', 'amendoim': '🥜', 'castanha': '🌰', 'sal': '🧂',
+        'oleo': '🫗', 'óleo': '🫗', 'mel': '🍯', 'enlatado': '🥫', 'conserva': '🫙', 'cafe': '☕️', 'café': '☕️',
+        'cha': '🍵', 'chá': '🍵', 'chimarrao': '🧉', 'chimarrão': '🧉', 'suco': '🧃', 'refrigerante': '🥤',
+        'agua': '💧', 'água': '💧', 'gelo': '🧊', 'cerveja': '🍺', 'vinho': '🍷', 'espumante': '🍾',
+        'whisky': '🥃', 'coquetel': '🍸', 'drink': '🍹', 'chocolate': '🍫', 'doce': '🍬', 'pirulito': '🍭',
+        'biscoito': '🍪', 'biscoito da sorte': '🥠', 'bolo': '🍰', 'bolo de aniversario': '🎂',
+        'bolo de aniversário': '🎂', 'cupcake': '🧁', 'torta': '🥧', 'sorvete': '🍦', 'sorvete de taca': '🍨',
+        'sorvete de taça': '🍨', 'raspadinha': '🍧', 'donut': '🍩', 'pudim': '🍮', 'pipoca': '🍿',
+        'pizza': '🍕', 'hamburguer': '🍔', 'hambúrguer': '🍔', 'batata frita': '🍟', 'sanduiche': '🥪',
+        'sanduíche': '🥪', 'taco': '🌮', 'burrito': '🌯', 'kebab': '🥙', 'falafel': '🧆', 'onigiri': '🍙',
+        'comida chinesa': '🥡', 'fondue': '🫕', 'sabao': '🧼', 'sabão': '🧼', 'detergente': '🧽', 'esponja': '🧽',
+        'limpeza': '🧹', 'vassoura': '🧹', 'balde': '🪣', 'cesto': '🧺', 'saco de lixo': '🗑️', 'shampoo': '🧴',
+        'papel': '🧻', 'papel higienico': '🧻', 'papel higiênico': '🧻', 'escova de dentes': '🪥',
+        'lamina de barbear': '🪒', 'lâmina de barbear': '🪒', 'curativo': '🩹', 'remedio': '💊',
+        'remédio': '💊', 'racao para pet': '🦴', 'ração para pet': '🦴', 'cigarro': '🚬', 'vela': '🕯️',
+        'lampada': '💡', 'lâmpada': '💡', 'pilha': '🔋', 'planta': '🪴', 'default': '🛒'
+    };
+    
+    const getEmojiForItem = (nome) => { const nomeLower = nome.toLowerCase(); for (const key in emojiMap) if (nomeLower.includes(key)) return emojiMap[key]; return emojiMap.default; };
+    
+    const store = { 
+        loadUI: () => {
+             const savedState = localStorage.getItem(`uiState-${userId}`);
+             if (savedState) state.ui = JSON.parse(savedState);
+        },
+        saveUI: () => localStorage.setItem(`uiState-${userId}`, JSON.stringify(state.ui)) 
+    };
+
+    const render = {
+        all: () => {
+            render.calculator();
+            render.lists();
+            render.reports();
+            render.total();
+            render.activeItemHighlight();
+            render.calculatorDisplay();
+            render.activeItemDisplay();
+            render.tabs();
+        },
+        calculator: () => ui.calculatorFooter.classList.toggle('collapsed', state.ui.isCalculatorCollapsed),
+        lists: () => {
+            const lists = { faltando: document.getElementById('lista-faltando'), comprados: document.getElementById('lista-comprados'), adiados: document.getElementById('lista-adiados') };
+            Object.values(lists).forEach(list => list.innerHTML = '');
+            const groups = { faltando: [], comprado: [], adiado: [] };
+            state.itens.forEach(item => { if (groups[item.status]) groups[item.status].push(item) });
+            const createListContent = (listEl, items, message) => {
+                if (items.length === 0) listEl.innerHTML = `<p style="text-align:center; padding: 20px;">${message}</p>`;
+                else items.sort((a,b) => a.id - b.id).forEach(item => listEl.appendChild(render.createItemElement(item)));
+            };
+            createListContent(lists.faltando, groups.faltando, 'Nada para comprar!');
+            createListContent(lists.comprados, groups.comprado, 'Carrinho vazio.');
+            createListContent(lists.adiados, groups.adiado, 'Nenhum item adiado.');
+        },
+        createItemElement: (item) => {
+            const li = document.createElement('li');
+            li.className = `item-row status-${item.status}`;
+            li.dataset.id = item.id;
+            const priceInfo = item.status === 'comprado' ? `<div class="item-price-info">${item.quantidade} × R$ ${item.preco.toFixed(2)} = R$ ${(item.quantidade * item.preco).toFixed(2)}</div>` : '';
+            li.innerHTML = `<span class="item-emoji">${item.emoji}</span><div class="item-details"><div class="item-name">${item.nome}</div>${priceInfo}</div><button class="delete-btn" data-id="${item.id}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
+            return li;
+        },
+        reports: () => {
+            const listEl = document.getElementById('lista-relatorios');
+            listEl.innerHTML = '';
+            if (state.reports.length === 0) {
+                listEl.innerHTML = `<p style="text-align:center; padding: 20px;">Nenhum relatório salvo.</p>`;
+                return;
+            }
+            state.reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(report => {
+                const li = document.createElement('li');
+                li.className = 'report-item';
+                li.dataset.id = report.id;
+                const reportDate = new Date(report.createdAt).toLocaleString('pt-BR');
+                const location = report.location ? report.location : 'Local não informado';
+                li.innerHTML = `
+                    <div class="report-details" style="cursor:pointer;">
+                        <div class="report-location">${location}</div>
+                        <div class="report-date" style="font-size:0.9rem; font-weight: 400;">${reportDate}</div>
+                        <div class="report-total">Total: R$ ${report.total.toFixed(2)}</div>
+                    </div>
+                    <button class="delete-report-btn" data-id="${report.id}" title="Excluir Relatório">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                `;
+                listEl.appendChild(li);
+            });
+        },
+        total: () => { const total = state.itens.filter(i => i.status === 'comprado').reduce((acc, item) => acc + (item.preco * item.quantidade), 0); ui.headerTotal.textContent = `R$ ${total.toFixed(2)}`; },
+        activeItemHighlight: () => document.querySelectorAll('.item-row').forEach(row => row.classList.toggle('active', row.dataset.id == state.activeItemId)),
+        calculatorDisplay: () => ui.calcDisplay.textContent = state.calcDisplay.replace('.', ','),
+        activeItemDisplay: () => { const activeItem = state.itens.find(i => i.id == state.activeItemId); ui.activeItemDisplay.textContent = activeItem ? activeItem.nome : 'Nenhum item selecionado'; },
+        tabs: () => { const adiadosTab = document.querySelector('[data-tab="adiados"]'); if (state.activeItemId && state.itens.find(i => i.id == state.activeItemId)?.status === 'faltando') { adiadosTab.classList.add('action-mode'); adiadosTab.textContent = 'Adiar Item'; } else { adiadosTab.classList.remove('action-mode'); adiadosTab.textContent = 'Adiados'; } }
+    };
+
+    const calculator = {
+        handleInput: (key, action) => {
+            if (action === 'clear') { state.calcDisplay = '0'; }
+            else if (action === 'decimal' && !state.calcDisplay.includes('.')) { state.calcDisplay += '.'; }
+            else if (action === 'add') { calculator.register(); }
+            else if (['subtract', 'multiply', 'divide'].includes(action)) { const op = {'subtract': '-', 'multiply': '×', 'divide': '÷'}[action]; state.calcDisplay += ` ${op} `; }
+            else if (key.match(/^[0-9]$/)) { if (state.calcDisplay === '0') { state.calcDisplay = key; } else { state.calcDisplay += key; } }
+            render.calculatorDisplay();
+        },
+        register: () => {
+            if (!state.activeItemId) return;
+            const item = state.itens.find(i => i.id == state.activeItemId); if (!item) return;
+            const expression = state.calcDisplay.replace(/,/g, '.').replace(/×/g, '*').replace(/÷/g, '/');
+            let qty = 1; let price = 0;
+            const registerRegex = /^(\d+\.?\d*)\s*[*x]\s*(\d+\.?\d*)$/;
+            if (registerRegex.test(expression)) { const matches = expression.match(registerRegex); qty = parseFloat(matches[1]); price = parseFloat(matches[2]); }
+            else { try { price = eval(expression); } catch (e) { price = NaN; } }
+            if (isNaN(price) || price < 0) { state.calcDisplay = '0'; render.calculatorDisplay(); return; }
+            interactions.updateItem(item.id, { status: 'comprado', quantidade: qty, preco: price });
+            const currentIndex = state.itens.findIndex(i => i.id == state.activeItemId);
+            const nextItem = state.itens.find((i, index) => i.status === 'faltando' && index > currentIndex);
+            state.activeItemId = nextItem ? nextItem.id : null;
+            state.calcDisplay = '0';
+            if(state.activeItemId) { setTimeout(() => { const nextElement = document.querySelector(`[data-id='${state.activeItemId}']`); if(nextElement) nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }
+        }
+    };
+
+    const interactions = {
+        initDataListeners: () => {
+            if (!listRef) return;
+            store.loadUI();
+            render.calculator();
+            listRef.on('value', (snapshot) => { const data = snapshot.val(); state.itens = data ? Object.keys(data).map(key => ({ ...data[key], id: key })) : []; render.all(); });
+            reportsRef.on('value', (snapshot) => { const data = snapshot.val(); state.reports = data ? Object.keys(data).map(key => ({ ...data[key], id: key })) : []; render.reports(); });
+        },
+        addItem: (e) => { e.preventDefault(); const nome = ui.input.value.trim(); if (nome) { const newItemId = Date.now(); listRef.child(newItemId).set({ id: newItemId, nome: nome, emoji: getEmojiForItem(nome), status: 'faltando', quantidade: 1, preco: 0 }); ui.input.value = ''; ui.input.focus(); } },
+        deleteItem: (id) => { if (confirm('Tem certeza que deseja remover este item?')) { if (state.activeItemId === id) state.activeItemId = null; listRef.child(id).remove(); } },
+        deleteReport: (reportId) => {
+            if (confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
+                reportsRef.child(reportId).remove()
+                    .catch(err => alert('Erro ao excluir relatório.'));
+            }
+        },
+        updateItem: (id, updates) => listRef.child(id).update(updates),
+        handleItemClick: (id, status) => { if (status === 'faltando') interactions.selectItem(id); if (status === 'comprado') interactions.updateItem(id, { status: 'faltando', preco: 0, quantidade: 1 }); if (status === 'adiado') interactions.updateItem(id, { status: 'faltando' }); },
+        selectItem: (id) => { state.activeItemId = (state.activeItemId === id) ? null : id; state.calcDisplay = '0'; render.all(); },
+        handleTabClick: (tabName) => {
+            if (tabName === 'adiados' && state.activeItemId) {
+                const item = state.itens.find(i => i.id == state.activeItemId);
+                if (item && item.status === 'faltando') { interactions.updateItem(state.activeItemId, { status: 'adiado' }); state.activeItemId = null; return; }
+            }
+            interactions.switchTab(tabName);
+        },
+        switchTab: (tabName) => {
+            state.currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.list-container').forEach(cont => cont.classList.remove('active'));
+            document.querySelector(`[data-tab='${tabName}']`).classList.add('active');
+            document.getElementById(`lista-${tabName}-container`).classList.add('active');
+        },
+        toggleCalculator: () => { state.ui.isCalculatorCollapsed = !state.ui.isCalculatorCollapsed; store.saveUI(); render.calculator(); },
+        openReportModal: () => {
+            const faltando = state.itens.filter(i => i.status === 'faltando');
+            if (faltando.length > 0) {
+                 const userConfirmed = confirm('Você tem certeza que quer adiar os itens em lista e finalizar a compra?');
+                if (!userConfirmed) {
+                    return;
+                }
+            }
+            const comprados = state.itens.filter(i => i.status === 'comprado'); 
+            if (comprados.length === 0) { 
+                alert('Nenhum item foi comprado ainda.'); 
+                return; 
+            }
+            const total = comprados.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+            let reportText = `*** CUPOM FISCAL ***\n\nDATA: ${new Date().toLocaleString('pt-BR')}\n--------------------------------\nITEM      QTD    PREÇO    TOTAL\n--------------------------------\n`;
+            comprados.forEach(i => { reportText += `${i.nome.substring(0, 8).padEnd(8)} ${String(i.quantidade).padStart(4)} x ${i.preco.toFixed(2).padStart(8)} = ${(i.quantidade * i.preco).toFixed(2).padStart(8)}\n`; });
+            reportText += `--------------------------------\nTOTAL A PAGAR: R$ ${total.toFixed(2)}\n\n***** thIAguinho Soluções *****`;
+            ui.reportPaper.textContent = reportText;
+            ui.purchaseLocationInput.value = '';
+            ui.reportModal.classList.add('visible');
+        },
+        finalizeAndReset: () => {
+            const comprados = state.itens.filter(i => i.status === 'comprado');
+            if (comprados.length === 0) {
+                ui.reportModal.classList.remove('visible');
+                return;
+            }
+
+            const location = ui.purchaseLocationInput.value.trim();
+            const total = comprados.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+            
+            let reportText = `*** CUPOM FISCAL ***\n\nLOCAL: ${location || 'Não informado'}\nDATA: ${new Date().toLocaleString('pt-BR')}\n--------------------------------\nITEM      QTD    PREÇO    TOTAL\n--------------------------------\n`;
+            comprados.forEach(i => { reportText += `${i.nome.substring(0, 8).padEnd(8)} ${String(i.quantidade).padStart(4)} x ${i.preco.toFixed(2).padStart(8)} = ${(i.quantidade * i.preco).toFixed(2).padStart(8)}\n`; });
+            reportText += `--------------------------------\nTOTAL A PAGAR: R$ ${total.toFixed(2)}\n\n***** thIAguinho Soluções *****`;
+
+            const reportData = {
+                content: reportText,
+                location: location || 'Não informado',
+                total: total,
+                createdAt: new Date().toISOString()
+            };
+
+            reportsRef.push(reportData).then(() => {
+                const aAdiar = state.itens.filter(i => i.status === 'adiado' || i.status === 'faltando');
+                const newItems = {};
+                if (aAdiar.length > 0) {
+                    aAdiar.forEach(item => {
+                        const oldId = item.id;
+                        let newItemData = { ...item };
+                        delete newItemData.id;
+                        newItemData.status = 'faltando';
+                        newItemData.preco = 0;
+                        newItemData.quantidade = 1;
+                        newItems[oldId] = newItemData;
                     });
                 }
+                listRef.set(newItems);
+            }).catch(error => {
+                console.error("Erro ao finalizar a compra:", error);
+                alert("Ocorreu um erro. Verifique sua conexão e tente novamente.");
             });
 
-            document.getElementById('dismiss-btn').addEventListener('click', () => {
-                document.getElementById('install-banner').style.display = 'none';
+            ui.reportModal.classList.remove('visible');
+            interactions.switchTab('faltando');
+        },
+        showReport: (reportId) => {
+            const report = state.reports.find(r => r.id === reportId);
+            if(report) {
+                ui.reportViewContent.textContent = report.content;
+                ui.reportViewModal.classList.add('visible');
+            }
+        },
+        downloadReport: () => { 
+            const location = ui.purchaseLocationInput.value.trim();
+            const currentReportText = ui.reportPaper.textContent;
+            const updatedReportText = currentReportText.replace('*** CUPOM FISCAL ***', `*** CUPOM FISCAL ***\n\nLOCAL: ${location || 'Não informado'}`);
+            const blob = new Blob([updatedReportText], {type: 'text/plain'}); 
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            a.download = 'relatorio_compras.txt'; 
+            a.click(); 
+        },
+        printReport: () => { 
+            const location = ui.purchaseLocationInput.value.trim();
+            const currentReportText = ui.reportPaper.textContent;
+            const updatedReportText = currentReportText.replace('*** CUPOM FISCAL ***', `*** CUPOM FISCAL ***\n\nLOCAL: ${location || 'Não informado'}`);
+            const win = window.open('', '_blank'); 
+            win.document.write(`<html><head><title>Relatório de Compra</title></head><body><pre>${updatedReportText}</pre></body></html>`); 
+            win.document.close(); 
+            win.print(); 
+        }
+    };
+    
+    ui.form.addEventListener('submit', interactions.addItem);
+    ui.keypad.addEventListener('click', e => { if (e.target.tagName === 'BUTTON') calculator.handleInput(e.target.textContent, e.target.dataset.action); });
+    ui.tabs.addEventListener('click', e => { if (e.target.tagName === 'BUTTON') interactions.handleTabClick(e.target.dataset.tab); });
+    document.getElementById('lista-relatorios').addEventListener('click', e => {
+        const deleteBtn = e.target.closest('.delete-report-btn');
+        if (deleteBtn) { interactions.deleteReport(deleteBtn.dataset.id); return; }
+        const reportRow = e.target.closest('.report-item');
+        if (reportRow) { interactions.showReport(reportRow.dataset.id); }
+    });
+    ui.appContainer.addEventListener('click', e => {
+        const row = e.target.closest('.item-row'); if (!row) return;
+        const id = row.dataset.id;
+        const item = state.itens.find(i => i.id === id); if (!item) return;
+        if (e.target.closest('.delete-btn')) { interactions.deleteItem(id); } else { interactions.handleItemClick(id, item.status); }
+    });
+    ui.btnFinalizar.addEventListener('click', interactions.openReportModal);
+    ui.closeModalBtn.addEventListener('click', () => ui.reportModal.classList.remove('visible'));
+    ui.closeViewModalBtn.addEventListener('click', () => ui.reportViewModal.classList.remove('visible'));
+    ui.downloadReportBtn.addEventListener('click', interactions.downloadReport);
+    ui.printReportBtn.addEventListener('click', interactions.printReport);
+    ui.finalizePurchaseBtn.addEventListener('click', interactions.finalizeAndReset);
+    ui.toggleCalcBtn.addEventListener('click', interactions.toggleCalculator);
+});
+
+let newWorker;
+function showUpdateBar() {
+    const banner = document.getElementById('update-banner');
+    banner.style.display = 'block';
+    document.getElementById('update-btn').addEventListener('click', () => {
+        newWorker.postMessage({ action: 'skipWaiting' });
+    });
+}
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").then(reg => {
+            reg.addEventListener('updatefound', () => {
+                newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        showUpdateBar();
+                    }
+                });
             });
         });
-    </script>
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            window.location.reload();
+            refreshing = true;
+        });
+    });
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').style.display = 'flex';
+});
+document.addEventListener('click', async (e) => {
+    if (e.target && e.target.id === 'install-btn') {
+        document.getElementById('install-banner').style.display = 'none';
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    }
+    if (e.target && e.target.id === 'dismiss-btn') {
+        document.getElementById('install-banner').style.display = 'none';
+    }
+});
+window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner').style.display = 'none';
+    deferredPrompt = null;
+});
+</script>
 </body>
 </html>

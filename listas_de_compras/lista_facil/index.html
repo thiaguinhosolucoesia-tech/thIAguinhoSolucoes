@@ -8,6 +8,12 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2c3e50">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script src="../../firebase-config.js"></script>
 
     <style>
         :root {
@@ -104,6 +110,7 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             text-align: center; padding: 10px; position: relative;
             border: 1px solid var(--cor-borda);
+            color: var(--cor-texto-principal); /* Garante que o texto seja legível no card */
         }
         .item-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .item-card.falling { animation: fall-into-cart 0.9s cubic-bezier(0.55, 0, 1, 0.45) forwards; z-index: 1000; }
@@ -240,23 +247,52 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="../firebase-config.js"></script>
-
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // --- NENHUMA CONFIGURAÇÃO DE FIREBASE AQUI ---
+        // As variáveis `auth` e `database` são globais, vindas do `firebase-config.js`
+        
         let itemsRef = null;
         let localItems = [];
+
+        // --- DICIONÁRIO DE EMOJIS COMPLETO RESTAURADO ---
         const emojiMap = {
-            'maca': '🍎', 'maçã': '🍎', 'maca verde': '🍏', 'maçã verde': '🍏', 'pera': '🍐', 'pêra': '🍐', 'laranja': '🍊', 'limao': '🍋', 'limão': '🍋', 'banana': '🍌', 'uva': '🍇', 'morango': '🍓', 'mirtilo': '🫐', 'melancia': '🍉', 'cereja': '🍒', 'pessego': '🍑', 'pêssego': '🍑', 'manga': '🥭', 'abacaxi': '🍍', 'coco': '🥥', 'kiwi': '🥝', 'tomate': '🍅', 'abacate': '🥑', 'melao': '🍈', 'melão': '🍈', 'cenoura': '🥕', 'berinjela': '🍆', 'batata': '🥔', 'batata doce': '🍠', 'milho': '🌽', 'pimenta': '🌶️', 'pimentao': '🫑', 'pimentão': '🫑', 'pepino': '🥒', 'alface': '🥬', 'brocolis': '🥦', 'brócolis': '🥦', 'alho': '🧄', 'cebola': '🧅', 'cogumelo': '🍄', 'amendoim': '🥜', 'castanha': '🌰', 'ervilha': '🫛', 'gengibre': '🫚', 'azeitona': '🫒', 'salada': '🥗', 'pao': '🍞', 'pão': '🍞', 'baguete': '🥖', 'croissant': '🥐', 'pretzel': '🥨', 'bagel': '🥯', 'panqueca': '🥞', 'waffle': '🧇', 'cereal': '🥣', 'arroz': '🍚', 'feijao': '🫘', 'feijão': '🫘', 'macarrao': '🍝', 'macarrão': '🍝', 'massa': '🍝', 'ramen': '🍜', 'carne': '🥩', 'bife': '🥩', 'pernil': '🍖', 'presunto': '🍖', 'frango': '🍗', 'peixe': '🐟', 'salsicha': '🌭', 'bacon': '🥓', 'camarao': '🍤', 'camarão': '🍤', 'lagosta': '🦞', 'caranguejo': '🦀', 'lula': '🦑', 'ostra': '🦪', 'sushi': '🍣', 'leite': '🥛', 'ovo': '🥚', 'queijo': '🧀', 'manteiga': '🧈', 'cafe': '☕️', 'café': '☕️', 'cha': '🍵', 'chá': '🍵', 'suco': '🧃', 'refrigerante': '🥤', 'agua': '💧', 'água': '💧', 'agua de coco': '🥥', 'cerveja': '🍺', 'vinho': '🍷', 'espumante': '🍾', 'whisky': '🥃', 'drink': '🍹', 'coquetel': '🍸', 'chimarrao': '🧉', 'chimarrão': '🧉', 'gelo': '🧊', 'chocolate': '🍫', 'doce': '🍬', 'pirulito': '🍭', 'biscoito': '🍪', 'bolacha': '🍪', 'bolo': '🍰', 'cupcake': '🧁', 'torta': '🥧', 'sorvete': '🍦', 'raspadinha': '🍧', 'sorvete de taca': '🍨', 'sorvete de taça': '🍨', 'donut': '🍩', 'pudim': '🍮', 'mel': '🍯', 'pipoca': '🍿', 'pizza': '🍕', 'hamburguer': '🍔', 'hambúrguer': '🍔', 'sanduiche': '🥪', 'sanduíche': '🥪', 'batata frita': '🍟', 'taco': '🌮', 'burrito': '🌯', 'kebab': '🥙', 'falafel': '🧆', 'onigiri': '🍙', 'comida chinesa': '🥡', 'fondue': '🫕', 'enlatado': '🥫', 'conserva': '🫙', 'sabao': '🧼', 'sabão': '🧼', 'detergente': '🧽', 'esponja': '🧽', 'limpeza': '🧹', 'vassoura': '🧹', 'balde': '🪣', 'cesto': '🧺', 'saco de lixo': '🗑️', 'shampoo': '🧴', 'condicionador': '🧴', 'papel': '🧻', 'papel higienico': '🧻', 'papel higiênico': '🧻', 'escova de dentes': '🪥', 'lamina de barbear': '🪒', 'lâmina de barbear': '🪒', 'curativo': '🩹', 'remedio': '💊', 'remédio': '💊', 'racao': '🦴', 'ração': '🦴', 'vela': '🕯️', 'lampada': '💡', 'lâmpada': '💡', 'pilha': '🔋', 'planta': '🪴', 'flor': '💐', 'default': '🛒'
+            'maca': '🍎', 'maçã': '🍎', 'maca verde': '🍏', 'maçã verde': '🍏', 'pera': '🍐', 'pêra': '🍐',
+            'laranja': '🍊', 'limao': '🍋', 'limão': '🍋', 'banana': '🍌', 'uva': '🍇', 'morango': '🍓',
+            'mirtilo': '🫐', 'melancia': '🍉', 'cereja': '🍒', 'pessego': '🍑', 'pêssego': '🍑', 'manga': '🥭',
+            'abacaxi': '🍍', 'coco': '🥥', 'kiwi': '🥝', 'tomate': '🍅', 'abacate': '🥑', 'melao': '🍈',
+            'melão': '🍈', 'cenoura': '🥕', 'berinjela': '🍆', 'batata': '🥔', 'batata doce': '🍠',
+            'milho': '🌽', 'pimenta': '🌶️', 'pimentao': '🫑', 'pimentão': '🫑', 'pepino': '🥒', 'alface': '🥬',
+            'brocolis': '🥦', 'brócolis': '🥦', 'alho': '🧄', 'cebola': '🧅', 'cogumelo': '🍄',
+            'amendoim': '🥜', 'castanha': '🌰', 'ervilha': '🫛', 'gengibre': '🫚', 'azeitona': '🫒',
+            'salada': '🥗', 'pao': '🍞', 'pão': '🍞', 'baguete': '🥖', 'croissant': '🥐', 'pretzel': '🥨',
+            'bagel': '🥯', 'panqueca': '🥞', 'waffle': '🧇', 'cereal': '🥣', 'arroz': '🍚', 'feijao': '🫘',
+            'feijão': '🫘', 'macarrao': '🍝', 'macarrão': '🍝', 'massa': '🍝', 'ramen': '🍜', 'carne': '🥩',
+            'bife': '🥩', 'pernil': '🍖', 'presunto': '🍖', 'frango': '🍗', 'peixe': '🐟', 'salsicha': '🌭',
+            'bacon': '🥓', 'camarao': '🍤', 'camarão': '🍤', 'lagosta': '🦞', 'caranguejo': '🦀', 'lula': '🦑',
+            'ostra': '🦪', 'sushi': '🍣', 'leite': '🥛', 'ovo': '🥚', 'queijo': '🧀', 'manteiga': '🧈',
+            'cafe': '☕️', 'café': '☕️', 'cha': '🍵', 'chá': '🍵', 'suco': '🧃', 'refrigerante': '🥤',
+            'agua': '💧', 'água': '💧', 'agua de coco': '🥥', 'cerveja': '🍺', 'vinho': '🍷', 'espumante': '🍾',
+            'whisky': '🥃', 'drink': '🍹', 'coquetel': '🍸', 'chimarrao': '🧉', 'chimarrão': '🧉', 'gelo': '🧊',
+            'chocolate': '🍫', 'doce': '🍬', 'pirulito': '🍭', 'biscoito': '🍪', 'bolacha': '🍪', 'bolo': '🍰',
+            'cupcake': '🧁', 'torta': '🥧', 'sorvete': '🍦', 'raspadinha': '🍧', 'sorvete de taca': '🍨',
+            'sorvete de taça': '🍨', 'donut': '🍩', 'pudim': '🍮', 'mel': '🍯', 'pipoca': '🍿', 'pizza': '🍕',
+            'hamburguer': '🍔', 'hambúrguer': '🍔', 'sanduiche': '🥪', 'sanduíche': '🥪', 'batata frita': '🍟',
+            'taco': '🌮', 'burrito': '🌯', 'kebab': '🥙', 'falafel': '🧆', 'onigiri': '🍙', 'comida chinesa': '🥡',
+            'fondue': '🫕', 'enlatado': '🥫', 'conserva': '🫙', 'sabao': '🧼', 'sabão': '🧼', 'detergente': '🧽',
+            'esponja': '🧽', 'limpeza': '🧹', 'vassoura': '🧹', 'balde': '🪣', 'cesto': '🧺', 'saco de lixo': '🗑️',
+            'shampoo': '🧴', 'condicionador': '🧴', 'papel': '🧻', 'papel higienico': '🧻', 'papel higiênico': '🧻',
+            'escova de dentes': '🪥', 'lamina de barbear': '🪒', 'lâmina de barbear': '🪒', 'curativo': '🩹',
+            'remedio': '💊', 'remédio': '💊', 'racao': '🦴', 'ração': '🦴', 'vela': '🕯️', 'lampada': '💡',
+            'lâmpada': '💡', 'pilha': '🔋', 'planta': '🪴', 'flor': '💐', 'default': '🛒'
         };
+
         const getEmojiForItem = (nome) => {
             const nomeLower = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             for (const key in emojiMap) { if (nomeLower.includes(key)) return emojiMap[key]; }
             return emojiMap.default;
         };
+
         const ui = {
             appContainer: document.querySelector('.app-container'),
             form: document.getElementById('form-adicionar-item'),
@@ -279,6 +315,7 @@
             btnZerarLista: document.getElementById('btn-zerar-lista'),
             btnFecharRelatorio: document.getElementById('btn-fechar-relatorio'),
         };
+        
         const modals = {
             showNotification: (title, message) => {
                 ui.notificationTitle.textContent = title;
@@ -289,21 +326,25 @@
                 ui.confirmationTitle.textContent = title;
                 ui.confirmationMessage.textContent = message;
                 ui.confirmationModal.classList.add('visible');
+                
                 return new Promise((resolve) => {
                     ui.btnConfirm.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(true); };
                     ui.btnCancel.onclick = () => { ui.confirmationModal.classList.remove('visible'); resolve(false); };
                 });
             }
         };
+
         const render = {
             createItemElement: (item, isBasket = false) => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 card.dataset.id = item.id;
+                
                 let content = `<div class="item-emoji">${item.emoji}</div>`;
                 if (!isBasket) {
                     content += `<div class="item-name">${item.nome}</div>`;
                 }
+
                 card.innerHTML = `
                     <button class="delete-btn" title="Remover item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -316,13 +357,15 @@
                 localItems = items;
                 ui.listaAComprar.innerHTML = '';
                 ui.listaComprados.innerHTML = '';
+                
                 const itensFaltando = items.filter(i => !i.comprado);
                 const itensComprados = items.filter(i => i.comprado);
+
                 if (items.length === 0) {
                      ui.listaAComprar.innerHTML = `<p style="color: var(--cor-texto-secundario); grid-column: 1 / -1; text-align: center;">Sua lista está vazia. Adicione um item acima.</p>`;
                 } else {
-                    itensFaltando.sort((a, b) => a.createdAt - b.createdAt).forEach(item => ui.listaAComprar.appendChild(render.createItemElement(item)));
-                    itensComprados.sort((a, b) => a.createdAt - b.createdAt).forEach(item => {
+                    itensFaltando.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).forEach(item => ui.listaAComprar.appendChild(render.createItemElement(item)));
+                    itensComprados.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).forEach(item => {
                         const card = render.createItemElement(item, true);
                         card.style.animation = 'none';
                         ui.listaComprados.appendChild(card);
@@ -330,6 +373,7 @@
                 }
             }
         };
+
         const interactions = {
             addItem: async (e) => {
                 e.preventDefault();
@@ -354,6 +398,7 @@
             toggleItemStatus: async (id, element) => {
                 const item = localItems.find(i => i.id === id);
                 if (!item) return;
+
                 const isComprado = item.comprado;
                 if (!isComprado) {
                     element.classList.add('falling');
@@ -388,9 +433,19 @@
         };
 
         function init() {
-            auth.onAuthStateChanged(user => {
+            auth.onAuthStateChanged(async user => {
                 if (user) {
+                    const userRef = database.ref(`users_public_list/${user.uid}`);
+                    const snapshot = await userRef.once('value');
+                    const userData = snapshot.val();
+                    if (userData && userData.isBlocked) {
+                        ui.loadingOverlay.classList.remove('visible');
+                        modals.showNotification('Conta Bloqueada', 'Sua conta foi bloqueada. Contate o administrador.');
+                        return;
+                    }
+                    
                     itemsRef = database.ref(`easy_lists/${user.uid}/items`);
+                    
                     ui.appContainer.classList.add('loaded');
                     ui.loadingOverlay.classList.remove('visible');
 
@@ -403,7 +458,7 @@
                         modals.showNotification('Erro de Conexão', 'Não foi possível carregar sua lista. Verifique sua internet.');
                     });
                 } else {
-                    window.location.replace('../index.html');
+                    window.location.replace('../../index.html');
                 }
             });
         }
@@ -424,13 +479,9 @@
 
         init();
         
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('Service worker registrado.'))
-                    .catch(err => console.log('Erro no registro do Service worker: ', err));
-            });
-        }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').then(reg => console.log('Service worker registrado.')).catch(err => console.log('Erro no registro: ', err)); }); }
+        let deferredPrompt; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; const installBanner = document.getElementById('install-banner'); if (installBanner) { installBanner.style.display = 'block'; } });
+        document.addEventListener('click', (e) => { if (e.target && e.target.id === 'install-btn' && deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; }); } if (e.target && e.target.id === 'dismiss-btn') { document.getElementById('install-banner').style.display = 'none'; } });
     });
     </script>
 </body>

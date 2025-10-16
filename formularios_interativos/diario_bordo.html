@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="../../../../firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
     <style>
         :root {
             --primary-color: #2c3e50; --accent-color: #3498db; --dark-color: #222;
@@ -23,7 +23,7 @@
         
         .main-container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
 
-        #auth-container { display: none; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        #auth-container { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         .auth-box { background: var(--white-color); padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
         .auth-box h1 { color: var(--danger-color); } .auth-box p { color: var(--gray-color); margin-top: 10px; }
 
@@ -70,7 +70,7 @@
 </head>
 <body>
     <div id="auth-container">
-        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua sessão é inválida ou expirou. Por favor, retorne à plataforma e faça login novamente.</p></div>
+        <div class="auth-box"><h1>Acesso Negado</h1><p>Sua conta foi bloqueada. Por favor, contate o administrador.</p></div>
     </div>
 
     <div id="loader-container" class="main-container">
@@ -164,16 +164,32 @@
                 },
 
                 addAuthListeners() {
-                    auth.onAuthStateChanged(user => {
+                    auth.onAuthStateChanged(async (user) => {
                         if (user) {
-                            if (!this.currentUser) {
-                                this.currentUser = user;
-                                document.getElementById('user-email').textContent = user.email;
-                                this.renderDynamicLogbook();
-                                this.loadDayData(this.getDateString(this.displayedDate));
+                             const userRef = database.ref(`users_public_list/${user.uid}`);
+                            try {
+                                const snapshot = await userRef.once('value');
+                                const userData = snapshot.val();
+
+                                if (userData && userData.isBlocked) {
+                                    this.showView('auth');
+                                    return;
+                                }
+
+                                if (!this.currentUser) {
+                                    this.currentUser = user;
+                                    document.getElementById('user-email').textContent = user.email;
+                                    this.renderDynamicLogbook();
+                                    this.loadDayData(this.getDateString(this.displayedDate));
+                                }
+                            } catch (error) {
+                                console.error("Erro ao verificar status do usuário:", error);
+                                this.showView('auth');
                             }
                         } else {
-                            this.currentUser = null; this.showView('auth');
+                            this.currentUser = null;
+                            // CORREÇÃO: Redirecionamento para o index.html na raiz
+                            window.location.href = '../index.html';
                         }
                     });
                     document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());

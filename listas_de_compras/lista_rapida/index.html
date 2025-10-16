@@ -1,128 +1,222 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lista de Compras Rápida</title>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-<script src="../../../../../../../firebase-config.js"></script>
-<style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f9ff; padding: 20px; max-width: 600px; margin: auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    h1 { text-align: center; color: #0066cc; margin: 0; }
-    #back-button { padding: 8px 16px; font-size: 1rem; background-color: #e9ecef; border: none; border-radius: 8px; cursor: pointer; color: #495057; text-decoration: none;}
-    #add-item-form { display: flex; gap: 10px; margin-bottom: 20px; }
-    #new-item-input { flex-grow: 1; padding: 12px; border-radius: 10px; border: 1px solid #ced4da; font-size: 1.1rem; }
-    #add-item-btn { padding: 12px 20px; border: none; border-radius: 10px; background-color: #007aff; color: white; font-size: 1.1rem; cursor: pointer; }
-    .item { display: flex; align-items: center; padding: 10px; background-color: white; margin: 8px 0; border-radius: 10px; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); font-size: 1.1em; transition: opacity 0.3s; }
-    .item input[type="checkbox"] { transform: scale(1.5); margin-right: 15px; cursor: pointer; }
-    .item span { flex-grow: 1; }
-    .item.checked { opacity: 0.6; text-decoration: line-through; }
-    .delete-item-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #ff3b30; opacity: 0.5; transition: opacity 0.2s; }
-    .item:hover .delete-item-btn { opacity: 1; }
-    button#gerar-relatorio { display: block; width: 100%; padding: 15px; background-color: #28a745; color: white; font-size: 1.2em; font-weight: bold; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
-    #relatorio-div { background-color: #fffbe6; padding: 20px; margin-top: 20px; border-radius: 10px; border: 2px solid #ffe58f; display: none; white-space: pre-wrap; font-family: 'Courier New', monospace; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista Rápida - Sincronizada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../../firebase-config.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s;
+        }
+        .item-checked {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        #loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111827;
+            color: #f9fafb;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        #loading-container p {
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100">
 
-<div class="header">
-    <a href="../../dashboard.html" id="back-button">❮ Voltar</a>
-    <h1>⚡ Lista Rápida</h1>
-</div>
+    <div id="loading-container">
+        <div class="spinner"></div>
+        <p>Carregando sua lista...</p>
+    </div>
 
-<form id="add-item-form" onsubmit="addItem(event)">
-    <input type="text" id="new-item-input" placeholder="Adicionar novo item..." required>
-    <button id="add-item-btn" type="submit">Adicionar</button>
-</form>
+    <div id="auth-container" class="fixed inset-0 flex-col items-center justify-center bg-gray-900 text-white z-50 hidden">
+        <h1 class="text-3xl font-bold text-red-500 mb-4">Acesso Negado</h1>
+        <p id="auth-message" class="text-lg text-center px-4">Sua conta foi bloqueada. Por favor, contate o administrador.</p>
+    </div>
 
-<div id="lista-container"></div>
+    <div id="app-container" class="container mx-auto max-w-lg p-4" style="display: none;">
+        <header class="flex justify-between items-center mb-6">
+             <a href="../../dashboard.html" class="text-blue-500 hover:text-blue-700 font-semibold py-2 px-4 rounded-lg bg-white shadow-md transition-transform transform hover:scale-105">
+                < Voltar
+             </a>
+            <h1 class="text-3xl font-bold text-blue-600">⚡ Lista Rápida</h1>
+            <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-transform transform hover:scale-105">Sair</button>
+        </header>
 
-<button id="gerar-relatorio" onclick="gerarRelatorio()">📋 Gerar Relatório</button>
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+            <div class="flex gap-2">
+                <input type="text" id="item-input" class="flex-grow border-2 border-gray-300 p-3 rounded-lg focus:outline-none focus:border-blue-500 transition-shadow" placeholder="Adicionar novo item...">
+                <button id="add-btn" class="bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 transition-transform transform hover:scale-105">Adicionar</button>
+            </div>
+        </div>
 
-<div id="relatorio-div"></div>
+        <div id="list-container" class="bg-white p-6 rounded-xl shadow-lg space-y-3">
+            </div>
 
-<script>
-    let items = JSON.parse(localStorage.getItem('listaRapidaItems')) || [];
+        <div class="mt-6">
+            <button id="report-btn" class="w-full bg-green-500 text-white font-bold py-4 rounded-lg shadow-xl hover:bg-green-600 transition-transform transform hover:scale-105">
+                Gerar Relatório
+            </button>
+        </div>
+    </div>
 
-    function renderItems() {
-        const container = document.getElementById('lista-container');
-        container.innerHTML = '';
-        items.forEach((item, index) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `item ${item.checked ? 'checked' : ''}`;
-            itemDiv.innerHTML = `
-                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${index})">
-                <span>${item.name}</span>
-                <button class="delete-item-btn" onclick="deleteItem(${index})">&times;</button>
-            `;
-            container.appendChild(itemDiv);
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingContainer = document.getElementById('loading-container');
+            const appContainer = document.getElementById('app-container');
+            const authContainer = document.getElementById('auth-container');
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    const userRef = database.ref(`users_public_list/${user.uid}`);
+                    try {
+                        const snapshot = await userRef.once('value');
+                        const userData = snapshot.val();
+
+                        if (userData && userData.isBlocked) {
+                            loadingContainer.style.display = 'none';
+                            appContainer.style.display = 'none';
+                            authContainer.style.display = 'flex';
+                            return;
+                        }
+                        
+                        initializeApp(user);
+                    } catch (error) {
+                        console.error("Erro ao verificar status do usuário:", error);
+                        loadingContainer.innerHTML = "<p>Erro ao verificar permissões. Tente recarregar a página.</p>";
+                    }
+                } else {
+                    // CORREÇÃO: Redirecionamento para o index.html na raiz
+                    window.location.href = '../../index.html';
+                }
+            });
+
+            function initializeApp(user) {
+                loadingContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+
+                const itemInput = document.getElementById('item-input');
+                const addBtn = document.getElementById('add-btn');
+                const listContainer = document.getElementById('list-container');
+                const logoutBtn = document.getElementById('logout-btn');
+                const reportBtn = document.getElementById('report-btn');
+
+                const listRef = database.ref(`easy_lists/${user.uid}/shopping_list_rapida/items`);
+
+                const addItem = () => {
+                    const itemName = itemInput.value.trim();
+                    if (itemName) {
+                        const newItemRef = listRef.push();
+                        newItemRef.set({ name: itemName, checked: false });
+                        itemInput.value = '';
+                    }
+                };
+
+                addBtn.addEventListener('click', addItem);
+                itemInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addItem();
+                });
+
+                logoutBtn.addEventListener('click', () => auth.signOut());
+
+                listRef.on('value', (snapshot) => {
+                    listContainer.innerHTML = '';
+                    const items = snapshot.val();
+                    if (items) {
+                        Object.keys(items).forEach(key => {
+                            const item = items[key];
+                            const itemElement = document.createElement('div');
+                            itemElement.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border';
+                            itemElement.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" data-key="${key}" class="h-5 w-5 rounded text-blue-500 focus:ring-0" ${item.checked ? 'checked' : ''}>
+                                    <span class="${item.checked ? 'item-checked' : ''}">${item.name}</span>
+                                </div>
+                                <button data-key="${key}" class="text-red-500 hover:text-red-700 font-bold">X</button>
+                            `;
+                            listContainer.appendChild(itemElement);
+                        });
+                    } else {
+                        listContainer.innerHTML = '<p class="text-gray-500 text-center">Sua lista está vazia.</p>';
+                    }
+                });
+
+                listContainer.addEventListener('click', (e) => {
+                    const key = e.target.dataset.key;
+                    if (!key) return;
+
+                    if (e.target.tagName === 'BUTTON') {
+                        listRef.child(key).remove();
+                    } else if (e.target.tagName === 'INPUT') {
+                        listRef.child(key).update({ checked: e.target.checked });
+                    }
+                });
+                
+                reportBtn.addEventListener('click', () => {
+                    listRef.once('value').then((snapshot) => {
+                        const items = snapshot.val();
+                        if (!items) {
+                            alert('A lista está vazia. Adicione itens para gerar um relatório.');
+                            return;
+                        }
+
+                        let reportText = 'Relatório da Lista de Compras:\n\n';
+                        let checkedItems = 'Itens Marcados:\n';
+                        let uncheckedItems = '\nItens Pendentes:\n';
+                        let hasChecked = false;
+                        let hasUnchecked = false;
+
+                        for (let key in items) {
+                            if (items[key].checked) {
+                                checkedItems += `- ${items[key].name}\n`;
+                                hasChecked = true;
+                            } else {
+                                uncheckedItems += `- ${items[key].name}\n`;
+                                hasUnchecked = true;
+                            }
+                        }
+
+                        if (hasChecked) reportText += checkedItems;
+                        if (hasUnchecked) reportText += uncheckedItems;
+
+                        const blob = new Blob([reportText], { type: 'text/plain' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `relatorio_lista_compras_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.txt`;
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                    });
+                });
+            }
         });
-    }
-
-    function saveItems() {
-        localStorage.setItem('listaRapidaItems', JSON.stringify(items));
-    }
-
-    function addItem(event) {
-        event.preventDefault();
-        const input = document.getElementById('new-item-input');
-        const itemName = input.value.trim();
-        if (itemName) {
-            items.push({ name: itemName, checked: false });
-            input.value = '';
-            input.focus();
-            saveItems();
-            renderItems();
-        }
-    }
-
-    function deleteItem(index) {
-        items.splice(index, 1);
-        saveItems();
-        renderItems();
-    }
-    
-    function toggleCheck(index) {
-        items[index].checked = !items[index].checked;
-        saveItems();
-        renderItems();
-    }
-
-    function gerarRelatorio() {
-        const divRelatorio = document.getElementById("relatorio-div");
-        const comprados = items.filter(item => item.checked);
-        const faltando = items.filter(item => !item.checked);
-
-        let relatorioHTML = `RELATÓRIO DE COMPRAS\nData: ${new Date().toLocaleString('pt-BR')}\n\n`;
-
-        if (comprados.length > 0) {
-            relatorioHTML += `--- COMPRADOS (${comprados.length}) ---\n`;
-            comprados.forEach(item => {
-                relatorioHTML += `- ${item.name}\n`;
-            });
-        }
-        
-        if (faltando.length > 0) {
-            relatorioHTML += `\n--- FALTANDO (${faltando.length}) ---\n`;
-            faltando.forEach(item => {
-                relatorioHTML += `- ${item.name}\n`;
-            });
-        }
-
-        if (comprados.length === 0 && faltando.length === 0) {
-             relatorioHTML += "Sua lista está vazia.";
-        }
-
-        divRelatorio.textContent = relatorioHTML;
-        divRelatorio.style.display = "block";
-    }
-
-    // Renderiza a lista inicial ao carregar a página
-    renderItems();
-</script>
-
+    </script>
 </body>
 </html>
