@@ -153,49 +153,6 @@
         /* Botões Específicos da FX-991ES */
         .btn-shift { background-color: var(--fx-btn-light); color: var(--fx-shift-text); }
         .btn-alpha { background-color: var(--fx-btn-light); color: var(--fx-alpha-text); }
-        .btn-replay { 
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            background-color: #C0C0C0;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            box-shadow: 0 3px 0 #808080, 0 4px 3px rgba(0,0,0,0.5);
-            padding: 0;
-            z-index: 10;
-        }
-        .btn-replay::before {
-            content: "◀ REPLAY ▶";
-            font-size: 0.6rem;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .btn-replay::after {
-            content: "▲";
-            font-size: 0.8rem;
-            position: absolute;
-            top: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .btn-replay .replay-down {
-            content: "▼";
-            font-size: 0.8rem;
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
         .btn-modeclr { background-color: var(--fx-btn-light); color: #000; }
         .btn-on { background-color: var(--fx-btn-light); color: #000; }
         .btn-rec { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
@@ -313,7 +270,7 @@
         .btn-drg { position: absolute; top: 275px; left: 10px; width: 40px; height: 20px; }
         .btn-percent { position: absolute; top: 275px; left: 60px; width: 40px; height: 20px; }
 
-        /* Indicadores de Modo */
+        /* Indicador de Modo */
         .mode-indicator {
             position: absolute;
             top: 10px;
@@ -432,13 +389,6 @@
                 <button class="fx-btn btn-pi" data-func="pi">π</button>
                 <button class="fx-btn btn-drg" data-func="drg">DRG►</button>
                 <button class="fx-btn btn-percent" data-func="percent">%</button>
-
-                <!-- Botão REPLAY -->
-                <div class="btn-replay">
-                    <span>◀ REPLAY ▶</span>
-                    <span>▲</span>
-                    <span class="replay-down">▼</span>
-                </div>
 
                 <!-- Indicador de Modo -->
                 <div class="mode-indicator"></div>
