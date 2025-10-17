@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casio ClassWiz - thIAguinho Soluções</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../firebase-config.js"></script>
+    <style>
+        :root {
+            --cw-shell: #2C2C2C;
+            --cw-display: #E8EDE8;
+            --cw-btn-dark: #3A3A3A;
+            --cw-btn-light: #4A4A4A;
+            --cw-btn-num: #5A5A5A;
+            --cw-btn-green: #5C8A5C;
+            --cw-btn-orange: #D97E3C;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0a0a;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .header-title { font-size: 1rem; font-weight: 600; }
+        .header-back {
+            padding: 8px 16px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-back:hover { background: rgba(255,255,255,0.15); color: #ddd; }
+        .calc-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+        }
+        .fx-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            max-width: 380px;
+            max-height: 820px;
+            background-color: var(--cw-shell);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .fx-header {
+            color: #C1C3C6;
+            padding: 0 0.5rem;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .fx-display-area {
+            background-color: var(--cw-display);
+            height: 140px;
+            border-radius: 0.5rem;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Roboto Mono', monospace;
+            color: #212121;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .fx-input { font-size: 0.9rem; text-align: right; min-height: 40%; word-break: break-all; }
+        .fx-result { font-size: 1.4rem; text-align: right; font-weight: 500; white-space: nowrap;}
+        .fx-btn {
+            position: relative;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--cw-btn-light);
+            color: #FFFFFF;
+            font-size: clamp(0.7rem, 3vw, 1rem);
+            font-weight: 600;
+            min-height: 42px;
+            box-shadow: 0 2px 0 #1A1A1A, 0 3px 3px rgba(0,0,0,0.4);
+            transition: all 0.05s ease;
+            cursor: pointer;
+        }
+        .fx-btn:active { box-shadow: 0 1px 0 #1A1A1A; }
+        .fx-btn.dark { background-color: var(--cw-btn-dark); }
+        .fx-btn.num { background-color: var(--cw-btn-num); }
+        .fx-btn.green { background-color: var(--cw-btn-green); }
+        .fx-btn.orange { background-color: var(--cw-btn-orange); }
+        .fx-btn.dark.active { background-color: #5A5A5A; }
+        .fx-btn .shift-active-text { color: var(--fx-shift-text); }
+        #classwiz-keypad { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 0.4rem; flex-grow: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="header-back" onclick="window.location.href='../dashboard.html'">← Voltar ao Painel</button>
+        <div class="header-title">Casio ClassWiz</div>
+        <button class="header-back" id="logout-button" onclick="auth.signOut().then(() => window.location.replace('../index.html'))">Sair</button>
+    </div>
+
+    <div class="calc-wrapper">
+        <div class="fx-container">
+            <div class="fx-header">thIAguinho Soluções</div>
+            <div class="fx-display-area">
+                <div class="fx-input" id="cw-input"></div>
+                <div class="fx-result" id="cw-result">0</div>
+            </div>
+            <div id="classwiz-keypad">
+                <button class="fx-btn dark" data-func="shift">SHIFT</button>
+                <button class="fx-btn dark" data-func="alpha">ALPHA</button>
+                <button class="fx-btn dark" data-func="menu">MENU</button>
+                <button class="fx-btn dark"></button>
+                <button class="fx-btn dark" data-func="on">ON</button>
+                <button class="fx-btn"></button>
+                <button class="fx-btn" data-func="log" data-shift-func="pow10">log</button>
+                <button class="fx-btn" data-func="ln" data-shift-func="exp">ln</button>
+                <button class="fx-btn green" data-func="backspace">DEL</button>
+                <button class="fx-btn orange" data-func="clear">AC</button>
+                <button class="fx-btn" data-func="inv" data-shift-func="sqr">x⁻¹</button>
+                <button class="fx-btn" data-func="sin" data-shift-func="asin">sin</button>
+                <button class="fx-btn" data-func="cos" data-shift-func="acos">cos</button>
+                <button class="fx-btn" data-func="tan" data-shift-func="atan">tan</button>
+                <button class="fx-btn" data-value="(">(</button>
+                <button class="fx-btn num" data-value="7">7</button>
+                <button class="fx-btn num" data-value="8">8</button>
+                <button class="fx-btn num" data-value="9">9</button>
+                <button class="fx-btn" data-operator="/">÷</button>
+                <button class="fx-btn" data-value=")">)</button>
+                <button class="fx-btn num" data-value="4">4</button>
+                <button class="fx-btn num" data-value="5">5</button>
+                <button class="fx-btn num" data-value="6">6</button>
+                <button class="fx-btn" data-operator="*">×</button>
+                <button class="fx-btn" data-func="sqrt" data-shift-func="cbrt">√</button>
+                <button class="fx-btn num" data-value="1">1</button>
+                <button class="fx-btn num" data-value="2">2</button>
+                <button class="fx-btn num" data-value="3">3</button>
+                <button class="fx-btn" data-operator="-">−</button>
+                <button class="fx-btn" data-func="pow" data-shift-func="cube">xʸ</button>
+                <button class="fx-btn num" data-value="0">0</button>
+                <button class="fx-btn num" data-value=".">.</button>
+                <button class="fx-btn" data-func="exp">EXP</button>
+                <button class="fx-btn" data-operator="+">+</button>
+                <button class="fx-btn green" data-func="equal">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let globalMemory = 0;
+        let currentUser = null;
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.replace('../index.html');
+                return;
+            }
+            currentUser = user;
+            const userRef = database.ref(`users_public_list/${user.uid}`);
+            try {
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                if (userData && userData.isBlocked) {
+                    alert('Sua conta foi bloqueada. Contate o administrador.');
+                    window.location.replace('../index.html');
+                    return;
+                }
+            } catch (error) {
+                console.error("Erro ao verificar status do usuário:", error);
+                window.location.replace('../index.html');
+            }
+        });
+
+        const state = {
+            expression: '',
+            angleMode: 'deg',
+            shiftActive: false,
+            isResult: false,
+            displayLimit: 12,
+            lastResult: '0'
+        };
+
+        const parser = math.parser();
+        math.config({ number: 'BigNumber', precision: 64 });
+
+        document.body.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-func],[data-value],[data-operator]');
+            if (!btn) return;
+            if (navigator.vibrate) navigator.vibrate(20);
+
+            const { value, operator, func, shiftFunc } = btn.dataset;
+            const action = state.shiftActive ? (shiftFunc || func) : func;
+
+            if (value !== undefined) handleValue(value);
+            else if (operator !== undefined) handleOperator(operator);
+            else if (action !== undefined) handleFunction(action);
+
+            if (state.shiftActive && func !== 'shift') {
+                state.shiftActive = false;
+                document.querySelector('[data-func="shift"]').classList.remove('active');
+            }
+
+            updateDisplay();
+        });
+
+        function handleValue(val) {
+            if (state.expression === 'Error') state.expression = '';
+            if (state.isResult) { state.expression = ''; state.isResult = false; }
+            if (val === '.' && state.expression.split(/[\+\-\*\/()^,]/).pop().includes('.')) return;
+            state.expression += val;
+        }
+
+        function handleOperator(op) {
+            if (state.expression === '' || state.expression === 'Error') return;
+            state.isResult = false;
+            const lastChar = state.expression.trim().slice(-1);
+            if (['+', '*', '/'].includes(lastChar)) {
+                state.expression = state.expression.trim().slice(0, -1) + op;
+            } else {
+                state.expression += op;
+            }
+        }
+
+        function handleFunction(fn) {
+            if (state.expression === 'Error' && fn !== 'clear') return;
+            switch(fn) {
+                case 'equal': calculate(); return;
+                case 'clear': state.expression = ''; break;
+                case 'backspace': state.expression = state.expression.slice(0, -1); break;
+                case 'shift': 
+                    state.shiftActive = !state.shiftActive;
+                    document.querySelector('[data-func="shift"]').classList.toggle('active', state.shiftActive);
+                    return;
+                case 'pi': state.expression += 'pi'; break;
+                case 'e': state.expression += 'e'; break;
+                case 'sqr': state.expression = `(${state.expression})^2`; break;
+                case 'inv': state.expression = `1/(${state.expression})`; break;
+                case 'pow': state.expression += '^'; break;
+                case 'sign': state.expression = `-(${state.expression})`; break;
+                case 'percent': 
+                    state.expression += '%';
+                    calculate();
+                    return;
+                case 'ans': state.expression += 'ans'; break;
+                case 'fact':
+                    if (state.expression) state.expression = `factorial(${state.expression})`;
+                    break;
+                case 'sqrt':
+                    if (state.expression) state.expression = `sqrt(${state.expression})`;
+                    else state.expression = 'sqrt(';
+                    break;
+                case 'cbrt':
+                    if (state.expression) state.expression = `cbrt(${state.expression})`;
+                    else state.expression = 'cbrt(';
+                    break;
+                case 'cube':
+                    if (state.expression) state.expression = `(${state.expression})^3`;
+                    else state.expression = '(ans)^3';
+                    break;
+                case 'asin': case 'acos': case 'atan':
+                case 'sin': case 'cos': case 'tan':
+                case 'log': case 'ln': case 'exp': case 'pow10':
+                    if (state.expression) state.expression = `${fn}(${state.expression})`;
+                    else state.expression = `${fn}(`;
+                    break;
+                case 'M+':
+                    if (state.isResult) {
+                        const num = parseFloat(state.expression.replace(/,/g, '.'));
+                        if (!isNaN(num)) globalMemory += num;
+                    }
+                    break;
+                case 'MR':
+                    state.expression += String(globalMemory);
+                    break;
+                case 'MC':
+                    globalMemory = 0;
+                    break;
+                default: return;
+            }
+            state.isResult = false;
+        }
+
+        function calculate() {
+            if (state.expression.trim() === '') return;
+            try {
+                parser.set('angle', state.angleMode);
+                parser.set('ans', state.lastResult);
+                const result = parser.evaluate(state.expression);
+                let formattedResult;
+                const absResult = math.abs(result);
+                if (absResult > math.bignumber('1e' + state.displayLimit) || (absResult < math.bignumber('1e-6') && !math.isZero(result))) {
+                    formattedResult = math.format(result, { notation: 'exponential', precision: 5 });
+                } else {
+                    formattedResult = math.format(result, { notation: 'fixed', precision: 10 });
+                }
+                if (formattedResult.includes('.')) {
+                    formattedResult = formattedResult.replace(/0+$/, '').replace(/\.$/, '');
+                }
+                state.lastResult = formattedResult;
+                state.expression = formattedResult;
+                state.isResult = true;
+            } catch (error) {
+                state.expression = 'Error';
+                state.isResult = true;
+            }
+        }
+
+        function formatForDisplay(text, limit) {
+            let numStr = text.replace(/,/g, '.');
+            if (numStr.length > limit && !numStr.includes('e')) {
+                try {
+                    const num = math.bignumber(numStr);
+                    return math.format(num, { notation: 'exponential', precision: 5 });
+                } catch (e) {}
+            }
+            return text.replace(/\./g, ',');
+        }
+
+        function updateDisplay() {
+            const mainDisplay = document.getElementById('cw-result');
+            const secondaryDisplay = document.getElementById('cw-input');
+            let displayText = state.expression || '0';
+            if (mainDisplay) {
+                if (state.isResult) {
+                    mainDisplay.textContent = formatForDisplay(displayText, state.displayLimit);
+                    if (secondaryDisplay) secondaryDisplay.textContent = '';
+                } else {
+                    const parts = displayText.split(/([\+\-\*\/()^,])/);
+                    mainDisplay.textContent = formatForDisplay(parts[parts.length-1] || '0', state.displayLimit);
+                    if (secondaryDisplay) {
+                        secondaryDisplay.textContent = displayText
+                            .replace(/\*/g, '×')
+                            .replace(/\//g, '÷');
+                    }
+                }
+            }
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
