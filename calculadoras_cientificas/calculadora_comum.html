@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora Comum - thIAguinho Soluções</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="../firebase-config.js"></script>
+    <style>
+        :root {
+            --common-bg: #1A1A1A;
+            --common-display: #1A1A1A;
+            --common-text: #FFFFFF;
+            --common-btn-dark: #2E2E2E;
+            --common-btn-light: #474747;
+            --common-btn-blue: #3385FF;
+            --common-btn-orange: #FF8C33;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: #0a0a0a;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .header-title { font-size: 1.1rem; font-weight: 600; }
+        .header-back {
+            padding: 10px 18px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .header-back:hover { background: rgba(255,255,255,0.15); color: #ddd; }
+        .calc-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+            padding-bottom: 20px;
+        }
+        .common-container {
+            display: flex;
+            flex-direction: column;
+            width: 95%;
+            max-width: 420px;
+            height: 85vh;
+            max-height: 850px;
+            background-color: var(--common-bg);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .common-display-area {
+            background-color: var(--common-display);
+            padding: 1.2rem;
+            height: 35%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: var(--common-text);
+            overflow: hidden;
+        }
+        .common-angle { 
+            font-size: 0.9rem; 
+            color: #888; 
+            margin-bottom: 0.5rem;
+            font-family: 'Roboto Mono', monospace;
+            text-align: right;
+        }
+        .common-display { 
+            font-size: clamp(2.5rem, 12vw, 4rem); 
+            text-align: right;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 300;
+            word-break: break-all;
+            white-space: nowrap;
+        }
+        .common-keypad {
+            height: 65%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 1px;
+            background-color: #0a0a0a;
+        }
+        .common-btn {
+            border: none;
+            background-color: var(--common-btn-dark);
+            color: var(--common-text);
+            font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            min-height: 48px;
+            min-width: 48px;
+            border-radius: 12px;
+        }
+        .common-btn:active { filter: brightness(1.3); }
+        .common-btn.light { background-color: var(--common-btn-light); }
+        .common-btn.blue { background-color: var(--common-btn-blue); }
+        .common-btn.orange { background-color: var(--common-btn-orange); }
+        .common-btn.orange.active { background-color: #FFAC73; }
+        .common-btn.span-2 { grid-row: span 2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="header-back" onclick="window.location.href='../dashboard.html'">← Voltar</button>
+        <div class="header-title">Calculadora Comum</div>
+        <button class="header-back" id="logout-button" onclick="auth.signOut().then(() => window.location.replace('../index.html'))">Sair</button>
+    </div>
+
+    <div class="calc-wrapper">
+        <div class="common-container">
+            <div class="common-display-area">
+                <div class="common-display" id="common-display">0</div>
+            </div>
+            <div class="common-keypad">
+                <button class="common-btn light" data-func="clear">C</button>
+                <button class="common-btn orange" data-func="percent">%</button>
+                <button class="common-btn blue" data-operator="/">÷</button>
+                <button class="common-btn blue" data-func="backspace">⌫</button>
+                <button class="common-btn" data-value="7">7</button>
+                <button class="common-btn" data-value="8">8</button>
+                <button class="common-btn" data-value="9">9</button>
+                <button class="common-btn blue" data-operator="*">×</button>
+                <button class="common-btn" data-value="4">4</button>
+                <button class="common-btn" data-value="5">5</button>
+                <button class="common-btn" data-value="6">6</button>
+                <button class="common-btn blue" data-operator="-">−</button>
+                <button class="common-btn" data-value="1">1</button>
+                <button class="common-btn" data-value="2">2</button>
+                <button class="common-btn" data-value="3">3</button>
+                <button class="common-btn blue" data-operator="+">+</button>
+                <button class="common-btn span-2" data-value="0">0</button>
+                <button class="common-btn" data-value=".">.</button>
+                <button class="common-btn blue span-2" data-func="equal">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.replace('../index.html');
+                return;
+            }
+            currentUser = user;
+            const userRef = database.ref(`users_public_list/${user.uid}`);
+            try {
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                if (userData && userData.isBlocked) {
+                    alert('Sua conta foi bloqueada. Contate o administrador.');
+                    window.location.replace('../index.html');
+                    return;
+                }
+            } catch (error) {
+                console.error("Erro ao verificar status do usuário:", error);
+                window.location.replace('../index.html');
+            }
+        });
+
+        const state = {
+            expression: '',
+            isResult: false,
+            displayLimit: 12
+        };
+
+        const parser = math.parser();
+        math.config({ number: 'BigNumber', precision: 64 });
+
+        document.body.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-func],[data-value],[data-operator]');
+            if (!btn) return;
+            if (navigator.vibrate) navigator.vibrate(20);
+
+            const { value, operator, func } = btn.dataset;
+
+            if (value !== undefined) {
+                if (state.isResult && !isNaN(value)) {
+                    state.expression = '';
+                    state.isResult = false;
+                }
+                state.expression += value;
+            } else if (operator !== undefined) {
+                if (state.expression === '' || state.expression === 'Error') return;
+                state.isResult = false;
+                const lastChar = state.expression.trim().slice(-1);
+                if (['+', '*', '/'].includes(lastChar)) {
+                    state.expression = state.expression.trim().slice(0, -1) + operator;
+                } else {
+                    state.expression += operator;
+                }
+            } else if (func !== undefined) {
+                if (state.expression === 'Error' && func !== 'clear') return;
+                switch(func) {
+                    case 'equal': calculate(); return;
+                    case 'clear': state.expression = ''; break;
+                    case 'backspace': state.expression = state.expression.slice(0, -1); break;
+                    case 'percent': 
+                        const expr = state.expression;
+                        const match = expr.match(/([\d\.]+(?:e[+-]?\d+)?)%$/);
+                        if (match) {
+                            const percentValue = match[1];
+                            const baseExpr = expr.slice(0, -percentValue.length - 1);
+                            if (baseExpr === '') {
+                                state.expression = `${parseFloat(percentValue) / 100}`;
+                            } else {
+                                state.expression = `${baseExpr} * ${percentValue} / 100`;
+                            }
+                            calculate();
+                        } else {
+                            state.expression += '%';
+                        }
+                        return;
+                    default: return;
+                }
+                state.isResult = false;
+            }
+
+            updateDisplay();
+        });
+
+        function calculate() {
+            if (state.expression.trim() === '') return;
+            try {
+                const result = parser.evaluate(state.expression);
+                let formattedResult;
+                const absResult = math.abs(result);
+                if (absResult > math.bignumber('1e' + state.displayLimit) || (absResult < math.bignumber('1e-6') && !math.isZero(result))) {
+                    formattedResult = math.format(result, { notation: 'exponential', precision: 5 });
+                } else {
+                    formattedResult = math.format(result, { notation: 'fixed', precision: 10 });
+                }
+                if (formattedResult.includes('.')) {
+                    formattedResult = formattedResult.replace(/0+$/, '').replace(/\.$/, '');
+                }
+                state.expression = formattedResult;
+                state.isResult = true;
+            } catch (error) {
+                state.expression = 'Error';
+                state.isResult = true;
+            }
+        }
+
+        function formatForDisplay(text, limit) {
+            let numStr = text.replace(/,/g, '.');
+            if (numStr.length > limit && !numStr.includes('e')) {
+                try {
+                    const num = math.bignumber(numStr);
+                    return math.format(num, { notation: 'exponential', precision: 5 });
+                } catch (e) {}
+            }
+            return text.replace(/\./g, ',');
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById('common-display');
+            let displayText = state.expression || '0';
+            if (display) {
+                if (state.isResult) {
+                    display.textContent = formatForDisplay(displayText, state.displayLimit);
+                } else {
+                    const parts = displayText.split(/([\+\-\*\/()^,])/);
+                    display.textContent = formatForDisplay(parts[parts.length-1] || '0', state.displayLimit);
+                }
+            }
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
