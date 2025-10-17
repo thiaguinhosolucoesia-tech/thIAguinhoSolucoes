@@ -15,603 +15,237 @@
     <script src="../firebase-config.js"></script>
     <style>
         :root {
-            --fx-shell: #505050;
-            --fx-display-bg: #A0A0A0;
-            --fx-display-text: #000;
-            --fx-btn-dark: #202020;
-            --fx-btn-light: #D0D0D0;
-            --fx-btn-num: #E0E0E0;
-            --fx-btn-del: #D07090;
-            --fx-btn-ac: #D07090;
-            --fx-shift-text: #FFD700;
-            --fx-alpha-text: #FF6347;
+            --fx-shell: #E1E2E6;
+            --fx-display-bg: #C1C9C5;
+            --fx-keypad-bg: #D1D3D8;
+            --fx-key-text: #2B2829;
+            --fx-solar-panel: #3A3A3A;
+            --fx-blue: #0060A8;
+            --fx-red: #B92A34;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            background-color: #0a0a0a;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Inter', sans-serif;
+        body { background-color: #333; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .calculator-body {
+            position: relative; width: 350px; height: 650px; background-color: var(--fx-shell);
+            border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 0 5px rgba(255,255,255,0.5);
+            margin: auto; padding: 25px;
         }
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .header-title { font-size: 1.1rem; font-weight: 600; }
-        .header-back {
-            padding: 10px 18px;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: #aaa;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        .header-back:hover { background: rgba(255,255,255,0.15); color: #ddd; }
-        .calc-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-top: 80px;
-            padding-bottom: 20px;
-        }
-        .fx-container {
-            display: flex;
-            flex-direction: column;
-            width: 95%;
-            max-width: 380px;
-            height: 85vh;
-            max-height: 820px;
-            background-color: var(--fx-shell);
-            border-radius: 20px;
-            padding: 1.2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            overflow: hidden;
-        }
-        .fx-header {
-            color: #C1C3C6;
-            padding: 0 0.5rem;
-            margin-bottom: 0.8rem;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-        .fx-display-area {
-            background-color: var(--fx-display-bg);
-            border-radius: 10px;
-            padding: 0.8rem;
-            height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            font-family: 'Roboto Mono', monospace;
-            color: var(--fx-display-text);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-        .fx-input { font-size: 0.9rem; text-align: right; min-height: 40%; word-break: break-all; }
-        .fx-result { font-size: 1.4rem; text-align: right; font-weight: 500; white-space: nowrap;}
-        .fx-keypad {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-auto-rows: 1fr;
-            gap: min(8px, 1.5vw);
-            padding: 10px;
-            position: relative;
-        }
-
-        /* Botões Genéricos */
-        .fx-btn {
-            position: relative;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--fx-btn-dark);
-            color: #FFFFFF;
-            font-size: clamp(0.9rem, 3.2vw, 1.2rem);
-            font-weight: 600;
-            min-height: 48px;
-            box-shadow: 0 3px 0 #1E2229, 0 4px 3px rgba(0,0,0,0.5);
-            transition: all 0.05s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .fx-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1E2229; }
-        .fx-btn.dark { background-color: var(--fx-btn-dark); }
-        .fx-btn.num { background-color: var(--fx-btn-num); color: #000; }
-        .fx-btn.del { background-color: var(--fx-btn-del); color: #fff; }
-        .fx-btn.ac { background-color: var(--fx-btn-ac); color: #fff; }
-        .fx-btn.dark.active { background-color: #5A5E65; }
-        .fx-btn .shift-active-text { color: var(--fx-shift-text); }
-        .fx-btn .alpha-active-text { color: var(--fx-alpha-text); }
-
-        /* Botões Específicos da FX-991ES */
-        .btn-shift { background-color: var(--fx-btn-light); color: var(--fx-shift-text); }
-        .btn-alpha { background-color: var(--fx-btn-light); color: var(--fx-alpha-text); }
-        .btn-modeclr { background-color: var(--fx-btn-light); color: #000; }
-        .btn-on { background-color: var(--fx-btn-light); color: #000; }
-        .btn-rec { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-pol { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-cube { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-log { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-ln { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-sin { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-cos { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-tan { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-hyp { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-eng { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-ins { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-off { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-sto { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-rcl { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-mplus { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-mminus { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-mrc { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-s-sum { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-s-var { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-rnd { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-ran { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-pi { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-drg { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-        .btn-percent { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
-
-        /* Posicionamento Absoluto dos Botões */
-        .fx-keypad > * {
-            position: static !important;
-        }
-        .btn-shift { position: absolute; top: 10px; left: 10px; width: 40px; height: 20px; }
-        .btn-alpha { position: absolute; top: 10px; left: 60px; width: 40px; height: 20px; }
-        .btn-modeclr { position: absolute; top: 10px; right: 60px; width: 40px; height: 20px; }
-        .btn-on { position: absolute; top: 10px; right: 10px; width: 40px; height: 20px; }
-        .btn-rec { position: absolute; top: 50px; right: 10px; width: 40px; height: 20px; }
-        .btn-pol { position: absolute; top: 75px; right: 10px; width: 40px; height: 20px; }
-        .btn-cube { position: absolute; top: 100px; right: 10px; width: 40px; height: 20px; }
-        .btn-log { position: absolute; top: 50px; right: 60px; width: 40px; height: 20px; }
-        .btn-ln { position: absolute; top: 75px; right: 60px; width: 40px; height: 20px; }
-        .btn-sin { position: absolute; top: 125px; right: 10px; width: 40px; height: 20px; }
-        .btn-cos { position: absolute; top: 125px; right: 60px; width: 40px; height: 20px; }
-        .btn-tan { position: absolute; top: 125px; right: 110px; width: 40px; height: 20px; }
-        .btn-hyp { position: absolute; top: 150px; right: 10px; width: 40px; height: 20px; }
-        .btn-eng { position: absolute; top: 150px; right: 60px; width: 40px; height: 20px; }
-        .btn-ins { position: absolute; top: 150px; right: 110px; width: 40px; height: 20px; }
-        .btn-off { position: absolute; top: 175px; right: 10px; width: 40px; height: 20px; }
-        .btn-sto { position: absolute; top: 175px; right: 60px; width: 40px; height: 20px; }
-        .btn-rcl { position: absolute; top: 175px; right: 110px; width: 40px; height: 20px; }
-        .btn-mplus { position: absolute; top: 200px; right: 10px; width: 40px; height: 20px; }
-        .btn-mminus { position: absolute; top: 200px; right: 60px; width: 40px; height: 20px; }
-        .btn-mrc { position: absolute; top: 200px; right: 110px; width: 40px; height: 20px; }
-        .btn-s-sum { position: absolute; top: 225px; right: 10px; width: 40px; height: 20px; }
-        .btn-s-var { position: absolute; top: 225px; right: 60px; width: 40px; height: 20px; }
-        .btn-rnd { position: absolute; top: 250px; right: 10px; width: 40px; height: 20px; }
-        .btn-ran { position: absolute; top: 250px; right: 60px; width: 40px; height: 20px; }
-        .btn-pi { position: absolute; top: 250px; right: 110px; width: 40px; height: 20px; }
-        .btn-drg { position: absolute; top: 275px; right: 10px; width: 40px; height: 20px; }
-        .btn-percent { position: absolute; top: 275px; right: 60px; width: 40px; height: 20px; }
-
-        /* Botões Numéricos */
-        .btn-7 { position: absolute; top: 300px; left: 10px; width: 50px; height: 40px; }
-        .btn-8 { position: absolute; top: 300px; left: 70px; width: 50px; height: 40px; }
-        .btn-9 { position: absolute; top: 300px; left: 130px; width: 50px; height: 40px; }
-        .btn-4 { position: absolute; top: 350px; left: 10px; width: 50px; height: 40px; }
-        .btn-5 { position: absolute; top: 350px; left: 70px; width: 50px; height: 40px; }
-        .btn-6 { position: absolute; top: 350px; left: 130px; width: 50px; height: 40px; }
-        .btn-1 { position: absolute; top: 400px; left: 10px; width: 50px; height: 40px; }
-        .btn-2 { position: absolute; top: 400px; left: 70px; width: 50px; height: 40px; }
-        .btn-3 { position: absolute; top: 400px; left: 130px; width: 50px; height: 40px; }
-        .btn-0 { position: absolute; top: 450px; left: 10px; width: 50px; height: 40px; }
-        .btn-dot { position: absolute; top: 450px; left: 70px; width: 50px; height: 40px; }
-        .btn-exp { position: absolute; top: 450px; left: 130px; width: 50px; height: 40px; }
-        .btn-ans { position: absolute; top: 450px; left: 190px; width: 50px; height: 40px; }
-        .btn-equal { position: absolute; top: 450px; left: 250px; width: 50px; height: 40px; }
-
-        /* Botões Operadores */
-        .btn-plus { position: absolute; top: 400px; left: 250px; width: 50px; height: 40px; }
-        .btn-minus { position: absolute; top: 350px; left: 250px; width: 50px; height: 40px; }
-        .btn-multiply { position: absolute; top: 300px; left: 250px; width: 50px; height: 40px; }
-        .btn-divide { position: absolute; top: 250px; left: 250px; width: 50px; height: 40px; }
-        .btn-open { position: absolute; top: 200px; left: 10px; width: 50px; height: 40px; }
-        .btn-close { position: absolute; top: 200px; left: 70px; width: 50px; height: 40px; }
-        .btn-comma { position: absolute; top: 200px; left: 130px; width: 50px; height: 40px; }
-        .btn-del { position: absolute; top: 200px; left: 190px; width: 50px; height: 40px; }
-        .btn-ac { position: absolute; top: 200px; left: 250px; width: 50px; height: 40px; }
-
-        /* Botões de Função */
-        .btn-xinv { position: absolute; top: 50px; left: 10px; width: 40px; height: 20px; }
-        .btn-npr { position: absolute; top: 50px; left: 60px; width: 40px; height: 20px; }
-        .btn-xsqrt { position: absolute; top: 75px; left: 10px; width: 40px; height: 20px; }
-        .btn-xpow2 { position: absolute; top: 75px; left: 60px; width: 40px; height: 20px; }
-        .btn-xpowy { position: absolute; top: 75px; left: 110px; width: 40px; height: 20px; }
-        .btn-ab { position: absolute; top: 100px; left: 10px; width: 40px; height: 20px; }
-        .btn-sqrt { position: absolute; top: 100px; left: 60px; width: 40px; height: 20px; }
-        .btn-xpow3 { position: absolute; top: 100px; left: 110px; width: 40px; height: 20px; }
-        .btn-xy { position: absolute; top: 125px; left: 10px; width: 40px; height: 20px; }
-        .btn-sin { position: absolute; top: 125px; left: 60px; width: 40px; height: 20px; }
-        .btn-cos { position: absolute; top: 125px; left: 110px; width: 40px; height: 20px; }
-        .btn-tan { position: absolute; top: 125px; left: 160px; width: 40px; height: 20px; }
-        .btn-hyp { position: absolute; top: 150px; left: 10px; width: 40px; height: 20px; }
-        .btn-eng { position: absolute; top: 150px; left: 60px; width: 40px; height: 20px; }
-        .btn-ins { position: absolute; top: 150px; left: 110px; width: 40px; height: 20px; }
-        .btn-off { position: absolute; top: 175px; left: 10px; width: 40px; height: 20px; }
-        .btn-sto { position: absolute; top: 175px; left: 60px; width: 40px; height: 20px; }
-        .btn-rcl { position: absolute; top: 175px; left: 110px; width: 40px; height: 20px; }
-        .btn-mplus { position: absolute; top: 200px; left: 10px; width: 40px; height: 20px; }
-        .btn-mminus { position: absolute; top: 200px; left: 60px; width: 40px; height: 20px; }
-        .btn-mrc { position: absolute; top: 200px; left: 110px; width: 40px; height: 20px; }
-        .btn-s-sum { position: absolute; top: 225px; left: 10px; width: 40px; height: 20px; }
-        .btn-s-var { position: absolute; top: 225px; left: 60px; width: 40px; height: 20px; }
-        .btn-rnd { position: absolute; top: 250px; left: 10px; width: 40px; height: 20px; }
-        .btn-ran { position: absolute; top: 250px; left: 60px; width: 40px; height: 20px; }
-        .btn-pi { position: absolute; top: 250px; left: 110px; width: 40px; height: 20px; }
-        .btn-drg { position: absolute; top: 275px; left: 10px; width: 40px; height: 20px; }
-        .btn-percent { position: absolute; top: 275px; left: 60px; width: 40px; height: 20px; }
-
-        /* Indicador de Modo */
-        .mode-indicator {
-            position: absolute;
-            top: 10px;
-            right: 120px;
-            font-size: 0.7rem;
-            color: #000;
-            background-color: #FFF;
-            padding: 2px 4px;
-            border-radius: 4px;
-            z-index: 20;
-        }
-        .mode-indicator::after {
-            content: "DEG";
-            font-weight: 600;
-        }
+        .fx-header { display: flex; justify-content: space-between; align-items: center; color: var(--fx-blue); }
+        .fx-display-area { background-color: var(--fx-display-bg); border-radius: 8px; padding: 10px; margin: 15px 0; border: 2px solid #B0B8B4; }
+        #fx-input { font-family: 'Roboto Mono', monospace; height: 25px; font-size: 1.2rem; text-align: right; color: #333; overflow-x: auto; white-space: nowrap; }
+        #fx-result { font-family: 'Roboto Mono', monospace; height: 40px; font-size: 2.2rem; text-align: right; color: #000; font-weight: bold; overflow-x: auto; white-space: nowrap; }
+        .fx-keypad button { position: absolute; font-size: 1rem; border: none; border-radius: 5px; background-color: var(--fx-keypad-bg); color: var(--fx-key-text); box-shadow: 0 2px 3px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(0,0,0,0.1); cursor: pointer; }
+        .fx-keypad button:active { transform: translateY(1px); box-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        /* Posicionamento dos botões (mantido para fidelidade visual) */
+        .btn-sin { top: 250px; left: 30px; } .btn-cos { top: 250px; left: 105px; } .btn-tan { top: 250px; left: 180px; }
+        .btn-7 { top: 320px; left: 30px; width: 60px; height: 50px; } .btn-8 { top: 320px; left: 105px; width: 60px; height: 50px; } .btn-9 { top: 320px; left: 180px; width: 60px; height: 50px; }
+        .btn-4 { top: 385px; left: 30px; width: 60px; height: 50px; } .btn-5 { top: 385px; left: 105px; width: 60px; height: 50px; } .btn-6 { top: 385px; left: 180px; width: 60px; height: 50px; }
+        .btn-1 { top: 450px; left: 30px; width: 60px; height: 50px; } .btn-2 { top: 450px; left: 105px; width: 60px; height: 50px; } .btn-3 { top: 450px; left: 180px; width: 60px; height: 50px; }
+        .btn-0 { top: 515px; left: 30px; width: 60px; height: 50px; } .btn-dot { top: 515px; left: 105px; width: 60px; height: 50px; } .btn-ans { top: 515px; left: 180px; width: 60px; height: 50px; }
+        .btn-add { top: 450px; left: 255px; width: 60px; height: 50px; } .btn-sub { top: 385px; left: 255px; width: 60px; height: 50px; }
+        .btn-mul { top: 320px; left: 255px; width: 60px; height: 50px; } .btn-div { top: 250px; left: 255px; width: 60px; height: 50px; }
+        .btn-eq { top: 515px; left: 255px; width: 60px; height: 50px; background-color: var(--fx-blue); color: white; }
+        .btn-ac { top: 180px; left: 255px; width: 60px; height: 50px; background-color: var(--fx-red); color: white; }
+        .btn-lparen { top: 180px; left: 30px; width: 60px; height: 50px; } .btn-rparen { top: 180px; left: 105px; width: 60px; height: 50px; }
+        .btn-percent { top: 180px; left: 180px; width: 60px; height: 50px; }
     </style>
 </head>
-<body>
-    <div class="header">
-        <button class="header-back" onclick="window.location.href='../dashboard.html'">← Voltar</button>
-        <div class="header-title">Casio FX-991ES</div>
-        <button class="header-back" id="logout-button" onclick="auth.signOut().then(() => window.location.replace('../index.html'))">Sair</button>
-    </div>
-
-    <div class="calc-wrapper">
-        <div class="fx-container">
-            <div class="fx-header">thIAguinho Soluções</div>
-            <div class="fx-display-area">
-                <div class="fx-input" id="fx-input"></div>
-                <div class="fx-result" id="fx-result">0</div>
-            </div>
-            <div id="fx-991es-keypad" class="fx-keypad">
-                <!-- Botões Topo -->
-                <button class="fx-btn btn-shift" data-func="shift">SHIFT</button>
-                <button class="fx-btn btn-alpha" data-func="alpha">ALPHA</button>
-                <button class="fx-btn btn-modeclr" data-func="mode">MODE</button>
-                <button class="fx-btn btn-on" data-func="on">ON</button>
-                <button class="fx-btn btn-rec" data-func="rec">Rec(</button>
-                <button class="fx-btn btn-pol" data-func="pol">Pol(</button>
-                <button class="fx-btn btn-cube" data-func="cube">x³</button>
-                <button class="fx-btn btn-log" data-func="log">log</button>
-                <button class="fx-btn btn-ln" data-func="ln">ln</button>
-                <button class="fx-btn btn-sin" data-func="sin">sin</button>
-                <button class="fx-btn btn-cos" data-func="cos">cos</button>
-                <button class="fx-btn btn-tan" data-func="tan">tan</button>
-                <button class="fx-btn btn-hyp" data-func="hyp">hyp</button>
-                <button class="fx-btn btn-eng" data-func="eng">ENG</button>
-                <button class="fx-btn btn-ins" data-func="ins">INS</button>
-                <button class="fx-btn btn-off" data-func="off">OFF</button>
-                <button class="fx-btn btn-sto" data-func="sto">STO</button>
-                <button class="fx-btn btn-rcl" data-func="rcl">RCL</button>
-                <button class="fx-btn btn-mplus" data-func="mplus">M+</button>
-                <button class="fx-btn btn-mminus" data-func="mminus">M-</button>
-                <button class="fx-btn btn-mrc" data-func="mrc">MRC</button>
-                <button class="fx-btn btn-s-sum" data-func="s-sum">S-SUM</button>
-                <button class="fx-btn btn-s-var" data-func="s-var">S-VAR</button>
-                <button class="fx-btn btn-rnd" data-func="rnd">Rnd</button>
-                <button class="fx-btn btn-ran" data-func="ran">Ran#</button>
-                <button class="fx-btn btn-pi" data-func="pi">π</button>
-                <button class="fx-btn btn-drg" data-func="drg">DRG►</button>
-                <button class="fx-btn btn-percent" data-func="percent">%</button>
-
-                <!-- Botões Numéricos -->
-                <button class="fx-btn btn-7" data-value="7">7</button>
-                <button class="fx-btn btn-8" data-value="8">8</button>
-                <button class="fx-btn btn-9" data-value="9">9</button>
-                <button class="fx-btn btn-4" data-value="4">4</button>
-                <button class="fx-btn btn-5" data-value="5">5</button>
-                <button class="fx-btn btn-6" data-value="6">6</button>
-                <button class="fx-btn btn-1" data-value="1">1</button>
-                <button class="fx-btn btn-2" data-value="2">2</button>
-                <button class="fx-btn btn-3" data-value="3">3</button>
-                <button class="fx-btn btn-0" data-value="0">0</button>
-                <button class="fx-btn btn-dot" data-value=".">.</button>
-                <button class="fx-btn btn-exp" data-value="EXP">EXP</button>
-                <button class="fx-btn btn-ans" data-func="ans">Ans</button>
-                <button class="fx-btn btn-equal" data-func="equal">=</button>
-
-                <!-- Botões Operadores -->
-                <button class="fx-btn btn-plus" data-operator="+">+</button>
-                <button class="fx-btn btn-minus" data-operator="-">−</button>
-                <button class="fx-btn btn-multiply" data-operator="*">×</button>
-                <button class="fx-btn btn-divide" data-operator="/">÷</button>
-                <button class="fx-btn btn-open" data-value="(">(</button>
-                <button class="fx-btn btn-close" data-value=")">)</button>
-                <button class="fx-btn btn-comma" data-value=",">,</button>
-                <button class="fx-btn btn-del" data-func="del">DEL</button>
-                <button class="fx-btn btn-ac" data-func="ac">AC</button>
-
-                <!-- Botões de Função -->
-                <button class="fx-btn btn-xinv" data-func="xinv">x⁻¹</button>
-                <button class="fx-btn btn-npr" data-func="npr">nPr</button>
-                <button class="fx-btn btn-xsqrt" data-func="xsqrt">√</button>
-                <button class="fx-btn btn-xpow2" data-func="xpow2">x²</button>
-                <button class="fx-btn btn-xpowy" data-func="xpowy">xʸ</button>
-                <button class="fx-btn btn-ab" data-func="ab">ab/c</button>
-                <button class="fx-btn btn-sqrt" data-func="sqrt">√</button>
-                <button class="fx-btn btn-xpow3" data-func="xpow3">x³</button>
-                <button class="fx-btn btn-xy" data-func="xy">x,y</button>
-                <button class="fx-btn btn-sin" data-func="sin">sin</button>
-                <button class="fx-btn btn-cos" data-func="cos">cos</button>
-                <button class="fx-btn btn-tan" data-func="tan">tan</button>
-                <button class="fx-btn btn-hyp" data-func="hyp">hyp</button>
-                <button class="fx-btn btn-eng" data-func="eng">ENG</button>
-                <button class="fx-btn btn-ins" data-func="ins">INS</button>
-                <button class="fx-btn btn-off" data-func="off">OFF</button>
-                <button class="fx-btn btn-sto" data-func="sto">STO</button>
-                <button class="fx-btn btn-rcl" data-func="rcl">RCL</button>
-                <button class="fx-btn btn-mplus" data-func="mplus">M+</button>
-                <button class="fx-btn btn-mminus" data-func="mminus">M-</button>
-                <button class="fx-btn btn-mrc" data-func="mrc">MRC</button>
-                <button class="fx-btn btn-s-sum" data-func="s-sum">S-SUM</button>
-                <button class="fx-btn btn-s-var" data-func="s-var">S-VAR</button>
-                <button class="fx-btn btn-rnd" data-func="rnd">Rnd</button>
-                <button class="fx-btn btn-ran" data-func="ran">Ran#</button>
-                <button class="fx-btn btn-pi" data-func="pi">π</button>
-                <button class="fx-btn btn-drg" data-func="drg">DRG►</button>
-                <button class="fx-btn btn-percent" data-func="percent">%</button>
-
-                <!-- Indicador de Modo -->
-                <div class="mode-indicator"></div>
-            </div>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="calculator-body">
+        <div class="fx-header">
+            <span class="font-bold text-lg">thIAguinho</span>
+            <span>FX-991ES</span>
+        </div>
+        <div class="fx-display-area">
+            <div id="fx-input"></div>
+            <div id="fx-result">0</div>
+        </div>
+        <div class="fx-keypad">
+            <button class="btn-sin" onclick="handleInput('func', 'sin(')">sin</button>
+            <button class="btn-cos" onclick="handleInput('func', 'cos(')">cos</button>
+            <button class="btn-tan" onclick="handleInput('func', 'tan(')">tan</button>
+            <button class="btn-lparen" onclick="handleInput('lparen', '(')">(</button>
+            <button class="btn-rparen" onclick="handleInput('rparen', ')')">)</button>
+            <button class="btn-percent" onclick="handleInput('percent', '%')">%</button>
+            <button class="btn-7" onclick="handleInput('digit', '7')">7</button>
+            <button class="btn-8" onclick="handleInput('digit', '8')">8</button>
+            <button class="btn-9" onclick="handleInput('digit', '9')">9</button>
+            <button class="btn-4" onclick="handleInput('digit', '4')">4</button>
+            <button class="btn-5" onclick="handleInput('digit', '5')">5</button>
+            <button class="btn-6" onclick="handleInput('digit', '6')">6</button>
+            <button class="btn-1" onclick="handleInput('digit', '1')">1</button>
+            <button class="btn-2" onclick="handleInput('digit', '2')">2</button>
+            <button class="btn-3" onclick="handleInput('digit', '3')">3</button>
+            <button class="btn-0" onclick="handleInput('digit', '0')">0</button>
+            <button class="btn-dot" onclick="handleInput('decimal', ',')">.</button>
+            <button class="btn-ans" onclick="handleInput('ans', 'Ans')">Ans</button>
+            <button class="btn-mul" onclick="handleInput('operator', '*')">×</button>
+            <button class="btn-div" onclick="handleInput('operator', '/')">÷</button>
+            <button class="btn-add" onclick="handleInput('operator', '+')">+</button>
+            <button class="btn-sub" onclick="handleInput('operator', '-')">−</button>
+            <button class="btn-ac" onclick="handleInput('clear', 'AC')">AC</button>
+            <button class="btn-eq" onclick="calculate()">=</button>
         </div>
     </div>
-
     <script>
-        let globalMemory = 0;
-        let currentUser = null;
+        const auth = firebase.auth();
+        const database = firebase.database();
+
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.replace('../index.html');
-                return;
-            }
-            currentUser = user;
-            const userRef = database.ref(`users_public_list/${user.uid}`);
-            try {
-                const snapshot = await userRef.once('value');
-                const userData = snapshot.val();
-                if (userData && userData.isBlocked) {
-                    alert('Sua conta foi bloqueada. Contate o administrador.');
-                    window.location.replace('../index.html');
-                    return;
+            if (user) {
+                try {
+                    const snapshot = await database.ref(`users_public_list/${user.uid}`).get();
+                    if (snapshot.exists() && snapshot.val().isBlocked) {
+                        alert("Sua conta foi bloqueada. Contate o suporte.");
+                        window.location.replace('../dashboard.html');
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar status do usuário:", error);
+                    alert("Não foi possível verificar o status da sua conta.");
                 }
-            } catch (error) {
-                console.error("Erro ao verificar status do usuário:", error);
+            } else {
                 window.location.replace('../index.html');
             }
         });
 
         const state = {
             expression: '',
-            angleMode: 'deg',
-            shiftActive: false,
             isResult: false,
-            displayLimit: 10,
-            lastResult: '0'
+            lastResult: '0',
+            angleMode: 'deg', // 'deg' or 'rad'
+            displayLimit: 15
         };
 
         const parser = math.parser();
-        math.config({ number: 'BigNumber', precision: 64 });
 
-        function handlePercentage() {
-            const expr = state.expression;
-            const match = expr.match(/([\d\.]+(?:e[+-]?\d+)?)%$/);
-            if (match) {
-                const percentValue = match[1];
-                const baseExpr = expr.slice(0, -percentValue.length - 1);
-                if (baseExpr === '') {
-                    state.expression = `${parseFloat(percentValue) / 100}`;
+        function vibrate() {
+            if ('vibrate' in navigator) navigator.vibrate(50);
+        }
+
+        function handleInput(type, value) {
+            vibrate();
+
+            if (state.isResult && type !== 'operator' && type !== 'percent') {
+                state.expression = '';
+            }
+            if (state.isResult && type === 'operator') {
+                state.expression = `Ans ${value} `;
+            }
+            state.isResult = false;
+
+            switch (type) {
+                case 'digit':
+                case 'func':
+                case 'lparen':
+                case 'rparen':
+                    state.expression += value;
+                    break;
+                case 'decimal':
+                     state.expression += '.';
+                    break;
+                case 'operator':
+                    state.expression += ` ${value} `;
+                    break;
+                case 'clear':
+                    state.expression = '';
+                    break;
+                case 'ans':
+                    state.expression += 'Ans';
+                    break;
+                case 'percent':
+                     applyScientificPercentage();
+                    break;
+            }
+            updateDisplay();
+        }
+        
+        function applyScientificPercentage() {
+            // Logic for Casio-style percentage
+            try {
+                const parts = state.expression.trim().split(' ');
+                 if (parts.length < 1) return;
+        
+                const lastPart = parts[parts.length - 1];
+                const numberToPercent = parseFloat(lastPart);
+        
+                if (isNaN(numberToPercent)) return;
+
+                let resultPercent;
+                 if (parts.length >= 3 && ['+', '-'].includes(parts[parts.length - 2])) {
+                    // For A + B% or A - B%, it's A * (B/100)
+                    const baseValue = math.evaluate(parts.slice(0, -2).join(' '));
+                    resultPercent = (numberToPercent / 100) * baseValue;
                 } else {
-                    const lastOpMatch = baseExpr.match(/([+\-*/])[^+\-*/]*$/);
-                    if (lastOpMatch) {
-                        const lastOp = lastOpMatch[1];
-                        const beforeOp = baseExpr.slice(0, lastOpMatch.index + 1);
-                        const lastNumber = baseExpr.slice(lastOpMatch.index + 1);
-                        if (lastOp === '+' || lastOp === '-') {
-                            state.expression = `${beforeOp}(${lastNumber} * ${percentValue} / 100)`;
-                        } else if (lastOp === '*' || lastOp === '/') {
-                            state.expression = `${beforeOp}(${percentValue} / 100)`;
-                        }
-                    } else {
-                        state.expression = `${baseExpr} * ${percentValue} / 100`;
-                    }
+                    // For A * B% or A / B% or just B%, it's B/100
+                    resultPercent = numberToPercent / 100;
                 }
-                calculate();
-            } else {
-                state.expression += '%';
+
+                parts[parts.length - 1] = resultPercent.toString();
+                state.expression = parts.join(' ');
+            } catch(e) {
+                state.expression = "Error";
+                state.isResult = true;
             }
         }
 
-        document.body.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-func],[data-value],[data-operator]');
-            if (!btn) return;
-            if (navigator.vibrate) navigator.vibrate(20);
-
-            const { value, operator, func, shiftFunc } = btn.dataset;
-            const action = state.shiftActive ? (shiftFunc || func) : func;
-
-            if (value !== undefined) {
-                if (state.isResult && !isNaN(value)) {
-                    state.expression = '';
-                    state.isResult = false;
-                }
-                state.expression += value;
-            } else if (operator !== undefined) {
-                if (state.expression === '' || state.expression === 'Error') return;
-                state.isResult = false;
-                const lastChar = state.expression.trim().slice(-1);
-                if (['+', '*', '/'].includes(lastChar)) {
-                    state.expression = state.expression.trim().slice(0, -1) + operator;
-                } else {
-                    state.expression += operator;
-                }
-            } else if (action !== undefined) {
-                if (state.expression === 'Error' && action !== 'clear') return;
-                switch(action) {
-                    case 'equal': calculate(); return;
-                    case 'clear': state.expression = ''; break;
-                    case 'backspace': state.expression = state.expression.slice(0, -1); break;
-                    case 'shift': 
-                        state.shiftActive = !state.shiftActive;
-                        document.querySelector('[data-func="shift"]').classList.toggle('active', state.shiftActive);
-                        updateDisplay();
-                        return;
-                    case 'pi': state.expression += 'pi'; break;
-                    case 'e': state.expression += 'e'; break;
-                    case 'sqr': state.expression = `(${state.expression || 'ans'})^2`; break;
-                    case 'inv': state.expression = `1/(${state.expression || 'ans'})`; break;
-                    case 'pow': state.expression += '^'; break;
-                    case 'sign': 
-                        if (state.expression === '') {
-                            state.expression = '-(ans)';
-                        } else {
-                            state.expression = `-(${state.expression})`;
-                        }
-                        break;
-                    case 'percent': 
-                        handlePercentage();
-                        return;
-                    case 'ans': state.expression += 'ans'; break;
-                    case 'fact':
-                        state.expression = `factorial(${state.expression || 'ans'})`;
-                        break;
-                    case 'sqrt':
-                        state.expression = `sqrt(${state.expression || 'ans'})`;
-                        break;
-                    case 'cbrt':
-                        state.expression = `cbrt(${state.expression || 'ans'})`;
-                        break;
-                    case 'cube':
-                        state.expression = `(${state.expression || 'ans'})^3`;
-                        break;
-                    case 'asin': case 'acos': case 'atan':
-                    case 'sin': case 'cos': case 'tan':
-                    case 'log': case 'ln': case 'exp': case 'pow10':
-                        if (state.expression === '' || /[+\-*/(]$/.test(state.expression)) {
-                            state.expression += `${action}(`;
-                        } else {
-                            state.expression = `${action}(${state.expression})`;
-                        }
-                        break;
-                    case 'M+':
-                        if (state.isResult) {
-                            const num = parseFloat(state.expression.replace(/,/g, '.'));
-                            if (!isNaN(num)) globalMemory += num;
-                        }
-                        break;
-                    case 'MR':
-                        state.expression += String(globalMemory);
-                        break;
-                    case 'MC':
-                        globalMemory = 0;
-                        break;
-                    default: return;
-                }
-                state.isResult = false;
-            }
-
-            if (state.shiftActive && func !== 'shift') {
-                state.shiftActive = false;
-                document.querySelector('[data-func="shift"]').classList.remove('active');
-            }
-
-            updateDisplay();
-        });
-
         function calculate() {
+            vibrate();
             if (state.expression.trim() === '') return;
             try {
-                parser.set('angle', state.angleMode);
-                parser.set('ans', state.lastResult);
-                const result = parser.evaluate(state.expression);
-                let formattedResult;
-                const absResult = math.abs(result);
-                if (absResult > math.bignumber('1e' + state.displayLimit) || (absResult < math.bignumber('1e-6') && !math.isZero(result))) {
-                    formattedResult = math.format(result, { notation: 'exponential', precision: 5 });
-                } else {
-                    formattedResult = math.format(result, { notation: 'fixed', precision: 10 });
-                }
+                parser.clear();
+                parser.set('Ans', math.bignumber(state.lastResult));
+                
+                // Handle angle mode for trig functions
+                const radExpr = state.expression.replace(/(sin|cos|tan)\(/g, (match, func) => {
+                    return state.angleMode === 'deg' ? `${func}d(` : `${func}(`;
+                });
+
+                const result = parser.evaluate(radExpr);
+                let formattedResult = math.format(result, { notation: 'fixed', precision: 12 });
+                
                 if (formattedResult.includes('.')) {
-                    formattedResult = formattedResult.replace(/0+$/, '').replace(/\.$/, '');
+                   formattedResult = formattedResult.replace(/0+$/, '').replace(/\.$/, '');
                 }
-                state.lastResult = formattedResult;
+
                 state.expression = formattedResult;
+                state.lastResult = formattedResult; // Update Ans
                 state.isResult = true;
             } catch (error) {
                 state.expression = 'Error';
                 state.isResult = true;
             }
+            updateDisplay();
         }
 
         function formatForDisplay(text, limit) {
-            let numStr = text.replace(/,/g, '.');
+             let numStr = String(text).replace(/,/g, '.');
             if (numStr.length > limit && !numStr.includes('e')) {
                 try {
                     const num = math.bignumber(numStr);
                     return math.format(num, { notation: 'exponential', precision: 5 });
                 } catch (e) {}
             }
-            return text.replace(/\./g, ',');
+            return String(text).replace(/\./g, ',');
         }
 
         function updateDisplay() {
             const mainDisplay = document.getElementById('fx-result');
             const secondaryDisplay = document.getElementById('fx-input');
-            let displayText = state.expression || '0';
-            if (mainDisplay) {
-                if (state.isResult) {
-                    mainDisplay.textContent = formatForDisplay(displayText, state.displayLimit);
-                    if (secondaryDisplay) secondaryDisplay.textContent = '';
-                } else {
-                    const parts = displayText.split(/([\+\-\*\/()^,])/);
-                    mainDisplay.textContent = formatForDisplay(parts[parts.length-1] || '0', state.displayLimit);
-                    if (secondaryDisplay) {
-                        secondaryDisplay.textContent = displayText
-                            .replace(/\*/g, '×')
-                            .replace(/\//g, '÷');
-                    }
-                }
+            
+            if (!mainDisplay || !secondaryDisplay) return;
+
+            if(state.isResult) {
+                secondaryDisplay.textContent = state.expression.trim().replace(/\*/g, '×').replace(/\//g, '÷') + "=";
+                mainDisplay.textContent = formatForDisplay(state.expression, state.displayLimit);
+            } else {
+                secondaryDisplay.textContent = state.expression.trim().replace(/\*/g, '×').replace(/\//g, '÷');
+                mainDisplay.textContent = '0'; // Or show last number, depends on desired logic
+            }
+            
+            if (state.expression.trim() === '') {
+                 secondaryDisplay.textContent = '';
+                 mainDisplay.textContent = '0';
             }
         }
-
         updateDisplay();
     </script>
 </body>
