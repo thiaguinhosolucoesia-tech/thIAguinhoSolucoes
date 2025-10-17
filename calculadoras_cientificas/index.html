@@ -4,11 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadoras Científicas - thIAguinho Soluções</title>
+    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- Configuração centralizada -->
+    <script src="../firebase-config.js"></script>
     <style>
         :root {
             /* Cores Globais */
@@ -448,8 +455,8 @@
              <div class="fx-container cw-container">
                 <div class="fx-header">thIAguinho Soluções</div>
                 <div class="fx-display-area cw-display-area">
-                    <div class="fx-input" id="classwiz-input"></div>
-                    <div class="fx-result" id="classwiz-result">0</div>
+                    <div class="fx-input" id="cw-input"></div>
+                    <div class="fx-result" id="cw-result">0</div>
                 </div>
                 <div id="classwiz-keypad">
                     <button class="fx-btn cw-btn dark" data-calc="cw" data-func="shift">SHIFT</button>
@@ -499,21 +506,32 @@
     </div>
 
     <script>
-        // ==================== FIREBASE CONFIGURATION ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9WEvRwaDuEDFlTlIwPxKvNr6hcNlYFbI",
-            authDomain: "thiaguinho-solucoes.firebaseapp.com",
-            databaseURL: "https://thiaguinho-solucoes-default-rtdb.firebaseio.com",
-            projectId: "thiaguinho-solucoes",
-            storageBucket: "thiaguinho-solucoes.firebasestorage.app",
-            messagingSenderId: "879610267391",
-            appId: "1:879610267391:web:bc48a54e0ce8e541feeeca"
-        };
+        // ==================== VERIFICAÇÃO DE ACESSO (PADRÃO DA PLATAFORMA) ====================
+        let currentUser = null;
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.replace('../index.html');
+                return;
+            }
+
+            currentUser = user;
+            // Verificar se o usuário está bloqueado
+            const userRef = database.ref(`users_public_list/${user.uid}`);
+            try {
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                if (userData && userData.isBlocked) {
+                    alert('Sua conta foi bloqueada. Contate o administrador.');
+                    window.location.replace('../index.html');
+                    return;
+                }
+                // Se tudo ok, mantém a página carregada
+            } catch (error) {
+                console.error("Erro ao verificar status do usuário:", error);
+                window.location.replace('../index.html');
+            }
+        });
 
         // ==================== TAB SYSTEM ====================
         const tabButtons = document.querySelectorAll('.header-back');
@@ -547,40 +565,6 @@
             fx991es: { main: 'fx991es-result', input: 'fx991es-input', angle: null },
             cw: { main: 'cw-result', input: 'cw-input', angle: null }
         };
-
-        // Função para verificar se o usuário está bloqueado
-        async function checkUserStatus() {
-            const user = auth.currentUser;
-            if (!user) {
-                window.location.replace('../index.html');
-                return false;
-            }
-
-            try {
-                const snapshot = await database.ref(`users_public_list/${user.uid}`).once('value');
-                const userData = snapshot.val();
-                if (userData && userData.isBlocked) {
-                    alert('Sua conta foi bloqueada. Contate o administrador.');
-                    window.location.replace('../index.html');
-                    return false;
-                }
-                return true;
-            } catch (error) {
-                console.error("Erro ao verificar status do usuário:", error);
-                window.location.replace('../index.html');
-                return false;
-            }
-        }
-
-        // Verificar status do usuário ao carregar
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.replace('../index.html');
-                return;
-            }
-            const isAllowed = await checkUserStatus();
-            if (!isAllowed) return;
-        });
 
         document.body.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-calc]');
