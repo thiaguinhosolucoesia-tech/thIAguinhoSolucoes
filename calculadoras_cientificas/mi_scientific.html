@@ -226,7 +226,6 @@
         const parser = math.parser();
         math.config({ number: 'BigNumber', precision: 64 });
 
-        // Função para tratar porcentagem estilo Casio
         function handlePercentage() {
             const expr = state.expression;
             const match = expr.match(/([\d\.]+(?:e[+-]?\d+)?)%$/);
@@ -315,7 +314,6 @@
                     case 'asin': case 'acos': case 'atan':
                     case 'sin': case 'cos': case 'tan':
                     case 'log': case 'ln': case 'exp': case 'pow10':
-                        // Suporte a entrada estilo Casio: sin 30 → sin(30)
                         if (state.expression === '' || /[+\-*/(]$/.test(state.expression)) {
                             state.expression += `${action}(`;
                         } else {
