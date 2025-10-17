@@ -15,14 +15,16 @@
     <script src="../firebase-config.js"></script>
     <style>
         :root {
-            --fx-shell: #2C3239;
-            --fx-display: #9BA89E;
-            --fx-btn-dark: #3A3E45;
-            --fx-btn-light: #4A4E55;
-            --fx-btn-num: #5A5E65;
-            --fx-btn-del: #C75866;
-            --fx-btn-ac: #C75866;
-            --fx-shift-text: #E8B451;
+            --fx-shell: #505050;
+            --fx-display-bg: #A0A0A0;
+            --fx-display-text: #000;
+            --fx-btn-dark: #202020;
+            --fx-btn-light: #D0D0D0;
+            --fx-btn-num: #E0E0E0;
+            --fx-btn-del: #D07090;
+            --fx-btn-ac: #D07090;
+            --fx-shift-text: #FFD700;
+            --fx-alpha-text: #FF6347;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -82,6 +84,7 @@
             padding: 1.2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             overflow: hidden;
+            position: relative;
         }
         .fx-header {
             color: #C1C3C6;
@@ -92,7 +95,7 @@
             font-size: 1.1rem;
         }
         .fx-display-area {
-            background-color: var(--fx-display);
+            background-color: var(--fx-display-bg);
             border-radius: 10px;
             padding: 0.8rem;
             height: 120px;
@@ -100,18 +103,29 @@
             flex-direction: column;
             justify-content: space-between;
             font-family: 'Roboto Mono', monospace;
-            color: #212121;
+            color: var(--fx-display-text);
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
             margin-bottom: 1rem;
             overflow: hidden;
         }
         .fx-input { font-size: 0.9rem; text-align: right; min-height: 40%; word-break: break-all; }
         .fx-result { font-size: 1.4rem; text-align: right; font-weight: 500; white-space: nowrap;}
+        .fx-keypad {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-auto-rows: 1fr;
+            gap: min(8px, 1.5vw);
+            padding: 10px;
+            position: relative;
+        }
+
+        /* Botões Genéricos */
         .fx-btn {
             position: relative;
             border: none;
             border-radius: 8px;
-            background-color: var(--fx-btn-light);
+            background-color: var(--fx-btn-dark);
             color: #FFFFFF;
             font-size: clamp(0.9rem, 3.2vw, 1.2rem);
             font-weight: 600;
@@ -119,15 +133,202 @@
             box-shadow: 0 3px 0 #1E2229, 0 4px 3px rgba(0,0,0,0.5);
             transition: all 0.05s ease;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .fx-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1E2229; }
         .fx-btn.dark { background-color: var(--fx-btn-dark); }
-        .fx-btn.num { background-color: var(--fx-btn-num); }
-        .fx-btn.del { background-color: var(--fx-btn-del); }
-        .fx-btn.ac { background-color: var(--fx-btn-ac); }
+        .fx-btn.num { background-color: var(--fx-btn-num); color: #000; }
+        .fx-btn.del { background-color: var(--fx-btn-del); color: #fff; }
+        .fx-btn.ac { background-color: var(--fx-btn-ac); color: #fff; }
         .fx-btn.dark.active { background-color: #5A5E65; }
         .fx-btn .shift-active-text { color: var(--fx-shift-text); }
-        #fx-991es-keypad { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: min(8px, 1.5vw); flex-grow: 1; padding: 10px; }
+        .fx-btn .alpha-active-text { color: var(--fx-alpha-text); }
+
+        /* Botões Específicos da FX-991ES */
+        .btn-shift { background-color: var(--fx-btn-light); color: var(--fx-shift-text); }
+        .btn-alpha { background-color: var(--fx-btn-light); color: var(--fx-alpha-text); }
+        .btn-replay { 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background-color: #C0C0C0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 3px 0 #808080, 0 4px 3px rgba(0,0,0,0.5);
+            padding: 0;
+            z-index: 10;
+        }
+        .btn-replay::before {
+            content: "◀ REPLAY ▶";
+            font-size: 0.6rem;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .btn-replay::after {
+            content: "▲";
+            font-size: 0.8rem;
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .btn-replay .replay-down {
+            content: "▼";
+            font-size: 0.8rem;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .btn-modeclr { background-color: var(--fx-btn-light); color: #000; }
+        .btn-on { background-color: var(--fx-btn-light); color: #000; }
+        .btn-rec { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-pol { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-cube { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-log { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-ln { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-sin { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-cos { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-tan { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-hyp { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-eng { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-ins { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-off { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-sto { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-rcl { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-mplus { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-mminus { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-mrc { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-s-sum { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-s-var { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-rnd { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-ran { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-pi { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-drg { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+        .btn-percent { background-color: var(--fx-btn-dark); color: var(--fx-shift-text); }
+
+        /* Posicionamento Absoluto dos Botões */
+        .fx-keypad > * {
+            position: static !important;
+        }
+        .btn-shift { position: absolute; top: 10px; left: 10px; width: 40px; height: 20px; }
+        .btn-alpha { position: absolute; top: 10px; left: 60px; width: 40px; height: 20px; }
+        .btn-modeclr { position: absolute; top: 10px; right: 60px; width: 40px; height: 20px; }
+        .btn-on { position: absolute; top: 10px; right: 10px; width: 40px; height: 20px; }
+        .btn-rec { position: absolute; top: 50px; right: 10px; width: 40px; height: 20px; }
+        .btn-pol { position: absolute; top: 75px; right: 10px; width: 40px; height: 20px; }
+        .btn-cube { position: absolute; top: 100px; right: 10px; width: 40px; height: 20px; }
+        .btn-log { position: absolute; top: 50px; right: 60px; width: 40px; height: 20px; }
+        .btn-ln { position: absolute; top: 75px; right: 60px; width: 40px; height: 20px; }
+        .btn-sin { position: absolute; top: 125px; right: 10px; width: 40px; height: 20px; }
+        .btn-cos { position: absolute; top: 125px; right: 60px; width: 40px; height: 20px; }
+        .btn-tan { position: absolute; top: 125px; right: 110px; width: 40px; height: 20px; }
+        .btn-hyp { position: absolute; top: 150px; right: 10px; width: 40px; height: 20px; }
+        .btn-eng { position: absolute; top: 150px; right: 60px; width: 40px; height: 20px; }
+        .btn-ins { position: absolute; top: 150px; right: 110px; width: 40px; height: 20px; }
+        .btn-off { position: absolute; top: 175px; right: 10px; width: 40px; height: 20px; }
+        .btn-sto { position: absolute; top: 175px; right: 60px; width: 40px; height: 20px; }
+        .btn-rcl { position: absolute; top: 175px; right: 110px; width: 40px; height: 20px; }
+        .btn-mplus { position: absolute; top: 200px; right: 10px; width: 40px; height: 20px; }
+        .btn-mminus { position: absolute; top: 200px; right: 60px; width: 40px; height: 20px; }
+        .btn-mrc { position: absolute; top: 200px; right: 110px; width: 40px; height: 20px; }
+        .btn-s-sum { position: absolute; top: 225px; right: 10px; width: 40px; height: 20px; }
+        .btn-s-var { position: absolute; top: 225px; right: 60px; width: 40px; height: 20px; }
+        .btn-rnd { position: absolute; top: 250px; right: 10px; width: 40px; height: 20px; }
+        .btn-ran { position: absolute; top: 250px; right: 60px; width: 40px; height: 20px; }
+        .btn-pi { position: absolute; top: 250px; right: 110px; width: 40px; height: 20px; }
+        .btn-drg { position: absolute; top: 275px; right: 10px; width: 40px; height: 20px; }
+        .btn-percent { position: absolute; top: 275px; right: 60px; width: 40px; height: 20px; }
+
+        /* Botões Numéricos */
+        .btn-7 { position: absolute; top: 300px; left: 10px; width: 50px; height: 40px; }
+        .btn-8 { position: absolute; top: 300px; left: 70px; width: 50px; height: 40px; }
+        .btn-9 { position: absolute; top: 300px; left: 130px; width: 50px; height: 40px; }
+        .btn-4 { position: absolute; top: 350px; left: 10px; width: 50px; height: 40px; }
+        .btn-5 { position: absolute; top: 350px; left: 70px; width: 50px; height: 40px; }
+        .btn-6 { position: absolute; top: 350px; left: 130px; width: 50px; height: 40px; }
+        .btn-1 { position: absolute; top: 400px; left: 10px; width: 50px; height: 40px; }
+        .btn-2 { position: absolute; top: 400px; left: 70px; width: 50px; height: 40px; }
+        .btn-3 { position: absolute; top: 400px; left: 130px; width: 50px; height: 40px; }
+        .btn-0 { position: absolute; top: 450px; left: 10px; width: 50px; height: 40px; }
+        .btn-dot { position: absolute; top: 450px; left: 70px; width: 50px; height: 40px; }
+        .btn-exp { position: absolute; top: 450px; left: 130px; width: 50px; height: 40px; }
+        .btn-ans { position: absolute; top: 450px; left: 190px; width: 50px; height: 40px; }
+        .btn-equal { position: absolute; top: 450px; left: 250px; width: 50px; height: 40px; }
+
+        /* Botões Operadores */
+        .btn-plus { position: absolute; top: 400px; left: 250px; width: 50px; height: 40px; }
+        .btn-minus { position: absolute; top: 350px; left: 250px; width: 50px; height: 40px; }
+        .btn-multiply { position: absolute; top: 300px; left: 250px; width: 50px; height: 40px; }
+        .btn-divide { position: absolute; top: 250px; left: 250px; width: 50px; height: 40px; }
+        .btn-open { position: absolute; top: 200px; left: 10px; width: 50px; height: 40px; }
+        .btn-close { position: absolute; top: 200px; left: 70px; width: 50px; height: 40px; }
+        .btn-comma { position: absolute; top: 200px; left: 130px; width: 50px; height: 40px; }
+        .btn-del { position: absolute; top: 200px; left: 190px; width: 50px; height: 40px; }
+        .btn-ac { position: absolute; top: 200px; left: 250px; width: 50px; height: 40px; }
+
+        /* Botões de Função */
+        .btn-xinv { position: absolute; top: 50px; left: 10px; width: 40px; height: 20px; }
+        .btn-npr { position: absolute; top: 50px; left: 60px; width: 40px; height: 20px; }
+        .btn-xsqrt { position: absolute; top: 75px; left: 10px; width: 40px; height: 20px; }
+        .btn-xpow2 { position: absolute; top: 75px; left: 60px; width: 40px; height: 20px; }
+        .btn-xpowy { position: absolute; top: 75px; left: 110px; width: 40px; height: 20px; }
+        .btn-ab { position: absolute; top: 100px; left: 10px; width: 40px; height: 20px; }
+        .btn-sqrt { position: absolute; top: 100px; left: 60px; width: 40px; height: 20px; }
+        .btn-xpow3 { position: absolute; top: 100px; left: 110px; width: 40px; height: 20px; }
+        .btn-xy { position: absolute; top: 125px; left: 10px; width: 40px; height: 20px; }
+        .btn-sin { position: absolute; top: 125px; left: 60px; width: 40px; height: 20px; }
+        .btn-cos { position: absolute; top: 125px; left: 110px; width: 40px; height: 20px; }
+        .btn-tan { position: absolute; top: 125px; left: 160px; width: 40px; height: 20px; }
+        .btn-hyp { position: absolute; top: 150px; left: 10px; width: 40px; height: 20px; }
+        .btn-eng { position: absolute; top: 150px; left: 60px; width: 40px; height: 20px; }
+        .btn-ins { position: absolute; top: 150px; left: 110px; width: 40px; height: 20px; }
+        .btn-off { position: absolute; top: 175px; left: 10px; width: 40px; height: 20px; }
+        .btn-sto { position: absolute; top: 175px; left: 60px; width: 40px; height: 20px; }
+        .btn-rcl { position: absolute; top: 175px; left: 110px; width: 40px; height: 20px; }
+        .btn-mplus { position: absolute; top: 200px; left: 10px; width: 40px; height: 20px; }
+        .btn-mminus { position: absolute; top: 200px; left: 60px; width: 40px; height: 20px; }
+        .btn-mrc { position: absolute; top: 200px; left: 110px; width: 40px; height: 20px; }
+        .btn-s-sum { position: absolute; top: 225px; left: 10px; width: 40px; height: 20px; }
+        .btn-s-var { position: absolute; top: 225px; left: 60px; width: 40px; height: 20px; }
+        .btn-rnd { position: absolute; top: 250px; left: 10px; width: 40px; height: 20px; }
+        .btn-ran { position: absolute; top: 250px; left: 60px; width: 40px; height: 20px; }
+        .btn-pi { position: absolute; top: 250px; left: 110px; width: 40px; height: 20px; }
+        .btn-drg { position: absolute; top: 275px; left: 10px; width: 40px; height: 20px; }
+        .btn-percent { position: absolute; top: 275px; left: 60px; width: 40px; height: 20px; }
+
+        /* Indicadores de Modo */
+        .mode-indicator {
+            position: absolute;
+            top: 10px;
+            right: 120px;
+            font-size: 0.7rem;
+            color: #000;
+            background-color: #FFF;
+            padding: 2px 4px;
+            border-radius: 4px;
+            z-index: 20;
+        }
+        .mode-indicator::after {
+            content: "DEG";
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -144,51 +345,103 @@
                 <div class="fx-input" id="fx-input"></div>
                 <div class="fx-result" id="fx-result">0</div>
             </div>
-            <div id="fx-991es-keypad">
-                <button class="fx-btn dark" data-func="shift">SHIFT</button>
-                <button class="fx-btn dark" data-func="alpha">ALPHA</button>
-                <button class="fx-btn dark" data-func="mode">MODE</button>
-                <button class="fx-btn dark"></button>
-                <button class="fx-btn dark" data-func="on">ON</button>
-                <button class="fx-btn"></button>
-                <button class="fx-btn"></button>
-                <button class="fx-btn" data-func="pow" data-shift-func="cube">xʸ</button>
-                <button class="fx-btn" data-func="sqrt" data-shift-func="cbrt">√</button>
-                <button class="fx-btn" data-func="sqr">x²</button>
-                <button class="fx-btn" data-func="log" data-shift-func="pow10">log</button>
-                <button class="fx-btn" data-func="ln" data-shift-func="exp">ln</button>
-                <button class="fx-btn" data-func="sign">(-)</button>
-                <button class="fx-btn" data-func="deg">°' "</button>
-                <button class="fx-btn" data-func="hyp">hyp</button>
-                <button class="fx-btn" data-func="sin" data-shift-func="asin">sin</button>
-                <button class="fx-btn" data-func="cos" data-shift-func="acos">cos</button>
-                <button class="fx-btn" data-func="tan" data-shift-func="atan">tan</button>
-                <button class="fx-btn" data-func="rcl">RCL</button>
-                <button class="fx-btn" data-func="eng">ENG</button>
-                <button class="fx-btn" data-value="(">(</button>
-                <button class="fx-btn" data-value=")">)</button>
-                <button class="fx-btn"></button>
-                <button class="fx-btn" data-func="M+">M+</button>
-                <button class="fx-btn num" data-value="7">7</button>
-                <button class="fx-btn num" data-value="8">8</button>
-                <button class="fx-btn num" data-value="9">9</button>
-                <button class="fx-btn del" data-func="backspace">DEL</button>
-                <button class="fx-btn ac" data-func="clear">AC</button>
-                <button class="fx-btn num" data-value="4">4</button>
-                <button class="fx-btn num" data-value="5">5</button>
-                <button class="fx-btn num" data-value="6">6</button>
-                <button class="fx-btn" data-operator="*">×</button>
-                <button class="fx-btn" data-operator="/">÷</button>
-                <button class="fx-btn num" data-value="1">1</button>
-                <button class="fx-btn num" data-value="2">2</button>
-                <button class="fx-btn num" data-value="3">3</button>
-                <button class="fx-btn" data-operator="+">+</button>
-                <button class="fx-btn" data-operator="-">−</button>
-                <button class="fx-btn num" data-value="0">0</button>
-                <button class="fx-btn num" data-value=".">.</button>
-                <button class="fx-btn" data-func="exp">EXP</button>
-                <button class="fx-btn" data-func="ans">Ans</button>
-                <button class="fx-btn" data-func="equal">=</button>
+            <div id="fx-991es-keypad" class="fx-keypad">
+                <!-- Botões Topo -->
+                <button class="fx-btn btn-shift" data-func="shift">SHIFT</button>
+                <button class="fx-btn btn-alpha" data-func="alpha">ALPHA</button>
+                <button class="fx-btn btn-modeclr" data-func="mode">MODE</button>
+                <button class="fx-btn btn-on" data-func="on">ON</button>
+                <button class="fx-btn btn-rec" data-func="rec">Rec(</button>
+                <button class="fx-btn btn-pol" data-func="pol">Pol(</button>
+                <button class="fx-btn btn-cube" data-func="cube">x³</button>
+                <button class="fx-btn btn-log" data-func="log">log</button>
+                <button class="fx-btn btn-ln" data-func="ln">ln</button>
+                <button class="fx-btn btn-sin" data-func="sin">sin</button>
+                <button class="fx-btn btn-cos" data-func="cos">cos</button>
+                <button class="fx-btn btn-tan" data-func="tan">tan</button>
+                <button class="fx-btn btn-hyp" data-func="hyp">hyp</button>
+                <button class="fx-btn btn-eng" data-func="eng">ENG</button>
+                <button class="fx-btn btn-ins" data-func="ins">INS</button>
+                <button class="fx-btn btn-off" data-func="off">OFF</button>
+                <button class="fx-btn btn-sto" data-func="sto">STO</button>
+                <button class="fx-btn btn-rcl" data-func="rcl">RCL</button>
+                <button class="fx-btn btn-mplus" data-func="mplus">M+</button>
+                <button class="fx-btn btn-mminus" data-func="mminus">M-</button>
+                <button class="fx-btn btn-mrc" data-func="mrc">MRC</button>
+                <button class="fx-btn btn-s-sum" data-func="s-sum">S-SUM</button>
+                <button class="fx-btn btn-s-var" data-func="s-var">S-VAR</button>
+                <button class="fx-btn btn-rnd" data-func="rnd">Rnd</button>
+                <button class="fx-btn btn-ran" data-func="ran">Ran#</button>
+                <button class="fx-btn btn-pi" data-func="pi">π</button>
+                <button class="fx-btn btn-drg" data-func="drg">DRG►</button>
+                <button class="fx-btn btn-percent" data-func="percent">%</button>
+
+                <!-- Botões Numéricos -->
+                <button class="fx-btn btn-7" data-value="7">7</button>
+                <button class="fx-btn btn-8" data-value="8">8</button>
+                <button class="fx-btn btn-9" data-value="9">9</button>
+                <button class="fx-btn btn-4" data-value="4">4</button>
+                <button class="fx-btn btn-5" data-value="5">5</button>
+                <button class="fx-btn btn-6" data-value="6">6</button>
+                <button class="fx-btn btn-1" data-value="1">1</button>
+                <button class="fx-btn btn-2" data-value="2">2</button>
+                <button class="fx-btn btn-3" data-value="3">3</button>
+                <button class="fx-btn btn-0" data-value="0">0</button>
+                <button class="fx-btn btn-dot" data-value=".">.</button>
+                <button class="fx-btn btn-exp" data-value="EXP">EXP</button>
+                <button class="fx-btn btn-ans" data-func="ans">Ans</button>
+                <button class="fx-btn btn-equal" data-func="equal">=</button>
+
+                <!-- Botões Operadores -->
+                <button class="fx-btn btn-plus" data-operator="+">+</button>
+                <button class="fx-btn btn-minus" data-operator="-">−</button>
+                <button class="fx-btn btn-multiply" data-operator="*">×</button>
+                <button class="fx-btn btn-divide" data-operator="/">÷</button>
+                <button class="fx-btn btn-open" data-value="(">(</button>
+                <button class="fx-btn btn-close" data-value=")">)</button>
+                <button class="fx-btn btn-comma" data-value=",">,</button>
+                <button class="fx-btn btn-del" data-func="del">DEL</button>
+                <button class="fx-btn btn-ac" data-func="ac">AC</button>
+
+                <!-- Botões de Função -->
+                <button class="fx-btn btn-xinv" data-func="xinv">x⁻¹</button>
+                <button class="fx-btn btn-npr" data-func="npr">nPr</button>
+                <button class="fx-btn btn-xsqrt" data-func="xsqrt">√</button>
+                <button class="fx-btn btn-xpow2" data-func="xpow2">x²</button>
+                <button class="fx-btn btn-xpowy" data-func="xpowy">xʸ</button>
+                <button class="fx-btn btn-ab" data-func="ab">ab/c</button>
+                <button class="fx-btn btn-sqrt" data-func="sqrt">√</button>
+                <button class="fx-btn btn-xpow3" data-func="xpow3">x³</button>
+                <button class="fx-btn btn-xy" data-func="xy">x,y</button>
+                <button class="fx-btn btn-sin" data-func="sin">sin</button>
+                <button class="fx-btn btn-cos" data-func="cos">cos</button>
+                <button class="fx-btn btn-tan" data-func="tan">tan</button>
+                <button class="fx-btn btn-hyp" data-func="hyp">hyp</button>
+                <button class="fx-btn btn-eng" data-func="eng">ENG</button>
+                <button class="fx-btn btn-ins" data-func="ins">INS</button>
+                <button class="fx-btn btn-off" data-func="off">OFF</button>
+                <button class="fx-btn btn-sto" data-func="sto">STO</button>
+                <button class="fx-btn btn-rcl" data-func="rcl">RCL</button>
+                <button class="fx-btn btn-mplus" data-func="mplus">M+</button>
+                <button class="fx-btn btn-mminus" data-func="mminus">M-</button>
+                <button class="fx-btn btn-mrc" data-func="mrc">MRC</button>
+                <button class="fx-btn btn-s-sum" data-func="s-sum">S-SUM</button>
+                <button class="fx-btn btn-s-var" data-func="s-var">S-VAR</button>
+                <button class="fx-btn btn-rnd" data-func="rnd">Rnd</button>
+                <button class="fx-btn btn-ran" data-func="ran">Ran#</button>
+                <button class="fx-btn btn-pi" data-func="pi">π</button>
+                <button class="fx-btn btn-drg" data-func="drg">DRG►</button>
+                <button class="fx-btn btn-percent" data-func="percent">%</button>
+
+                <!-- Botão REPLAY -->
+                <div class="btn-replay">
+                    <span>◀ REPLAY ▶</span>
+                    <span>▲</span>
+                    <span class="replay-down">▼</span>
+                </div>
+
+                <!-- Indicador de Modo -->
+                <div class="mode-indicator"></div>
             </div>
         </div>
     </div>
@@ -290,6 +543,7 @@
                     case 'shift': 
                         state.shiftActive = !state.shiftActive;
                         document.querySelector('[data-func="shift"]').classList.toggle('active', state.shiftActive);
+                        updateDisplay();
                         return;
                     case 'pi': state.expression += 'pi'; break;
                     case 'e': state.expression += 'e'; break;
