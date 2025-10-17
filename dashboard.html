@@ -15,7 +15,7 @@
         :root {
             --primary-blue: #005c97; --secondary-blue: #363795; --accent-color: #00b4d8;
             --background-light: #f0f2f5; --card-background: #ffffff;
-            --text-dark: #212529; --text-light: #6c757d;
+            --text-dark: #212529; --text-light: #6c7575;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
         .header {
@@ -46,7 +46,7 @@
         }
         .accordion:hover, .accordion.active { color: var(--secondary-blue); box-shadow: 0 8px 25px rgba(0, 92, 151, 0.1); }
         .accordion:after {
-            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='%2300b4d8'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17-.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24-.42-.12-.64l2-3.46c.12-.22.39-.3.61-.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z'/%3E%3C/svg%3E");
+            content: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='%2300b4d8'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17-.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24-.42-.12-.64l2-3.46c.12-.22.39-.3.61-.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z'/%3E%3C/svg%3E");
             transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); transform: rotate(0deg);
         }
         .accordion.active:after { transform: rotate(90deg); }
@@ -96,17 +96,14 @@
         <div class="panel"><div class="panel-content"><div class="grid">
             <a class="card" href="formularios_interativos/diario_bordo.html"><div class="card-content"><div class="card-header"><span class="card-icon">📅</span><h3 class="card-title">Diário de Bordo Profissional</h3></div><p class="card-description">Ferramenta de gestão diária para líderes, com planejamento, KPIs e análise semanal automatizada.</p></div></a>
             <a class="card" href="formularios_interativos/controle_remedios.html"><div class="card-content"><div class="card-header"><span class="card-icon">💊</span><h3 class="card-title">Controle de Tratamento</h3></div><p class="card-description">Plano de tratamento pessoal para adicionar medicamentos, definir horários e acompanhar o progresso diário.</p></div></a>
-            <a class="card" href="formularios_interativos/gerador_briefing.html"><div class="card-content"><div class="card-header"><span class="card-icon">🎯</span><h3 class="card-title">Gerador de Briefing</h3></div><p class="card-description">Painel de comando para extrair informações estratégicas e gerar relatórios de projetos de forma estruturada.</p></div></a>
             <a class="card" href="formularios_interativos/guia_eventos.html"><div class="card-content"><div class="card-header"><span class="card-icon">🎤</span><h3 class="card-title">Guia de Eventos</h3></div><p class="card-description">Guia interativo para festivais, com programação, roteiro personalizado, jogos e ranking de competidores.</p></div></a>
             <a class="card" href="formularios_interativos/guia_k_food.html"><div class="card-content"><div class="card-header"><span class="card-icon">🍜</span><h3 class="card-title">Guia Interativo K-Food</h3></div><p class="card-description">Guia rápido de pratos da culinária coreana com descrição, detalhes e argumentos de venda para equipes.</p></div></a>
         </div></div></div>
         
-        <button class="accordion">Calculadoras Científicas</button>
+        <button class="accordion">Calculadoras</button>
         <div class="panel"><div class="panel-content"><div class="grid">
-            <a class="card" href="calculadoras_cientificas/mi_scientific.html"><div class="card-content"><div class="card-header"><span class="card-icon">🧮</span><h3 class="card-title">Mi Scientific</h3></div><p class="card-description">Calculadora científica com design moderno, memória, porcentagem estilo Casio e modo DEG/RAD.</p></div></a>
-            <a class="card" href="calculadoras_cientificas/casio_fx82ms.html"><div class="card-content"><div class="card-header"><span class="card-icon">🧮</span><h3 class="card-title">Casio FX-82MS</h3></div><p class="card-description">Réplica fiel do modelo clássico, com todas as funções científicas essenciais e display de 2 linhas.</p></div></a>
-            <a class="card" href="calculadoras_cientificas/casio_fx991es.html"><div class="card-content"><div class="card-header"><span class="card-icon">🧮</span><h3 class="card-title">Casio FX-991ES</h3></div><p class="card-description">Modelo avançado com memória (M+), funções hiperbólicas, notação de engenharia e mais.</p></div></a>
-            <a class="card" href="calculadoras_cientificas/casio_classwiz.html"><div class="card-content"><div class="card-header"><span class="card-icon">🧮</span><h3 class="card-title">Casio ClassWiz</h3></div><p class="card-description">Interface moderna com display de alta resolução e acesso rápido às funções científicas avançadas.</p></div></a>
+            <a class="card" href="calculadoras_cientificas/casio_fx991es.html"><div class="card-content"><div class="card-header"><span class="card-icon">🧮</span><h3 class="card-title">Casio FX-991ES</h3></div><p class="card-description">Calculadora científica avançada com todas as funções essenciais, memória e display de 2 linhas.</p></div></a>
+            <a class="card" href="calculadoras_cientificas/calculadora_comum.html"><div class="card-content"><div class="card-header"><span class="card-icon">➕</span><h3 class="card-title">Calculadora Comum</h3></div><p class="card-description">Calculadora básica com as 4 operações, porcentagem e memória. Ideal para cálculos rápidos.</p></div></a>
         </div></div></div>
         
         <button class="accordion">Tem alguma ideia ou precisa de algum facilitoide parecido?</button>
