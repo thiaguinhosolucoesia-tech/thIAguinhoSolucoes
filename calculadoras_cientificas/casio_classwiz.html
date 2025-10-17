@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Casio ClassWiz - thIAguinho Soluções</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
@@ -23,12 +23,10 @@
             --cw-btn-green: #5C8A5C;
             --cw-btn-orange: #D97E3C;
         }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
             height: 100vh;
             width: 100vw;
-            margin: 0;
-            padding: 0;
             overflow: hidden;
             background-color: #0a0a0a;
             touch-action: manipulation;
@@ -45,20 +43,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 10px;
+            padding: 12px 16px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .header-title { font-size: 1rem; font-weight: 600; }
+        .header-title { font-size: 1.1rem; font-weight: 600; }
         .header-back {
-            padding: 8px 16px;
+            padding: 10px 18px;
             border: none;
             background: rgba(255,255,255,0.1);
             color: #aaa;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.3s ease;
         }
         .header-back:hover { background: rgba(255,255,255,0.15); color: #ddd; }
@@ -68,19 +66,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-top: 60px;
+            padding-top: 80px;
+            padding-bottom: 20px;
         }
         .fx-container {
             display: flex;
             flex-direction: column;
-            width: 100%;
-            height: 100%;
+            width: 95%;
             max-width: 380px;
+            height: 85vh;
             max-height: 820px;
             background-color: var(--cw-shell);
-            border-radius: 1.5rem;
+            border-radius: 20px;
             padding: 1.2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            overflow: hidden;
         }
         .fx-header {
             color: #C1C3C6;
@@ -93,7 +93,7 @@
         .fx-display-area {
             background-color: var(--cw-display);
             height: 140px;
-            border-radius: 0.5rem;
+            border-radius: 10px;
             padding: 0.8rem;
             display: flex;
             flex-direction: column;
@@ -109,12 +109,12 @@
         .fx-btn {
             position: relative;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             background-color: var(--cw-btn-light);
             color: #FFFFFF;
-            font-size: clamp(0.7rem, 3vw, 1rem);
+            font-size: clamp(0.9rem, 3.2vw, 1.2rem);
             font-weight: 600;
-            min-height: 42px;
+            min-height: 48px;
             box-shadow: 0 2px 0 #1A1A1A, 0 3px 3px rgba(0,0,0,0.4);
             transition: all 0.05s ease;
             cursor: pointer;
@@ -126,12 +126,12 @@
         .fx-btn.orange { background-color: var(--cw-btn-orange); }
         .fx-btn.dark.active { background-color: #5A5A5A; }
         .fx-btn .shift-active-text { color: var(--fx-shift-text); }
-        #classwiz-keypad { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 0.4rem; flex-grow: 1; }
+        #classwiz-keypad { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: min(8px, 1.5vw); flex-grow: 1; padding: 10px; }
     </style>
 </head>
 <body>
     <div class="header">
-        <button class="header-back" onclick="window.location.href='../dashboard.html'">← Voltar ao Painel</button>
+        <button class="header-back" onclick="window.location.href='../dashboard.html'">← Voltar</button>
         <div class="header-title">Casio ClassWiz</div>
         <button class="header-back" id="logout-button" onclick="auth.signOut().then(() => window.location.replace('../index.html'))">Sair</button>
     </div>
@@ -219,6 +219,35 @@
         const parser = math.parser();
         math.config({ number: 'BigNumber', precision: 64 });
 
+        function handlePercentage() {
+            const expr = state.expression;
+            const match = expr.match(/([\d\.]+(?:e[+-]?\d+)?)%$/);
+            if (match) {
+                const percentValue = match[1];
+                const baseExpr = expr.slice(0, -percentValue.length - 1);
+                if (baseExpr === '') {
+                    state.expression = `${parseFloat(percentValue) / 100}`;
+                } else {
+                    const lastOpMatch = baseExpr.match(/([+\-*/])[^+\-*/]*$/);
+                    if (lastOpMatch) {
+                        const lastOp = lastOpMatch[1];
+                        const beforeOp = baseExpr.slice(0, lastOpMatch.index + 1);
+                        const lastNumber = baseExpr.slice(lastOpMatch.index + 1);
+                        if (lastOp === '+' || lastOp === '-') {
+                            state.expression = `${beforeOp}(${lastNumber} * ${percentValue} / 100)`;
+                        } else if (lastOp === '*' || lastOp === '/') {
+                            state.expression = `${beforeOp}(${percentValue} / 100)`;
+                        }
+                    } else {
+                        state.expression = `${baseExpr} * ${percentValue} / 100`;
+                    }
+                }
+                calculate();
+            } else {
+                state.expression += '%';
+            }
+        }
+
         document.body.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-func],[data-value],[data-operator]');
             if (!btn) return;
@@ -227,9 +256,84 @@
             const { value, operator, func, shiftFunc } = btn.dataset;
             const action = state.shiftActive ? (shiftFunc || func) : func;
 
-            if (value !== undefined) handleValue(value);
-            else if (operator !== undefined) handleOperator(operator);
-            else if (action !== undefined) handleFunction(action);
+            if (value !== undefined) {
+                if (state.isResult && !isNaN(value)) {
+                    state.expression = '';
+                    state.isResult = false;
+                }
+                state.expression += value;
+            } else if (operator !== undefined) {
+                if (state.expression === '' || state.expression === 'Error') return;
+                state.isResult = false;
+                const lastChar = state.expression.trim().slice(-1);
+                if (['+', '*', '/'].includes(lastChar)) {
+                    state.expression = state.expression.trim().slice(0, -1) + operator;
+                } else {
+                    state.expression += operator;
+                }
+            } else if (action !== undefined) {
+                if (state.expression === 'Error' && action !== 'clear') return;
+                switch(action) {
+                    case 'equal': calculate(); return;
+                    case 'clear': state.expression = ''; break;
+                    case 'backspace': state.expression = state.expression.slice(0, -1); break;
+                    case 'shift': 
+                        state.shiftActive = !state.shiftActive;
+                        document.querySelector('[data-func="shift"]').classList.toggle('active', state.shiftActive);
+                        return;
+                    case 'pi': state.expression += 'pi'; break;
+                    case 'e': state.expression += 'e'; break;
+                    case 'sqr': state.expression = `(${state.expression || 'ans'})^2`; break;
+                    case 'inv': state.expression = `1/(${state.expression || 'ans'})`; break;
+                    case 'pow': state.expression += '^'; break;
+                    case 'sign': 
+                        if (state.expression === '') {
+                            state.expression = '-(ans)';
+                        } else {
+                            state.expression = `-(${state.expression})`;
+                        }
+                        break;
+                    case 'percent': 
+                        handlePercentage();
+                        return;
+                    case 'ans': state.expression += 'ans'; break;
+                    case 'fact':
+                        state.expression = `factorial(${state.expression || 'ans'})`;
+                        break;
+                    case 'sqrt':
+                        state.expression = `sqrt(${state.expression || 'ans'})`;
+                        break;
+                    case 'cbrt':
+                        state.expression = `cbrt(${state.expression || 'ans'})`;
+                        break;
+                    case 'cube':
+                        state.expression = `(${state.expression || 'ans'})^3`;
+                        break;
+                    case 'asin': case 'acos': case 'atan':
+                    case 'sin': case 'cos': case 'tan':
+                    case 'log': case 'ln': case 'exp': case 'pow10':
+                        if (state.expression === '' || /[+\-*/(]$/.test(state.expression)) {
+                            state.expression += `${action}(`;
+                        } else {
+                            state.expression = `${action}(${state.expression})`;
+                        }
+                        break;
+                    case 'M+':
+                        if (state.isResult) {
+                            const num = parseFloat(state.expression.replace(/,/g, '.'));
+                            if (!isNaN(num)) globalMemory += num;
+                        }
+                        break;
+                    case 'MR':
+                        state.expression += String(globalMemory);
+                        break;
+                    case 'MC':
+                        globalMemory = 0;
+                        break;
+                    default: return;
+                }
+                state.isResult = false;
+            }
 
             if (state.shiftActive && func !== 'shift') {
                 state.shiftActive = false;
@@ -238,83 +342,6 @@
 
             updateDisplay();
         });
-
-        function handleValue(val) {
-            if (state.expression === 'Error') state.expression = '';
-            if (state.isResult) { state.expression = ''; state.isResult = false; }
-            if (val === '.' && state.expression.split(/[\+\-\*\/()^,]/).pop().includes('.')) return;
-            state.expression += val;
-        }
-
-        function handleOperator(op) {
-            if (state.expression === '' || state.expression === 'Error') return;
-            state.isResult = false;
-            const lastChar = state.expression.trim().slice(-1);
-            if (['+', '*', '/'].includes(lastChar)) {
-                state.expression = state.expression.trim().slice(0, -1) + op;
-            } else {
-                state.expression += op;
-            }
-        }
-
-        function handleFunction(fn) {
-            if (state.expression === 'Error' && fn !== 'clear') return;
-            switch(fn) {
-                case 'equal': calculate(); return;
-                case 'clear': state.expression = ''; break;
-                case 'backspace': state.expression = state.expression.slice(0, -1); break;
-                case 'shift': 
-                    state.shiftActive = !state.shiftActive;
-                    document.querySelector('[data-func="shift"]').classList.toggle('active', state.shiftActive);
-                    return;
-                case 'pi': state.expression += 'pi'; break;
-                case 'e': state.expression += 'e'; break;
-                case 'sqr': state.expression = `(${state.expression})^2`; break;
-                case 'inv': state.expression = `1/(${state.expression})`; break;
-                case 'pow': state.expression += '^'; break;
-                case 'sign': state.expression = `-(${state.expression})`; break;
-                case 'percent': 
-                    state.expression += '%';
-                    calculate();
-                    return;
-                case 'ans': state.expression += 'ans'; break;
-                case 'fact':
-                    if (state.expression) state.expression = `factorial(${state.expression})`;
-                    break;
-                case 'sqrt':
-                    if (state.expression) state.expression = `sqrt(${state.expression})`;
-                    else state.expression = 'sqrt(';
-                    break;
-                case 'cbrt':
-                    if (state.expression) state.expression = `cbrt(${state.expression})`;
-                    else state.expression = 'cbrt(';
-                    break;
-                case 'cube':
-                    if (state.expression) state.expression = `(${state.expression})^3`;
-                    else state.expression = '(ans)^3';
-                    break;
-                case 'asin': case 'acos': case 'atan':
-                case 'sin': case 'cos': case 'tan':
-                case 'log': case 'ln': case 'exp': case 'pow10':
-                    if (state.expression) state.expression = `${fn}(${state.expression})`;
-                    else state.expression = `${fn}(`;
-                    break;
-                case 'M+':
-                    if (state.isResult) {
-                        const num = parseFloat(state.expression.replace(/,/g, '.'));
-                        if (!isNaN(num)) globalMemory += num;
-                    }
-                    break;
-                case 'MR':
-                    state.expression += String(globalMemory);
-                    break;
-                case 'MC':
-                    globalMemory = 0;
-                    break;
-                default: return;
-            }
-            state.isResult = false;
-        }
 
         function calculate() {
             if (state.expression.trim() === '') return;
