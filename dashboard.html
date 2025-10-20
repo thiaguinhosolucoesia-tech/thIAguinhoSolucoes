@@ -16,6 +16,7 @@
             --primary-blue: #005c97; --secondary-blue: #363795; --accent-color: #00b4d8;
             --background-light: #f0f2f5; --card-background: #ffffff;
             --text-dark: #212529; --text-light: #6c7575;
+            --warning-color: #ffc107; --danger-color: #dc3545;
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
         .header {
@@ -69,6 +70,29 @@
         .card-request .card-title { color: white; }
         .card-request .card-description { color: rgba(255,255,255,0.8); }
         .intro-text { text-align: center; font-size: 1.1rem; color: var(--text-light); max-width: 800px; margin: 0 auto 30px auto; }
+        
+        /* CSS ADICIONADO (V4.0) */
+        .hidden { display: none !important; }
+        .full-page-message {
+            text-align: center;
+            padding: 80px 30px;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .full-page-message h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .full-page-message p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        #pending-view h2 { color: var(--primary-blue); }
+        #rejected-view h2 { color: var(--danger-color); }
     </style>
 </head>
 <body>
@@ -82,7 +106,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="dashboard-content">
         <p class="intro-text">Bem-vindo ao seu hub de automação de rotinas ( SUA CAIXA DE FERRAMENTAS 🧰 INTERATIVA ). Selecione uma categoria para explorar os facilitoides disponíveis.</p>
 
         <button class="accordion">Listas de Compras</button>
@@ -112,35 +136,114 @@
         </div></div></div>
     </div>
 
+    <div id="pending-view" class="full-page-message hidden">
+        <h2>⏳ Cadastro em Análise</h2>
+        <p>Sua conta foi criada e está aguardando a aprovação do administrador. Você será liberado em breve!</p>
+    </div>
+
+    <div id="rejected-view" class="full-page-message hidden">
+        <h2>❌ Acesso Recusado</h2>
+        <p>O seu cadastro não foi aprovado pelo administrador. Entre em contato com a thIAguinho Soluções para mais informações.</p>
+    </div>
+
     <script>
         let currentUser = null;
+        let isAdmin = false;
+        
+        const dom = {
+            userDisplay: document.getElementById('user-display'),
+            dashboardContent: document.getElementById('dashboard-content'),
+            pendingView: document.getElementById('pending-view'),
+            rejectedView: document.getElementById('rejected-view'),
+            logoutButton: document.getElementById('logout-button')
+        };
 
+        // ROTEADOR DE AUTENTICAÇÃO (V4.0)
         auth.onAuthStateChanged(async (user) => { 
             if (user) {
                 currentUser = user;
-                document.getElementById("user-display").textContent = `Logado como: ${user.email}`;
-                database.ref("users_online/" + user.uid).set({ email: user.email, lastOnline: new Date().toISOString() });
-                database.ref("users_online/" + user.uid).onDisconnect().remove();
+                dom.userDisplay.textContent = `Logado como: ${user.email}`;
+
+                // 1. O usuário está aprovado (existe em /users_public_list)?
+                const userRef = database.ref(`users_public_list/${user.uid}`);
+                userRef.once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        
+                        // 2. O usuário está bloqueado?
+                        if (userData.isBlocked === true) {
+                            showRejectedView(); // Mostra Acesso Recusado (Bloqueado)
+                            return;
+                        }
+
+                        // 3. O usuário é admin?
+                        isAdmin = userData.role === 'admin';
+                        showDashboard(); // APROVADO: Mostra o conteúdo
+                        
+                        // Seta o status de "online"
+                        const onlineRef = database.ref("users_online/" + user.uid);
+                        onlineRef.set({ email: user.email, lastOnline: new Date().toISOString() });
+                        onlineRef.onDisconnect().remove();
+
+                    } else {
+                        // 4. Se não está na lista pública, checa se está pendente
+                        database.ref(`pending_approvals/${user.uid}`).once('value', (pendingSnapshot) => {
+                            if (pendingSnapshot.exists()) {
+                                showPendingView(); // PENdENTE: Mostra tela de "Em Análise"
+                            } else {
+                                showRejectedView(); // RECUSADO: Não está em nenhuma lista
+                            }
+                        });
+                    }
+                });
+
             } else { 
+                // Se não há usuário, volta para o index.
                 window.location.replace("index.html"); 
             } 
         });
 
-        document.getElementById('logout-button').addEventListener('click', () => {
+        // Funções de UI
+        function showDashboard() {
+            dom.dashboardContent.classList.remove('hidden');
+            dom.pendingView.classList.add('hidden');
+            dom.rejectedView.classList.add('hidden');
+            initializeDashboardLogic(); // Inicia os listeners do dashboard
+        }
+
+        function showPendingView() {
+            dom.dashboardContent.classList.add('hidden');
+            dom.pendingView.classList.remove('hidden');
+            dom.rejectedView.classList.add('hidden');
+        }
+
+        function showRejectedView() {
+            dom.dashboardContent.classList.add('hidden');
+            dom.pendingView.classList.add('hidden');
+            dom.rejectedView.classList.remove('hidden');
+        }
+
+        // Logout
+        dom.logoutButton.addEventListener('click', () => {
+            if (currentUser) {
+                database.ref("users_online/" + currentUser.uid).remove();
+            }
             auth.signOut().then(() => {
-                if (currentUser) {
-                    database.ref("users_online/" + currentUser.uid).remove();
-                }
                 window.location.replace("index.html");
             });
         });
         
+        // Lógica do Admin Trigger (V4.0 - Verificação de Role)
         const adminTriggerElement = document.getElementById('admin-trigger-area');
         let pressTimer = null;
 
         const startPress = (e) => {
             e.preventDefault(); 
             pressTimer = setTimeout(() => {
+                if (!isAdmin) { // Só permite se o usuário logado for admin
+                    alert('Acesso negado. Apenas administradores.');
+                    return;
+                }
                 const userInput = prompt("Digite o código de acesso administrativo:");
                 if (userInput === atob(ADMIN_TRIGGER_KEY)) {
                     sessionStorage.setItem('admin_access_token', 'true');
@@ -162,17 +265,20 @@
         adminTriggerElement.addEventListener("touchend", cancelPress);
         adminTriggerElement.addEventListener("mouseleave", cancelPress);
 
-        const accordions = document.getElementsByClassName("accordion");
-        for (let i = 0; i < accordions.length; i++) {
-            accordions[i].addEventListener("click", function() {
-                this.classList.toggle("active");
-                let panel = this.nextElementSibling;
-                if (panel.style.maxHeight) {
-                    panel.style.maxHeight = null;
-                } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
-                }
-            });
+        // Lógica dos Accordions
+        function initializeDashboardLogic() {
+            const accordions = document.getElementsByClassName("accordion");
+            for (let i = 0; i < accordions.length; i++) {
+                accordions[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    let panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                });
+            }
         }
     </script>
 </body>
