@@ -6,22 +6,41 @@
     <title>Painel Administrativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; --success-color: #28a745; --info-color: #17a2b8;}
+        :root { 
+            --primary-blue: #005c97; --background-light: #f0f2f5; --card-background: #ffffff; 
+            --text-dark: #212529; --text-light: #6c757d; --danger-color: #dc3545; 
+            --success-color: #28a745; --info-color: #17a2b8; --warning-color: #ffc107;
+        }
         body { font-family: 'Poppins', sans-serif; background-color: var(--background-light); margin: 0; color: var(--text-dark); }
         .header { background: var(--primary-blue); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; }
         .header a { color: white; background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 50px; text-decoration: none; font-weight: 600; }
         .container { padding: 30px; max-width: 1200px; margin: auto; }
-        .user-card { background: var(--card-background); border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .user-info { display: flex; flex-direction: column; }
-        .user-email { font-weight: 600; font-size: 1.1rem; }
-        .user-uid { font-size: 0.8rem; color: var(--text-light); font-family: monospace; }
+        .container h2 { border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary-blue); }
+        
+        .user-card, .pending-item { 
+            background: var(--card-background); border-radius: 10px; padding: 20px; margin-bottom: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; 
+            align-items: center; flex-wrap: wrap; gap: 15px; 
+        }
+        .user-info, .pending-info { display: flex; flex-direction: column; }
+        .user-email, .pending-email { font-weight: 600; font-size: 1.1rem; }
+        .user-uid, .pending-uid { font-size: 0.8rem; color: var(--text-light); font-family: monospace; }
         .user-status { font-weight: bold; }
-        .user-actions { display: flex; gap: 10px; }
-        .user-actions button { border: none; border-radius: 8px; padding: 10px 15px; font-weight: 600; cursor: pointer; }
+        .user-actions, .pending-actions { display: flex; gap: 10px; }
+        .user-actions button, .pending-actions button { border: none; border-radius: 8px; padding: 10px 15px; font-weight: 600; cursor: pointer; }
+        
+        /* Botões de Aprovados */
         .btn-block { background-color: var(--danger-color); color: white; }
         .btn-unblock { background-color: var(--success-color); color: white; }
         .btn-view { background-color: var(--info-color); color: white; }
+
+        /* Botões de Pendentes (V4.0) */
+        #pending-requests-section { margin-top: 40px; }
+        .pending-item { border-left: 5px solid var(--warning-color); }
+        .btn-approve { background-color: var(--success-color); color: white; }
+        .btn-reject { background-color: var(--danger-color); color: white; }
+
         #loading, #access-denied { text-align: center; padding: 50px; font-size: 1.5rem; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
@@ -42,9 +61,18 @@
             <a href="dashboard.html">Voltar ao Dashboard</a>
         </div>
         <div class="container">
-            <h2>Gerenciamento de Usuários</h2>
-            <div id="online-users-count" style="margin-bottom: 15px; font-weight: 600;">Usuários Online: 0</div>
-            <div id="user-list"></div>
+            
+            <div id="pending-requests-section">
+                <h2>Aprovações Pendentes</h2>
+                <div id="pending-list"></div>
+            </div>
+
+            <div id="approved-users-section" style="margin-top: 40px;">
+                <h2>Gerenciamento de Usuários Aprovados</h2>
+                <div id="online-users-count" style="margin-bottom: 15px; font-weight: 600;">Usuários Online: 0</div>
+                <div id="user-list"></div>
+            </div>
+
         </div>
     </div>
     <div id="loading"><p>Verificando passe de acesso...</p></div>
@@ -67,6 +95,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script>
+        let currentAdminUser = null; // (V4.0)
+
         document.addEventListener("DOMContentLoaded", () => {
             const adminToken = sessionStorage.getItem("admin_access_token");
             if (adminToken === "true") {
@@ -77,10 +107,11 @@
                         const roleRef = database.ref(`users_public_list/${user.uid}/role`);
                         const snapshot = await roleRef.once('value');
                         if (snapshot.val() === 'admin') {
+                            currentAdminUser = user; // (V4.0)
                             document.getElementById("loading").style.display = "none";
                             document.getElementById("access-denied").style.display = "none";
                             document.getElementById("admin-panel").style.display = "block";
-                            loadUsers();
+                            loadAllUsers(); // (V4.0)
                         } else {
                             showAccessDenied("Você não tem permissão de administrador.");
                         }
@@ -101,7 +132,51 @@
             accessDeniedDiv.querySelector('p').textContent = message;
         }
 
-        function loadUsers() {
+        // (V4.0) Função unificada para carregar ambos os painéis
+        function loadAllUsers() {
+            loadPendingUsers();
+            loadApprovedUsers();
+        }
+
+        // (V4.0) NOVA FUNÇÃO - Carrega usuários pendentes
+        function loadPendingUsers() {
+            try {
+                const pendingRef = database.ref("pending_approvals");
+                pendingRef.on("value", (snapshot) => {
+                    const pendingListDiv = document.getElementById("pending-list");
+                    pendingListDiv.innerHTML = ""; // Limpa a lista
+                    
+                    const requests = snapshot.val();
+                    if (!requests) {
+                        pendingListDiv.innerHTML = "<p>Nenhuma aprovação pendente.</p>";
+                        return;
+                    }
+
+                    Object.values(requests).forEach(user => {
+                        const card = document.createElement("div");
+                        card.className = "pending-item";
+                        card.innerHTML = `
+                            <div class="pending-info">
+                                <span class="pending-email">${user.email}</span>
+                                <span class="pending-uid">UID: ${user.uid}</span>
+                                <span>Solicitado em: ${new Date(user.createdAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div class="pending-actions">
+                                <button class="btn-approve" onclick="approveUser('${user.uid}', '${user.email}')">Aprovar</button>
+                                <button class="btn-reject" onclick="rejectUser('${user.uid}', '${user.email}')">Recusar</button>
+                            </div>
+                        `;
+                        pendingListDiv.appendChild(card);
+                    });
+                });
+            } catch (error) {
+                console.error("Erro ao carregar usuários pendentes:", error);
+                document.getElementById("pending-list").innerHTML = `<p>Ocorreu um erro ao carregar a lista de pendentes.</p>`;
+            }
+        }
+        
+        // (V4.0) FUNÇÃO ANTIGA RENOMEADA - Carrega usuários aprovados
+        function loadApprovedUsers() {
             try {
                 const usersRef = database.ref("users_public_list");
                 usersRef.on("value", async (snapshot) => {
@@ -120,6 +195,9 @@
                     userListDiv.innerHTML = "";
                     
                     usersWithStatus.sort((a, b) => a.email.localeCompare(b.email)).forEach(user => {
+                        // Não mostra o próprio admin na lista de "bloquear/excluir"
+                        if (user.uid === currentAdminUser.uid) return; 
+
                         const card = document.createElement("div");
                         card.className = "user-card";
                         card.innerHTML = `
@@ -146,8 +224,61 @@
                     });
                 });
             } catch (error) {
-                console.error("Erro ao carregar usuários:", error);
+                console.error("Erro ao carregar usuários aprovados:", error);
                 document.getElementById("user-list").innerHTML = `<p>Ocorreu um erro ao carregar a lista de usuários.</p>`;
+            }
+        }
+
+        // (V4.0) NOVA FUNÇÃO - Aprova o usuário
+        async function approveUser(uid, email) {
+            if (!confirm(`Tem certeza que deseja APROVAR o usuário ${email}?`)) return;
+
+            try {
+                // Pega os dados pendentes
+                const pendingRef = database.ref(`pending_approvals/${uid}`);
+                const snapshot = await pendingRef.once('value');
+                const pendingData = snapshot.val();
+
+                if (!pendingData) {
+                    alert("Erro: Solicitação não encontrada.");
+                    return;
+                }
+
+                // Cria o novo objeto de usuário público
+                const userPublicData = {
+                    uid: uid,
+                    email: email,
+                    isBlocked: false,
+                    role: 'user', // Define como usuário padrão
+                    createdAt: pendingData.createdAt // Mantém a data original do cadastro
+                };
+
+                // Prepara a transação (escrita em um lugar, remoção de outro)
+                const updates = {};
+                updates[`/users_public_list/${uid}`] = userPublicData;
+                updates[`/pending_approvals/${uid}`] = null; // Remove da lista de pendentes
+
+                await database.ref().update(updates);
+                alert(`Usuário ${email} aprovado com sucesso!`);
+
+            } catch (error) {
+                console.error("Erro ao aprovar usuário:", error);
+                alert("Falha ao aprovar o usuário.");
+            }
+        }
+
+        // (V4.0) NOVA FUNÇÃO - Recusa o usuário
+        async function rejectUser(uid, email) {
+            if (!confirm(`Tem certeza que deseja RECUSAR o usuário ${email}?\n\nIsso removerá a solicitação. O usuário não poderá acessar o sistema.`)) return;
+            
+            try {
+                // Apenas remove a solicitação. O usuário ficará "órfão" no Auth
+                // e cairá na tela de "Recusado" se tentar logar.
+                await database.ref(`pending_approvals/${uid}`).remove();
+                alert(`Solicitação de ${email} recusada.`);
+            } catch (error) {
+                console.error("Erro ao recusar usuário:", error);
+                alert("Falha ao recusar o usuário.");
             }
         }
         
@@ -179,7 +310,8 @@
                     database.ref(`shopping_lists/${uid}`).once('value'),
                     database.ref(`purchase_reports/${uid}`).once('value'),
                     database.ref(`easy_lists/${uid}`).once('value'),
-                    database.ref(`enfermeiro_inteligente/${uid}`).once('value')
+                    // Corrigido para o nome correto do nó
+                    database.ref(`enfermeiro_inteligente/${uid}`).once('value') 
                 ];
                 const [shoppingSnapshot, reportsSnapshot, easyListsSnapshot, enfermeiroSnapshot] = await Promise.all(promises);
 
@@ -191,26 +323,30 @@
                 let totalDataSize = 0;
                 let summaryHtml = '<div class="usage-summary">';
 
+                // (V4.0) Corrigido: easy_lists é onde os itens da "Lista Fácil" estão
                 const shoppingItemsCount = shoppingData ? Object.keys(shoppingData).length : 0;
                 const easyListItemsCount = easyListsData && easyListsData.items ? Object.keys(easyListsData.items).length : 0;
-                summaryHtml += `<p><strong>Listas de Compras:</strong> ${shoppingItemsCount + easyListItemsCount} itens criados.</p>`;
+                summaryHtml += `<p><strong>Listas de Compras (Inteligente/Fácil):</strong> ${shoppingItemsCount + easyListItemsCount} itens criados.</p>`;
 
                 const reportsCount = reportsData ? Object.keys(reportsData).length : 0;
                 summaryHtml += `<p><strong>Relatórios de Compra:</strong> ${reportsCount} relatórios salvos.</p>`;
                 
+                // (V4.0) Corrigido: dados do diário e briefing estão dentro de 'easy_lists'
                 const briefingsCount = easyListsData && easyListsData.paineis_de_inteligencia ? Object.keys(easyListsData.paineis_de_inteligencia).length : 0;
                 summaryHtml += `<p><strong>Gerador de Briefing:</strong> ${briefingsCount} briefings criados.</p>`;
 
                 const diarioCount = easyListsData && easyListsData.diario_de_bordo ? Object.keys(easyListsData.diario_de_bordo).length : 0;
                 summaryHtml += `<p><strong>Diário de Bordo:</strong> ${diarioCount} registros diários.</p>`;
 
+                // (V4.0) Corrigido: dados de enfermeiro estão dentro do nó 'enfermeiro_inteligente'
                 let patientsCount = 0;
                 let remediosCount = 0;
                 if (enfermeiroData && enfermeiroData.patients) {
                     patientsCount = Object.keys(enfermeiroData.patients).length;
                     Object.values(enfermeiroData.patients).forEach(patient => {
-                        if (patient.remedios) {
-                            remediosCount += Object.keys(patient.remedios).length;
+                        // Verifica se o paciente tem tratamentos antes de tentar contar
+                        if (patient.tratamentos) {
+                            remediosCount += Object.keys(patient.tratamentos).length;
                         }
                     });
                 }
