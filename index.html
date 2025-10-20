@@ -115,10 +115,6 @@
             <div class="input-group">
                 <input type="password" id="password" placeholder="Senha" required>
             </div>
-            <div class="input-group" id="secret-code-group" style="display: none;">
-                <input type="password" id="secret-code" placeholder="Código de Administrador" required>
-                <div class="help-text"><a id="help-button">Não sei o código</a></div>
-            </div>
             <button id="auth-button">Entrar</button>
             <p id="error-message"></p>
             <p id="contact-info"></p>
@@ -141,37 +137,20 @@
         const formTitle = document.getElementById('form-title');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const secretCodeGroup = document.getElementById('secret-code-group');
-        const secretCodeInput = document.getElementById('secret-code');
+        // const secretCodeGroup = document.getElementById('secret-code-group'); // REMOVIDO
+        // const secretCodeInput = document.getElementById('secret-code'); // REMOVIDO
         const authButton = document.getElementById('auth-button');
         const toggleLink = document.getElementById('toggle-link');
         const errorMessage = document.getElementById('error-message');
-        const helpButton = document.getElementById('help-button');
+        // const helpButton = document.getElementById('help-button'); // REMOVIDO
         const contactInfo = document.getElementById('contact-info');
         let isLogin = true;
 
         auth.onAuthStateChanged(user => { 
             if (user) { 
-                database.ref(`users_public_list/${user.uid}`).once('value')
-                    .then(snapshot => {
-                        if (!snapshot.exists()) {
-                            const userPublicData = {
-                                uid: user.uid,
-                                email: user.email,
-                                isBlocked: false,
-                                role: 'user',
-                                createdAt: new Date().toISOString()
-                            };
-                            return database.ref(`users_public_list/${user.uid}`).set(userPublicData);
-                        }
-                    })
-                    .then(() => {
-                        window.location.replace('dashboard.html'); 
-                    })
-                    .catch(error => {
-                        console.error("Erro ao verificar/criar user public list ao fazer login:", error);
-                        window.location.replace('dashboard.html'); 
-                    });
+                // Roteamento movido para o dashboard.html
+                // O dashboard decidirá se o usuário está aprovado, pendente ou bloqueado.
+                window.location.replace('dashboard.html'); 
             } 
         });
         
@@ -180,7 +159,7 @@
             formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
             authButton.textContent = isLogin ? 'Entrar' : 'Cadastrar';
             toggleLink.textContent = isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre';
-            secretCodeGroup.style.display = isLogin ? 'none' : 'block';
+            // secretCodeGroup.style.display = 'none'; // REMOVIDO
             errorMessage.textContent = '';
             contactInfo.textContent = '';
         };
@@ -188,30 +167,40 @@
         const handleAuth = () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            const secretCode = secretCodeInput.value;
+            // const secretCode = secretCodeInput.value; // REMOVIDO
             errorMessage.textContent = '';
             contactInfo.textContent = '';
+            
             if (!email || !password) { errorMessage.textContent = 'Por favor, preencha e-mail e senha.'; return; }
+            
             if (isLogin) {
                 auth.signInWithEmailAndPassword(email, password)
                     .catch(error => { 
                         errorMessage.textContent = 'E-mail ou senha incorretos.'; 
                     });
             } else {
+                // LÓGICA DE CADASTRO (V4.0)
                 if (password.length < 6) { errorMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.'; return; }
-                if (secretCode !== atob(ADMIN_TRIGGER_KEY)) { errorMessage.textContent = 'Código de Administrador incorreto.'; return; }
+                
+                // REMOVIDA A VERIFICAÇÃO DE CÓDIGO SECRETO
                 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(userCredential => {
                         const user = userCredential.user;
-                        const userPublicData = {
+                        // NOVO: Salva no nó de aprovações pendentes
+                        const userPendingData = {
                             uid: user.uid,
                             email: user.email,
-                            isBlocked: false,
-                            role: 'user', 
                             createdAt: new Date().toISOString()
                         };
-                        return database.ref(`users_public_list/${user.uid}`).set(userPublicData);
+                        // Salva em 'pending_approvals' em vez de 'users_public_list'
+                        return database.ref(`pending_approvals/${user.uid}`).set(userPendingData);
+                    })
+                    .then(() => {
+                        // Não redireciona, o onAuthStateChanged fará isso.
+                        // Apenas informa o usuário.
+                        toggleForm(); // Volta para tela de login
+                        errorMessage.textContent = 'Cadastro realizado! Aguardando aprovação do administrador.';
                     })
                     .catch(error => { 
                          if (error.code === 'auth/email-already-in-use') {
@@ -224,11 +213,11 @@
             }
         };
         
-        const showHelp = () => { contactInfo.textContent = 'Entre em contato com thIAguinho Soluções: (17) 99763-1210'; };
+        // const showHelp = () => { contactInfo.textContent = 'Entre em contato com thIAguinho Soluções: (17) 99763-1210'; }; // REMOVIDO
 
         toggleLink.addEventListener('click', toggleForm);
         authButton.addEventListener('click', handleAuth);
-        helpButton.addEventListener('click', showHelp);
+        // helpButton.addEventListener('click', showHelp); // REMOVIDO
         document.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); });
     </script>
 </body>
