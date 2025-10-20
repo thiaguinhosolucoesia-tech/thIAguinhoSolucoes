@@ -16,6 +16,7 @@
             --text-dark: #212529;
             --background-light: #ffffff;
             --danger-color: #e74c3c;
+            --success-color: #28a745; /* (V4.0) Adicionado */
         }
         body {
             font-family: 'Poppins', sans-serif;
@@ -89,7 +90,7 @@
         }
         #error-message, #contact-info { min-height: 20px; margin-top: 15px; }
         #error-message { color: var(--danger-color); font-weight: 600; }
-        #contact-info { color: var(--secondary-blue); font-weight: 600; }
+        #contact-info { color: var(--success-color); font-weight: 600; } /* (V4.0) Corrigido */
         .help-text { font-size: 0.8rem; text-align: right; margin-top: 5px; }
         .help-text a { color: #6c757d; cursor: pointer; text-decoration: none; }
         footer {
@@ -115,6 +116,7 @@
             <div class="input-group">
                 <input type="password" id="password" placeholder="Senha" required>
             </div>
+            
             <button id="auth-button">Entrar</button>
             <p id="error-message"></p>
             <p id="contact-info"></p>
@@ -137,19 +139,15 @@
         const formTitle = document.getElementById('form-title');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        // const secretCodeGroup = document.getElementById('secret-code-group'); // REMOVIDO
-        // const secretCodeInput = document.getElementById('secret-code'); // REMOVIDO
         const authButton = document.getElementById('auth-button');
         const toggleLink = document.getElementById('toggle-link');
         const errorMessage = document.getElementById('error-message');
-        // const helpButton = document.getElementById('help-button'); // REMOVIDO
         const contactInfo = document.getElementById('contact-info');
         let isLogin = true;
 
         auth.onAuthStateChanged(user => { 
             if (user) { 
-                // Roteamento movido para o dashboard.html
-                // O dashboard decidirá se o usuário está aprovado, pendente ou bloqueado.
+                // (V4.0) O roteamento (aprovação/pendente) é feito pelo dashboard.html
                 window.location.replace('dashboard.html'); 
             } 
         });
@@ -159,7 +157,6 @@
             formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
             authButton.textContent = isLogin ? 'Entrar' : 'Cadastrar';
             toggleLink.textContent = isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre';
-            // secretCodeGroup.style.display = 'none'; // REMOVIDO
             errorMessage.textContent = '';
             contactInfo.textContent = '';
         };
@@ -167,13 +164,13 @@
         const handleAuth = () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            // const secretCode = secretCodeInput.value; // REMOVIDO
             errorMessage.textContent = '';
             contactInfo.textContent = '';
             
             if (!email || !password) { errorMessage.textContent = 'Por favor, preencha e-mail e senha.'; return; }
             
             if (isLogin) {
+                // LÓGICA DE LOGIN
                 auth.signInWithEmailAndPassword(email, password)
                     .catch(error => { 
                         errorMessage.textContent = 'E-mail ou senha incorretos.'; 
@@ -182,25 +179,24 @@
                 // LÓGICA DE CADASTRO (V4.0)
                 if (password.length < 6) { errorMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.'; return; }
                 
-                // REMOVIDA A VERIFICAÇÃO DE CÓDIGO SECRETO
+                // (V4.0) Código secreto não é mais necessário para cadastro
                 
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(userCredential => {
                         const user = userCredential.user;
-                        // NOVO: Salva no nó de aprovações pendentes
+                        // (V4.0) Salva no nó de aprovações pendentes
                         const userPendingData = {
                             uid: user.uid,
                             email: user.email,
                             createdAt: new Date().toISOString()
                         };
-                        // Salva em 'pending_approvals' em vez de 'users_public_list'
+                        // (V4.0) Escreve em 'pending_approvals'
                         return database.ref(`pending_approvals/${user.uid}`).set(userPendingData);
                     })
                     .then(() => {
-                        // Não redireciona, o onAuthStateChanged fará isso.
-                        // Apenas informa o usuário.
-                        toggleForm(); // Volta para tela de login
-                        errorMessage.textContent = 'Cadastro realizado! Aguardando aprovação do administrador.';
+                        // (V4.0) Informa o usuário e volta para o login
+                        toggleForm(); 
+                        contactInfo.textContent = 'Cadastro realizado! Aguardando aprovação do administrador.';
                     })
                     .catch(error => { 
                          if (error.code === 'auth/email-already-in-use') {
@@ -212,12 +208,9 @@
                     });
             }
         };
-        
-        // const showHelp = () => { contactInfo.textContent = 'Entre em contato com thIAguinho Soluções: (17) 99763-1210'; }; // REMOVIDO
 
         toggleLink.addEventListener('click', toggleForm);
         authButton.addEventListener('click', handleAuth);
-        // helpButton.addEventListener('click', showHelp); // REMOVIDO
         document.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); });
     </script>
 </body>
